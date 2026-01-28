@@ -95,6 +95,27 @@ const serviceAreaSchema = {
     addressCountry: "CA",
   },
 };
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteUrl,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Service Area",
+      item: canonicalUrl,
+    },
+  ],
+};
+
+const structuredData = [serviceAreaSchema, breadcrumbSchema];
 ---
 
 <html lang="en-CA">
@@ -121,7 +142,7 @@ const serviceAreaSchema = {
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(serviceAreaSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
   <body>
     <div class="relative min-h-screen bg-paper">

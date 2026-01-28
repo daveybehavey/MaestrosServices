@@ -133,7 +133,20 @@ const websiteJsonLd = {
   name: business.name,
   url: siteUrl,
 };
-const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJsonLd];
+const serviceSchemas = services.map((service) => ({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  serviceType: service,
+  provider: {
+    "@type": "LandscapingBusiness",
+    name: business.name,
+  },
+  areaServed: {
+    "@type": "State",
+    name: "British Columbia",
+  },
+}));
+const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJsonLd, ...serviceSchemas];
 ---
 
 <html lang="en-CA">
@@ -167,6 +180,10 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
     <meta name="twitter:image" content={socialImageUrl} />
     <meta name="twitter:image:alt" content="Maestros Services residential landscaping" />
     <meta name="theme-color" content="#161616" />
+    <meta name="geo.region" content="CA-BC" />
+    <meta name="geo.placename" content="Shawnigan Lake, Victoria" />
+    <meta name="geo.position" content="48.6289;-123.8690" />
+    <meta name="ICBM" content="48.6289, -123.8690" />
     {gaId ? (
       <>
         <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
