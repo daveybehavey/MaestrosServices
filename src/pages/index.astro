@@ -84,10 +84,12 @@ const submitted = Astro.url.searchParams.get("submitted");
 const error = Astro.url.searchParams.get("error");
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
-const siteUrl = Astro.site?.toString().replace(/\/$/, "");
-const canonicalUrl = siteUrl ? `${siteUrl}${Astro.url.pathname}` : undefined;
-const socialImagePath = "/logo.png?v=2";
-const socialImageUrl = siteUrl ? `${siteUrl}${socialImagePath}` : socialImagePath;
+const siteUrl = Astro.site?.toString().replace(/\/$/, "") ?? "https://maestrosservices.com";
+const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
+const socialImagePath = "/og-image.png?v=1";
+const socialImageUrl = `${siteUrl}${socialImagePath}`;
+const metaDescription =
+  "Maestros Services provides friendly, reliable residential landscaping across lower-mid Vancouver Island. Call or text for a free quote.";
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -100,6 +102,19 @@ const faqJsonLd = {
     },
   })),
 };
+const businessJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LandscapingBusiness",
+  name: business.name,
+  url: siteUrl,
+  telephone: business.phoneTel,
+  email: business.email,
+  image: socialImageUrl,
+  description: metaDescription,
+  areaServed: serviceAreas,
+  serviceType: services,
+};
+const structuredData = [faqJsonLd, businessJsonLd];
 ---
 
 <html lang="en-CA">
@@ -108,12 +123,9 @@ const faqJsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>Maestros Services | Residential Landscaping on Vancouver Island</title>
-    <meta
-      name="description"
-      content="Maestros Services provides friendly, reliable residential landscaping across lower-mid Vancouver Island. Call or text for a free quote."
-    />
+    <meta name="description" content={metaDescription} />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    {canonicalUrl ? <link rel="canonical" href={canonicalUrl} /> : null}
+    <link rel="canonical" href={canonicalUrl} />
     <meta
       property="og:description"
       content="Owner-operated residential landscaping across lower-mid Vancouver Island. Free quotes and reliable care."
@@ -122,15 +134,19 @@ const faqJsonLd = {
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_CA" />
     <meta property="og:site_name" content="Maestros Services" />
-    {canonicalUrl ? <meta property="og:url" content={canonicalUrl} /> : null}
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={socialImageUrl} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Maestros Services residential landscaping" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Maestros Services | Residential Landscaping on Vancouver Island" />
     <meta
       name="twitter:description"
       content="Owner-operated residential landscaping across lower-mid Vancouver Island. Free quotes and reliable care."
     />
     <meta name="twitter:image" content={socialImageUrl} />
+    <meta name="twitter:image:alt" content="Maestros Services residential landscaping" />
     <meta name="theme-color" content="#161616" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
@@ -147,7 +163,7 @@ const faqJsonLd = {
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer is:inline></script>
       ) : null
     }
-    <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)}></script>
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
   </head>
   <body>
     <div class="relative flex min-h-screen flex-col overflow-hidden pb-24 md:pb-0">
