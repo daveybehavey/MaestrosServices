@@ -38,19 +38,27 @@ const packages = [
 ];
 
 const serviceAreas = [
+  "Victoria",
+  "Saanich",
+  "Central Saanich",
+  "North Saanich",
+  "Brentwood Bay",
+  "Sidney",
+  "Langford",
+  "Colwood",
+  "View Royal",
+  "Esquimalt",
+  "Sooke",
+  "Metchosin",
+  "Highlands",
   "Shawnigan Lake",
   "Mill Bay",
   "Cobble Hill",
+  "Cowichan Bay",
+  "Maple Bay",
+  "Lake Cowichan",
   "Duncan",
   "Cowichan Valley",
-  "Ladysmith",
-  "Nanaimo",
-  "Langford",
-  "Colwood",
-  "Sooke",
-  "Saanich",
-  "Sidney",
-  "Victoria",
 ];
 
 const faqs = [
@@ -86,8 +94,16 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     <title>Maestros Services | Residential Landscaping on Vancouver Island</title>
     <meta
       name="description"
-      content="Maestros Services provides friendly, reliable residential landscaping across the lower and mid Vancouver Island. Call or text for a free quote."
+      content="Maestros Services provides friendly, reliable residential landscaping within 50 km of Shawnigan Lake. Call or text for a free quote."
     />
+    <meta
+      property="og:description"
+      content="Owner-operated residential landscaping within 50 km of Shawnigan Lake. Free quotes and reliable care."
+    />
+    <meta property="og:title" content="Maestros Services | Residential Landscaping on Vancouver Island" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_CA" />
+    <meta name="twitter:card" content="summary" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
     <link rel="icon" href="/favicon.ico?v=2" />
@@ -105,7 +121,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     }
   </head>
   <body>
-    <div class="relative flex min-h-screen flex-col overflow-hidden">
+    <div class="relative flex min-h-screen flex-col overflow-hidden pb-24 md:pb-0">
 
       <header class="relative z-10 border-b border-border/70 bg-paper/80 backdrop-blur animate-fade">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5">
@@ -143,7 +159,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         <section class="section pt-10 pb-12 sm:pt-16 sm:pb-16 lg:py-24">
           <div class="mx-auto grid max-w-6xl gap-10 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div class="space-y-5 animate-rise" style="animation-delay: 50ms">
-              <p class="section-kicker">Lower and mid Vancouver Island</p>
+              <p class="section-kicker">Shawnigan Lake area</p>
               <h1 class="max-w-2xl text-[2.25rem] leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                 Residential landscaping that keeps your yard clean, calm, and taken care of.
               </h1>
@@ -160,15 +176,10 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                   Call or text {business.phone}
                 </a>
               </div>
-              <div class="flex flex-wrap items-center gap-4 text-sm text-ink-soft">
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex h-2 w-2 rounded-full bg-ink/70"></span>
-                  Owner-operated, residential only
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex h-2 w-2 rounded-full bg-ink/70"></span>
-                  Free quotes with clear, upfront pricing
-                </div>
+              <div class="flex flex-wrap gap-3 text-[0.7rem] uppercase tracking-[0.25em] text-ink-soft">
+                <span class="rounded-full border border-border bg-white/90 px-4 py-1">Owner-operated</span>
+                <span class="rounded-full border border-border bg-white/90 px-4 py-1">Within 50 km</span>
+                <span class="rounded-full border border-border bg-white/90 px-4 py-1">Free quotes</span>
               </div>
             </div>
             <div class="glass relative hidden rounded-2xl border border-border/70 p-7 shadow-soft animate-rise lg:block" style="animation-delay: 150ms">
@@ -299,7 +310,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                 <p class="font-semibold text-ink">Fast replies</p>
                 <p>We aim to reply within one business day.</p>
                 <p class="mt-3 font-semibold text-ink">Service area</p>
-                <p>Lower and mid Vancouver Island.</p>
+                <p>Within 50 km of Shawnigan Lake.</p>
               </div>
             </div>
           </div>
@@ -309,10 +320,10 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
           <div class="mx-auto grid max-w-6xl gap-10 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div class="space-y-4">
               <p class="section-kicker">Service area</p>
-              <h2 class="section-title">Serving lower and mid Vancouver Island.</h2>
+              <h2 class="section-title">Serving communities within 50 km of Shawnigan Lake.</h2>
               <p class="text-sm text-ink-soft">
-                Based near Shawnigan Lake and traveling throughout the region. If you are nearby, ask and we
-                will confirm availability.
+                Based near Shawnigan Lake and serving nearby communities within roughly 50 km. If you are
+                close by, ask and we will confirm availability.
               </p>
               <div class="flex flex-wrap gap-3 text-sm text-ink-soft">
                 {serviceAreas.map((area) => (
@@ -323,18 +334,22 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
             <div class="space-y-5">
               <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
                 <p class="section-kicker">Service map</p>
-                <h3 class="text-xl sm:text-2xl">Lower + mid Vancouver Island</h3>
+                <h3 class="text-xl sm:text-2xl">Shawnigan Lake service area</h3>
                 <div class="mt-5 flex items-center justify-center rounded-2xl border border-border bg-paper/80 p-6 text-ink/80">
-                  <img src="/vancouver-island.svg" alt="Minimal map of Vancouver Island" class="h-52 w-auto sm:h-60" />
+                  <picture class="block w-full">
+                    <source srcset="/VIMAP.svg" type="image/svg+xml" />
+                    <img
+                      src="/VIMAP.png"
+                      alt="Map of Shawnigan Lake service area"
+                      class="mx-auto h-56 w-auto max-w-full rounded-xl object-contain sm:h-64"
+                      loading="lazy"
+                    />
+                  </picture>
                 </div>
                 <div class="mt-4 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-ink-soft">
                   <span class="flex items-center gap-2">
                     <span class="h-2 w-2 rounded-full bg-ink/70"></span>
-                    Mid island
-                  </span>
-                  <span class="flex items-center gap-2">
-                    <span class="h-2 w-2 rounded-full bg-ink/70"></span>
-                    Lower island
+                    Within 50 km of Shawnigan Lake
                   </span>
                 </div>
               </div>
@@ -371,22 +386,29 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                   outdoor space.
                 </p>
               </div>
-              <div class="space-y-4 rounded-2xl border border-ink/10 bg-white/90 p-6">
-                <p class="text-lg font-semibold">Service values</p>
-                <ul class="space-y-3 text-sm text-ink-soft">
-                  <li class="flex gap-3">
-                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-                    Friendly communication and clear timelines.
-                  </li>
-                  <li class="flex gap-3">
-                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-                    Careful work that leaves the property tidy.
-                  </li>
-                  <li class="flex gap-3">
-                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-                    Flexible scheduling for ongoing or one-time visits.
-                  </li>
-                </ul>
+              <div class="space-y-4">
+                <div class="rounded-2xl border border-ink/10 bg-white/90 p-6">
+                  <p class="text-lg font-semibold">Service values</p>
+                  <ul class="space-y-3 text-sm text-ink-soft">
+                    <li class="flex gap-3">
+                      <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+                      Friendly communication and clear timelines.
+                    </li>
+                    <li class="flex gap-3">
+                      <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+                      Careful work that leaves the property tidy.
+                    </li>
+                    <li class="flex gap-3">
+                      <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+                      Flexible scheduling for ongoing or one-time visits.
+                    </li>
+                  </ul>
+                </div>
+                <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
+                  <p class="font-semibold text-ink">Proof & references</p>
+                  <p class="mt-2">References available on request.</p>
+                  <p class="mt-3">Reviews and photos coming soon.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -443,8 +465,8 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                 <p class="section-kicker">Get a free quote</p>
                 <h2 class="section-title">Request service in under a minute.</h2>
                 <p class="text-sm text-ink-soft">
-                  Fill out the form and we will follow up to confirm details. For urgent needs, text or call
-                  anytime.
+                  Fill out the form and we will follow up to confirm details. For urgent needs, call or text
+                  during the day for the fastest response.
                 </p>
                 <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
                   <p class="font-semibold text-ink">Fast response</p>
@@ -581,7 +603,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
             </div>
             <div class="space-y-1">
               <p class="text-base font-semibold text-ink">{business.name}</p>
-              <p>Residential landscaping for lower and mid Vancouver Island.</p>
+              <p>Residential landscaping around Shawnigan Lake.</p>
             </div>
           </div>
           <div class="space-y-2">
@@ -595,6 +617,22 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
           </div>
         </div>
       </footer>
+      <div class="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-paper/95 backdrop-blur md:hidden">
+        <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
+          <a
+            class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink"
+            href={`tel:${business.phoneTel}`}
+          >
+            Call or text
+          </a>
+          <a
+            class="flex-1 rounded-full bg-ink px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper"
+            href="#quote"
+          >
+            Get a quote
+          </a>
+        </div>
+      </div>
     </div>
   </body>
 </html>
