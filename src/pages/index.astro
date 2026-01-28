@@ -84,26 +84,54 @@ const submitted = Astro.url.searchParams.get("submitted");
 const error = Astro.url.searchParams.get("error");
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
+const siteUrl = Astro.site?.toString().replace(/\/$/, "");
+const canonicalUrl = siteUrl ? `${siteUrl}${Astro.url.pathname}` : undefined;
+const socialImagePath = "/logo.png?v=2";
+const socialImageUrl = siteUrl ? `${siteUrl}${socialImagePath}` : socialImagePath;
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+};
 ---
 
-<html lang="en">
+<html lang="en-CA">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>Maestros Services | Residential Landscaping on Vancouver Island</title>
     <meta
       name="description"
-      content="Maestros Services provides friendly, reliable residential landscaping within 50 km of Shawnigan Lake. Call or text for a free quote."
+      content="Maestros Services provides friendly, reliable residential landscaping across lower-mid Vancouver Island. Call or text for a free quote."
     />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    {canonicalUrl ? <link rel="canonical" href={canonicalUrl} /> : null}
     <meta
       property="og:description"
-      content="Owner-operated residential landscaping within 50 km of Shawnigan Lake. Free quotes and reliable care."
+      content="Owner-operated residential landscaping across lower-mid Vancouver Island. Free quotes and reliable care."
     />
     <meta property="og:title" content="Maestros Services | Residential Landscaping on Vancouver Island" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_CA" />
+    <meta property="og:site_name" content="Maestros Services" />
+    {canonicalUrl ? <meta property="og:url" content={canonicalUrl} /> : null}
+    <meta property="og:image" content={socialImageUrl} />
     <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Maestros Services | Residential Landscaping on Vancouver Island" />
+    <meta
+      name="twitter:description"
+      content="Owner-operated residential landscaping across lower-mid Vancouver Island. Free quotes and reliable care."
+    />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <meta name="theme-color" content="#161616" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
     <link rel="icon" href="/favicon.ico?v=2" />
@@ -119,6 +147,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer is:inline></script>
       ) : null
     }
+    <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)}></script>
   </head>
   <body>
     <div class="relative flex min-h-screen flex-col overflow-hidden pb-24 md:pb-0">
@@ -159,7 +188,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         <section class="section pt-10 pb-12 sm:pt-16 sm:pb-16 lg:py-24">
           <div class="mx-auto grid max-w-6xl gap-10 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div class="space-y-5 animate-rise" style="animation-delay: 50ms">
-              <p class="section-kicker">Shawnigan Lake area</p>
+              <p class="section-kicker">Lower-mid Vancouver Island</p>
               <h1 class="max-w-2xl text-[2.25rem] leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                 Residential landscaping that keeps your yard clean, calm, and taken care of.
               </h1>
@@ -178,7 +207,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
               </div>
               <div class="flex flex-wrap gap-3 text-[0.7rem] uppercase tracking-[0.25em] text-ink-soft">
                 <span class="rounded-full border border-border bg-white/90 px-4 py-1">Owner-operated</span>
-                <span class="rounded-full border border-border bg-white/90 px-4 py-1">Within 50 km</span>
+                <span class="rounded-full border border-border bg-white/90 px-4 py-1">Lower-mid island</span>
                 <span class="rounded-full border border-border bg-white/90 px-4 py-1">Free quotes</span>
               </div>
             </div>
@@ -310,7 +339,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                 <p class="font-semibold text-ink">Fast replies</p>
                 <p>We aim to reply within one business day.</p>
                 <p class="mt-3 font-semibold text-ink">Service area</p>
-                <p>Within 50 km of Shawnigan Lake.</p>
+                <p>Lower-mid Vancouver Island.</p>
               </div>
             </div>
           </div>
@@ -320,10 +349,10 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
           <div class="mx-auto grid max-w-6xl gap-10 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div class="space-y-4">
               <p class="section-kicker">Service area</p>
-              <h2 class="section-title">Serving communities within 50 km of Shawnigan Lake.</h2>
+              <h2 class="section-title">Serving lower-mid Vancouver Island.</h2>
               <p class="text-sm text-ink-soft">
-                Based near Shawnigan Lake and serving nearby communities within roughly 50 km. If you are
-                close by, ask and we will confirm availability.
+                Based near Shawnigan Lake and serving nearby communities across the lower-mid island. If you
+                are close by, ask and we will confirm availability.
               </p>
               <div class="flex flex-wrap gap-3 text-sm text-ink-soft">
                 {serviceAreas.map((area) => (
@@ -334,13 +363,13 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
             <div class="space-y-5">
               <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
                 <p class="section-kicker">Service map</p>
-                <h3 class="text-xl sm:text-2xl">Shawnigan Lake service area</h3>
+                <h3 class="text-xl sm:text-2xl">Lower-mid island service area</h3>
                 <div class="mt-5 flex items-center justify-center rounded-2xl border border-border bg-paper/80 p-6 text-ink/80">
                   <picture class="block w-full">
                     <source srcset="/VIMAP.svg" type="image/svg+xml" />
                     <img
                       src="/VIMAP.png"
-                      alt="Map of Shawnigan Lake service area"
+                      alt="Map of lower-mid Vancouver Island service area"
                       class="mx-auto h-56 w-auto max-w-full rounded-xl object-contain sm:h-64"
                       loading="lazy"
                     />
@@ -349,7 +378,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                 <div class="mt-4 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-ink-soft">
                   <span class="flex items-center gap-2">
                     <span class="h-2 w-2 rounded-full bg-ink/70"></span>
-                    Within 50 km of Shawnigan Lake
+                    Lower-mid Vancouver Island
                   </span>
                 </div>
               </div>
@@ -603,7 +632,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
             </div>
             <div class="space-y-1">
               <p class="text-base font-semibold text-ink">{business.name}</p>
-              <p>Residential landscaping around Shawnigan Lake.</p>
+              <p>Residential landscaping across lower-mid Vancouver Island.</p>
             </div>
           </div>
           <div class="space-y-2">
