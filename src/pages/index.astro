@@ -1,0 +1,548 @@
+---
+import "../styles/global.css";
+
+const business = {
+  name: "Maestros Services",
+  phone: "250-858-1781",
+  phoneTel: "+12508581781",
+  email: "quotes@maestrosservices.com",
+  hours: "7 days a week, 8am-6pm",
+};
+
+const services = [
+  "Lawn mowing and clean edging",
+  "Hedge, shrub, and small tree trimming",
+  "Garden bed refresh and mulching",
+  "Seasonal cleanups (spring and fall)",
+  "Weed control and tidy-ups",
+  "Yard waste haul-away",
+  "Small brush clearing",
+];
+
+const packages = [
+  {
+    name: "Weekly maintenance",
+    description: "Consistent care to keep lawns and beds sharp all season.",
+  },
+  {
+    name: "Bi-weekly maintenance",
+    description: "Balanced upkeep for busy homeowners and rental properties.",
+  },
+  {
+    name: "One-time cleanups",
+    description: "Perfect for move-ins, pre-sale, or a fresh start.",
+  },
+  {
+    name: "Seasonal prep",
+    description: "Spring wake-up and fall reset to protect your yard.",
+  },
+];
+
+const serviceAreas = [
+  "Shawnigan Lake",
+  "Mill Bay",
+  "Cobble Hill",
+  "Duncan",
+  "Cowichan Valley",
+  "Ladysmith",
+  "Nanaimo",
+  "Langford",
+  "Colwood",
+  "Sooke",
+  "Saanich",
+  "Sidney",
+  "Victoria",
+];
+
+const faqs = [
+  {
+    question: "Do I need to be home during service?",
+    answer: "No. As long as we can access the yard, we can take care of everything.",
+  },
+  {
+    question: "Do you haul away yard waste?",
+    answer: "Yes. Let us know if you want everything removed or neatly stacked on site.",
+  },
+  {
+    question: "Can you do large tree removal?",
+    answer: "Not yet. We handle shrubs, hedges, and small trees, but no large tree felling at this time.",
+  },
+  {
+    question: "How soon can you start?",
+    answer: "We try to book quickly. Send a few details and we will confirm the next available time.",
+  },
+];
+
+const submitted = Astro.url.searchParams.get("submitted");
+const error = Astro.url.searchParams.get("error");
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const turnstileEnabled = Boolean(turnstileSiteKey);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Maestros Services | Residential Landscaping on Vancouver Island</title>
+    <meta
+      name="description"
+      content="Maestros Services provides friendly, reliable residential landscaping across the lower and mid Vancouver Island. Call or text for a free quote."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    {
+      turnstileEnabled ? (
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      ) : null
+    }
+  </head>
+  <body>
+    <div class="relative overflow-hidden">
+      <div class="absolute -top-24 right-[-8%] hidden h-56 w-56 rounded-full border border-ink/10 sm:block"></div>
+      <div class="absolute bottom-[-12%] left-[-6%] h-56 w-56 rounded-full border border-ink/10"></div>
+      <div class="absolute right-[10%] top-[30%] hidden h-40 w-40 rounded-full border border-ink/10 lg:block"></div>
+
+      <header class="relative z-10 border-b border-border/70 bg-paper/80 backdrop-blur animate-fade">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/80">
+              <img src="/mark.svg" alt="Maestros Services mark" class="h-8 w-8" />
+            </div>
+            <div class="leading-none">
+              <p class="text-lg font-display">{business.name}</p>
+              <p class="text-xs uppercase tracking-[0.3em] text-ink-soft">Residential landscaping</p>
+            </div>
+          </div>
+          <nav class="flex flex-wrap items-center gap-4 text-sm text-ink-soft">
+            <a class="hover:text-ink" href="#services">Services</a>
+            <a class="hover:text-ink" href="#service-area">Service area</a>
+            <a class="hover:text-ink" href="#about">About</a>
+            <a class="hover:text-ink" href="#faq">FAQ</a>
+            <a class="hover:text-ink" href="#quote">Get a quote</a>
+          </nav>
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <a class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink" href={`tel:${business.phoneTel}`}>
+              Call/Text {business.phone}
+            </a>
+            <a class="rounded-full bg-ink px-4 py-2 text-paper hover:bg-ink/90" href="#quote">
+              Get a free quote
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <main class="relative z-10">
+        <section class="section">
+          <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div class="space-y-6 animate-rise" style="animation-delay: 50ms">
+              <p class="section-kicker">Lower + mid Vancouver Island</p>
+              <h1 class="text-4xl leading-tight sm:text-5xl lg:text-6xl">
+                Residential landscaping that keeps your yard clean, calm, and taken care of.
+              </h1>
+              <p class="text-lg text-ink-soft">
+                Maestros Services is owner-operated and focused on friendly, reliable care. From mowing and
+                trimming to seasonal cleanups, we help homeowners keep their outdoor spaces looking sharp
+                without the hassle.
+              </p>
+              <div class="flex flex-wrap gap-4">
+                <a class="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper shadow-fine hover:bg-ink/90" href="#quote">
+                  Get a free quote
+                </a>
+                <a class="rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:border-ink" href={`tel:${business.phoneTel}`}>
+                  Call or text {business.phone}
+                </a>
+              </div>
+              <div class="flex flex-wrap items-center gap-6 text-sm text-ink-soft">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex h-2 w-2 rounded-full bg-olive"></span>
+                  Owner-operated, residential only
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex h-2 w-2 rounded-full bg-olive"></span>
+                  {business.hours}
+                </div>
+              </div>
+            </div>
+            <div class="glass relative rounded-2xl border border-border/70 p-6 shadow-soft animate-rise" style="animation-delay: 150ms">
+              <div class="absolute -right-6 -top-6 hidden h-24 w-24 rounded-full border border-ink/10 sm:block"></div>
+              <div class="space-y-5">
+                <p class="section-kicker">Quick service snapshot</p>
+                <h2 class="text-2xl sm:text-3xl">What you can expect</h2>
+                <ul class="space-y-3 text-sm text-ink-soft">
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-olive"></span>
+                    Clear communication and on-time arrivals.
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-olive"></span>
+                    Clean, detailed work that makes the yard feel cared for.
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-olive"></span>
+                    Flexible service for busy homeowners and rentals.
+                  </li>
+                </ul>
+                <div class="rounded-xl border border-ink/10 bg-paper/70 p-4 text-sm">
+                  <p class="font-semibold text-ink">Need something specific?</p>
+                  <p class="text-ink-soft">Send a quick note and we will tailor the visit to your property.</p>
+                </div>
+                <a class="inline-flex items-center gap-2 text-sm font-semibold text-olive hover:text-ink" href="#quote">
+                  Request your quote
+                  <span aria-hidden="true">-&gt;</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="services" class="section">
+          <div class="mx-auto max-w-6xl px-6">
+            <div class="mb-10 flex flex-wrap items-end justify-between gap-6">
+              <div class="space-y-3">
+                <p class="section-kicker">Services</p>
+                <h2 class="section-title">Everything your yard needs to look its best.</h2>
+              </div>
+              <p class="max-w-md text-sm text-ink-soft">
+                We focus on residential properties and handle the recurring work so you can enjoy your space.
+                No large tree felling yet, but plenty of trimming and cleanup support.
+              </p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map((service, index) => (
+                <div
+                  class="rounded-2xl border border-border bg-white/70 p-5 shadow-fine animate-rise"
+                  style={`animation-delay: ${index * 60}ms`}
+                >
+                  <p class="text-base font-semibold">{service}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <div class="space-y-4">
+              <p class="section-kicker">Maintenance options</p>
+              <h2 class="section-title">Simple plans that fit your schedule.</h2>
+              <p class="text-sm text-ink-soft">
+                Choose a steady rhythm or a one-time reset. We can adjust once we see your property.
+              </p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              {packages.map((item, index) => (
+                <div class="rounded-2xl border border-border bg-paper/70 p-5 animate-rise" style={`animation-delay: ${index * 80}ms`}>
+                  <p class="text-lg font-semibold">{item.name}</p>
+                  <p class="text-sm text-ink-soft">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="mx-auto max-w-6xl px-6">
+            <div class="grid gap-8 rounded-2xl border border-border bg-white/70 p-8 shadow-fine lg:grid-cols-3">
+              <div class="space-y-3">
+                <p class="section-kicker">How it works</p>
+                <h2 class="section-title text-2xl sm:text-3xl">A simple process from start to finish.</h2>
+              </div>
+              <div class="space-y-4">
+                <div class="rounded-xl border border-border bg-paper/70 p-4">
+                  <p class="text-sm font-semibold">1. Reach out</p>
+                  <p class="text-sm text-ink-soft">Call, text, or send the form with a few details.</p>
+                </div>
+                <div class="rounded-xl border border-border bg-paper/70 p-4">
+                  <p class="text-sm font-semibold">2. Quick quote</p>
+                  <p class="text-sm text-ink-soft">We confirm scope, timing, and a clear price.</p>
+                </div>
+                <div class="rounded-xl border border-border bg-paper/70 p-4">
+                  <p class="text-sm font-semibold">3. We show up</p>
+                  <p class="text-sm text-ink-soft">You get a tidy, cared-for yard you can relax in.</p>
+                </div>
+              </div>
+              <div class="grid-dots rounded-xl border border-ink/10 p-4 text-sm text-ink-soft">
+                <p class="font-semibold text-ink">Availability</p>
+                <p>{business.hours}</p>
+                <p class="mt-3 font-semibold text-ink">Fast replies</p>
+                <p>We aim to reply within one business day.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="service-area" class="section">
+          <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div class="space-y-4">
+              <p class="section-kicker">Service area</p>
+              <h2 class="section-title">Serving lower and mid Vancouver Island.</h2>
+              <p class="text-sm text-ink-soft">
+                Based near Shawnigan Lake and traveling throughout the region. If you are nearby, ask and we
+                will confirm availability.
+              </p>
+              <div class="flex flex-wrap gap-3 text-sm text-ink-soft">
+                {serviceAreas.map((area) => (
+                  <span class="rounded-full border border-border bg-white/70 px-4 py-1">{area}</span>
+                ))}
+              </div>
+            </div>
+            <div class="glass rounded-2xl border border-border/70 p-6">
+              <p class="section-kicker">Preferred contact</p>
+              <h3 class="text-2xl">Call or text for the fastest response.</h3>
+              <div class="mt-5 space-y-3 text-sm">
+                <a class="block rounded-xl border border-ink/15 bg-white/70 px-4 py-3 hover:border-ink" href={`tel:${business.phoneTel}`}>
+                  {business.phone}
+                </a>
+                <a class="block rounded-xl border border-ink/15 bg-white/70 px-4 py-3 hover:border-ink" href={`mailto:${business.email}`}>
+                  {business.email}
+                </a>
+              </div>
+              <p class="mt-4 text-xs uppercase tracking-[0.3em] text-ink-soft">Residential only</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="about" class="section">
+          <div class="mx-auto max-w-6xl px-6">
+            <div class="grid gap-8 rounded-2xl border border-border bg-paper/80 p-8 lg:grid-cols-[1.1fr_0.9fr]">
+              <div class="space-y-4">
+                <p class="section-kicker">About</p>
+                <h2 class="section-title">A local, owner-operated service built on pride in the details.</h2>
+                <p class="text-sm text-ink-soft">
+                  Maestros Services is run by a 22-year-old landscaper who has been working in yards since high
+                  school. That experience means consistent results, respectful service, and an eye for what
+                  makes a property feel clean and cared for.
+                </p>
+                <p class="text-sm text-ink-soft">
+                  We focus on residential clients and take the time to understand what you want your outdoor
+                  space to feel like.
+                </p>
+              </div>
+              <div class="space-y-4 rounded-2xl border border-ink/10 bg-white/70 p-6">
+                <p class="text-lg font-semibold">Service values</p>
+                <ul class="space-y-3 text-sm text-ink-soft">
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-olive"></span>
+                    Friendly communication and clear timelines.
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-olive"></span>
+                    Careful work that leaves the property tidy.
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 rounded-full bg-olive"></span>
+                    Flexible scheduling for ongoing or one-time visits.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" class="section">
+          <div class="mx-auto max-w-6xl px-6">
+            <div class="mb-10 space-y-3">
+              <p class="section-kicker">FAQ</p>
+              <h2 class="section-title">Common questions.</h2>
+            </div>
+            <div class="grid gap-4 lg:grid-cols-2">
+              {faqs.map((faq, index) => (
+                <div
+                  class="rounded-2xl border border-border bg-white/70 p-5 animate-rise"
+                  style={`animation-delay: ${index * 60}ms`}
+                >
+                  <p class="text-base font-semibold">{faq.question}</p>
+                  <p class="mt-2 text-sm text-ink-soft">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="mx-auto max-w-6xl px-6">
+            <div class="rounded-2xl border border-ink/10 bg-ink px-8 py-10 text-paper shadow-soft">
+              <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+                <div>
+                  <p class="section-kicker text-paper/60">Ready to book</p>
+                  <h2 class="text-3xl font-display sm:text-4xl">Tell us what your yard needs.</h2>
+                  <p class="mt-3 text-sm text-paper/80">
+                    Send a few details and we will reply with a clear quote and a proposed time.
+                  </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <a class="rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink hover:bg-paper/90" href="#quote">
+                    Get a free quote
+                  </a>
+                  <a class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper" href={`tel:${business.phoneTel}`}>
+                    Call {business.phone}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="quote" class="section">
+          <div class="mx-auto max-w-6xl px-6">
+            <div class="grid gap-10 lg:grid-cols-[1fr_1fr]">
+              <div class="space-y-4">
+                <p class="section-kicker">Get a free quote</p>
+                <h2 class="section-title">Request service in under a minute.</h2>
+                <p class="text-sm text-ink-soft">
+                  Fill out the form and we will follow up to confirm details. For urgent needs, text or call
+                  anytime during business hours.
+                </p>
+                <div class="rounded-2xl border border-border bg-paper/80 p-6 text-sm text-ink-soft">
+                  <p class="font-semibold text-ink">Fast response</p>
+                  <p>We aim to reply within one business day.</p>
+                  <p class="mt-4 font-semibold text-ink">Email</p>
+                  <a class="underline decoration-ink/30" href={`mailto:${business.email}`}>
+                    {business.email}
+                  </a>
+                </div>
+              </div>
+              <form
+                class="space-y-4 rounded-2xl border border-border bg-white/70 p-6 shadow-fine"
+                method="POST"
+                action="/api/quote"
+              >
+                {
+                  submitted === "1" ? (
+                    <div class="rounded-xl border border-olive/30 bg-olive-light/30 px-4 py-3 text-sm text-ink">
+                      Thanks. We have your request and will follow up soon.
+                    </div>
+                  ) : null
+                }
+                {
+                  error === "1" ? (
+                    <div class="rounded-xl border border-ink/30 bg-paper/70 px-4 py-3 text-sm text-ink">
+                      Something went wrong. Please try again or call/text {business.phone}.
+                    </div>
+                  ) : null
+                }
+                <div>
+                  <label class="text-sm font-semibold" for="name">Name</label>
+                  <input
+                    class="mt-2 w-full rounded-xl border border-ink/15 bg-paper/70 px-4 py-3 text-sm"
+                    id="name"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold" for="phone">Phone</label>
+                  <input
+                    class="mt-2 w-full rounded-xl border border-ink/15 bg-paper/70 px-4 py-3 text-sm"
+                    id="phone"
+                    name="phone"
+                    placeholder="(250) 858-1781"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold" for="email">Email (optional)</label>
+                  <input
+                    class="mt-2 w-full rounded-xl border border-ink/15 bg-paper/70 px-4 py-3 text-sm"
+                    id="email"
+                    name="email"
+                    placeholder="you@email.com"
+                  />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold" for="area">Service area</label>
+                  <input
+                    class="mt-2 w-full rounded-xl border border-ink/15 bg-paper/70 px-4 py-3 text-sm"
+                    id="area"
+                    name="area"
+                    placeholder="Town or neighborhood"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold" for="service">Services needed</label>
+                  <select
+                    class="mt-2 w-full rounded-xl border border-ink/15 bg-paper/70 px-4 py-3 text-sm"
+                    id="service"
+                    name="service"
+                    required
+                  >
+                    <option value="">Choose a service</option>
+                    <option value="mowing">Mowing and edging</option>
+                    <option value="trim">Trimming and pruning</option>
+                    <option value="cleanup">Seasonal cleanup</option>
+                    <option value="mulch">Mulch and garden beds</option>
+                    <option value="ongoing">Ongoing maintenance</option>
+                    <option value="other">Other (describe below)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-sm font-semibold" for="details">Details</label>
+                  <textarea
+                    class="mt-2 min-h-[120px] w-full rounded-xl border border-ink/15 bg-paper/70 px-4 py-3 text-sm"
+                    id="details"
+                    name="details"
+                    placeholder="Tell us about your yard, access, and timing."
+                  ></textarea>
+                </div>
+                <div class="hidden" aria-hidden="true">
+                  <label class="text-sm font-semibold" for="company">Company</label>
+                  <input
+                    id="company"
+                    name="company"
+                    tabindex="-1"
+                    autocomplete="off"
+                  />
+                </div>
+                {turnstileEnabled ? (
+                  <div class="mt-2">
+                    <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>
+                  </div>
+                ) : null}
+                <button
+                  class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper hover:bg-ink/90"
+                  type="submit"
+                >
+                  Send request
+                </button>
+                <p class="text-xs text-ink-soft">
+                  By submitting, you agree to be contacted by phone or email about your request.
+                </p>
+              </form>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="border-t border-border/70 bg-paper/80">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-6 py-10 text-sm text-ink-soft">
+          <div class="space-y-2">
+            <p class="text-base font-semibold text-ink">{business.name}</p>
+            <p>Residential landscaping for lower and mid Vancouver Island.</p>
+          </div>
+          <div class="space-y-2">
+            <p class="font-semibold text-ink">Contact</p>
+            <a class="block hover:text-ink" href={`tel:${business.phoneTel}`}>
+              {business.phone}
+            </a>
+            <a class="block hover:text-ink" href={`mailto:${business.email}`}>
+              {business.email}
+            </a>
+          </div>
+          <div class="space-y-2">
+            <p class="font-semibold text-ink">Hours</p>
+            <p>{business.hours}</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
