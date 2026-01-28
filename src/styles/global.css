@@ -1,13 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: oklch(0.98 0.01 90);
-  --color-paper-deep: oklch(0.96 0.02 90);
-  --color-ink: oklch(0.18 0 0);
-  --color-ink-soft: oklch(0.32 0 0);
-  --color-border: oklch(0.88 0.01 90);
-  --color-olive: oklch(0.45 0.08 130);
-  --color-olive-light: oklch(0.86 0.04 130);
+  --color-paper: oklch(0.99 0 0);
+  --color-paper-deep: oklch(0.965 0 0);
+  --color-ink: oklch(0.16 0 0);
+  --color-ink-soft: oklch(0.38 0 0);
+  --color-border: oklch(0.88 0 0);
 
   --font-display: "Cormorant Garamond", serif;
   --font-body: "Manrope", sans-serif;
@@ -15,8 +13,8 @@
   --radius-xl: 1.25rem;
   --radius-2xl: 1.75rem;
 
-  --shadow-soft: 0 20px 50px oklch(0 0 0 / 0.08);
-  --shadow-fine: 0 8px 24px oklch(0 0 0 / 0.06);
+  --shadow-soft: 0 22px 50px oklch(0 0 0 / 0.09);
+  --shadow-fine: 0 10px 26px oklch(0 0 0 / 0.07);
 
   --animate-rise: rise 0.7s ease-out both;
   --animate-fade: fade 0.7s ease-out both;
@@ -65,9 +63,9 @@
   body {
     @apply bg-paper text-ink font-body antialiased;
     background-image:
-      radial-gradient(60rem 40rem at 80% -10%, oklch(0.93 0.03 130 / 0.4), transparent 60%),
-      radial-gradient(40rem 30rem at 10% 10%, oklch(0.95 0.01 90 / 0.7), transparent 55%),
-      linear-gradient(180deg, oklch(0.99 0 0 / 0.9), oklch(0.96 0.02 90 / 0.9));
+      radial-gradient(60rem 40rem at 80% -10%, oklch(0.97 0 0 / 0.6), transparent 60%),
+      radial-gradient(40rem 30rem at 10% 10%, oklch(0.985 0 0 / 0.8), transparent 55%),
+      linear-gradient(180deg, oklch(1 0 0 / 0.95), oklch(0.97 0 0 / 0.95));
   }
 
   h1,
@@ -78,33 +76,33 @@
   }
 
   ::selection {
-    background: oklch(0.88 0.04 130 / 0.8);
+    background: oklch(0.86 0 0 / 0.45);
   }
 }
 
 @layer components {
   .section {
-    @apply py-16 sm:py-20 lg:py-24;
+    @apply py-14 sm:py-20 lg:py-24;
   }
 
   .section-title {
-    @apply text-3xl sm:text-4xl lg:text-5xl tracking-tight;
+    @apply text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-tight;
   }
 
   .section-kicker {
-    @apply text-xs uppercase tracking-[0.3em] text-ink-soft;
+    @apply text-[0.65rem] font-medium uppercase tracking-[0.35em] text-ink-soft;
   }
 }
 
 @layer utilities {
   .glass {
-    background: oklch(0.98 0.01 90 / 0.88);
+    background: oklch(0.99 0 0 / 0.9);
     box-shadow: var(--shadow-soft);
     backdrop-filter: blur(10px);
   }
 
   .grid-dots {
-    background-image: radial-gradient(transparent 1px, oklch(0.95 0.01 90 / 0.9) 1px);
+    background-image: radial-gradient(transparent 1px, oklch(0.97 0 0 / 0.9) 1px);
     background-size: 18px 18px;
   }
 }
