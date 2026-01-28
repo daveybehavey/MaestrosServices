@@ -88,6 +88,7 @@ const siteUrl = Astro.site?.toString().replace(/\/$/, "") ?? "https://maestrosse
 const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
 const socialImagePath = "/og-image.png?v=4";
 const socialImageUrl = `${siteUrl}${socialImagePath}`;
+const gaId = import.meta.env.PUBLIC_GA_ID;
 const metaDescription =
   "Maestros Services provides friendly, reliable residential landscaping across lower-mid Vancouver Island. Call or text for a free quote.";
 const faqJsonLd = {
@@ -114,7 +115,25 @@ const businessJsonLd = {
   areaServed: serviceAreas,
   serviceType: services,
 };
-const structuredData = [faqJsonLd, businessJsonLd];
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: business.name,
+  url: siteUrl,
+  logo: `${siteUrl}/logo.png`,
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: business.phoneTel,
+    contactType: "customer service",
+  },
+};
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: business.name,
+  url: siteUrl,
+};
+const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJsonLd];
 ---
 
 <html lang="en-CA">
@@ -148,6 +167,19 @@ const structuredData = [faqJsonLd, businessJsonLd];
     <meta name="twitter:image" content={socialImageUrl} />
     <meta name="twitter:image:alt" content="Maestros Services residential landscaping" />
     <meta name="theme-color" content="#161616" />
+    {gaId ? (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+        <script is:inline>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${gaId}', { anonymize_ip: true });
+          `}
+        </script>
+      </>
+    ) : null}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
     <link rel="icon" href="/favicon.ico?v=2" />
@@ -163,7 +195,7 @@ const structuredData = [faqJsonLd, businessJsonLd];
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer is:inline></script>
       ) : null
     }
-    <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
   </head>
   <body>
     <div class="relative flex min-h-screen flex-col overflow-hidden pb-24 md:pb-0">
@@ -214,10 +246,20 @@ const structuredData = [faqJsonLd, businessJsonLd];
                 without the hassle.
               </p>
               <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <a class="w-full rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-paper shadow-fine hover:bg-ink/90 sm:w-auto" href="#quote">
+                <a
+                  class="w-full rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-paper shadow-fine hover:bg-ink/90 sm:w-auto"
+                  href="#quote"
+                  data-ga-event="cta_click"
+                  data-ga-label="hero_get_quote"
+                >
                   Get a free quote
                 </a>
-                <a class="w-full rounded-full border border-ink/20 px-6 py-3 text-center text-sm font-semibold hover:border-ink sm:w-auto" href={`tel:${business.phoneTel}`}>
+                <a
+                  class="w-full rounded-full border border-ink/20 px-6 py-3 text-center text-sm font-semibold hover:border-ink sm:w-auto"
+                  href={`tel:${business.phoneTel}`}
+                  data-ga-event="cta_click"
+                  data-ga-label="hero_call_text"
+                >
                   Call or text {business.phone}
                 </a>
               </div>
@@ -249,13 +291,19 @@ const structuredData = [faqJsonLd, businessJsonLd];
                   <p class="font-semibold text-ink">Need something specific?</p>
                   <p class="text-ink-soft">Send a quick note and we will tailor the visit to your property.</p>
                 </div>
-                <a class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70" href="#quote">
+                <a
+                  class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                  href="#quote"
+                  data-ga-event="cta_click"
+                  data-ga-label="snapshot_request_quote"
+                >
                   Request your quote
                   <span aria-hidden="true">-&gt;</span>
                 </a>
               </div>
             </div>
           </div>
+          <div id="hero-sentinel" class="h-1"></div>
         </section>
 
         <section class="section pt-0 lg:hidden">
@@ -277,10 +325,48 @@ const structuredData = [faqJsonLd, businessJsonLd];
                   Flexible service for busy homeowners and rentals.
                 </li>
               </ul>
-              <a class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70" href="#quote">
+              <a
+                class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                href="#quote"
+                data-ga-event="cta_click"
+                data-ga-label="snapshot_mobile_request_quote"
+              >
                 Request your quote
                 <span aria-hidden="true">-&gt;</span>
               </a>
+            </div>
+          </div>
+        </section>
+
+        <section id="gallery" class="section">
+          <div class="mx-auto max-w-6xl px-5 sm:px-6">
+            <div class="mb-8 flex flex-wrap items-end justify-between gap-6 sm:mb-10">
+              <div class="space-y-3">
+                <p class="section-kicker">Work gallery</p>
+                <h2 class="section-title">Photos and before/after shots coming soon.</h2>
+              </div>
+              <p class="max-w-md text-sm text-ink-soft">
+                We are building a portfolio of recent projects. In the meantime, you can request references.
+              </p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {["Fresh edging", "Seasonal cleanup", "Garden bed refresh"].map((label, index) => (
+                <div
+                  class="group overflow-hidden rounded-2xl border border-border bg-white/90 shadow-fine animate-rise"
+                  style={`animation-delay: ${index * 80}ms`}
+                >
+                  <div class="relative aspect-[4/3] bg-paper/80">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.8),transparent_45%)]"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-xs uppercase tracking-[0.35em] text-ink/40">
+                      Photo coming soon
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <p class="text-sm font-semibold text-ink">{label}</p>
+                    <p class="mt-1 text-xs text-ink-soft">Ask for recent references.</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -370,6 +456,9 @@ const structuredData = [faqJsonLd, businessJsonLd];
                 Based near Shawnigan Lake and serving nearby communities across the lower-mid island. If you
                 are close by, ask and we will confirm availability.
               </p>
+              <a class="text-sm font-semibold text-ink hover:text-ink/70" href="/service-area" data-ga-event="cta_click" data-ga-label="service_area_page">
+                View full service area -&gt;
+              </a>
               <div class="flex flex-wrap gap-3 text-sm text-ink-soft">
                 {serviceAreas.map((area) => (
                   <span class="rounded-full border border-border bg-white/90 px-4 py-1">{area}</span>
@@ -402,10 +491,20 @@ const structuredData = [faqJsonLd, businessJsonLd];
                 <p class="section-kicker">Preferred contact</p>
                 <h3 class="text-2xl">Call or text for the fastest response.</h3>
                 <div class="mt-5 space-y-3 text-sm">
-                  <a class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 hover:border-ink" href={`tel:${business.phoneTel}`}>
+                  <a
+                    class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 hover:border-ink"
+                    href={`tel:${business.phoneTel}`}
+                    data-ga-event="cta_click"
+                    data-ga-label="service_area_call"
+                  >
                     {business.phone}
                   </a>
-                  <a class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 hover:border-ink" href={`mailto:${business.email}`}>
+                  <a
+                    class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 hover:border-ink"
+                    href={`mailto:${business.email}`}
+                    data-ga-event="cta_click"
+                    data-ga-label="service_area_email"
+                  >
                     {business.email}
                   </a>
                 </div>
@@ -491,10 +590,20 @@ const structuredData = [faqJsonLd, businessJsonLd];
                   </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
-                  <a class="rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink hover:bg-paper/90" href="#quote">
+                  <a
+                    class="rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink hover:bg-paper/90"
+                    href="#quote"
+                    data-ga-event="cta_click"
+                    data-ga-label="cta_band_get_quote"
+                  >
                     Get a free quote
                   </a>
-                  <a class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper" href={`tel:${business.phoneTel}`}>
+                  <a
+                    class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper"
+                    href={`tel:${business.phoneTel}`}
+                    data-ga-event="cta_click"
+                    data-ga-label="cta_band_call"
+                  >
                     Call {business.phone}
                   </a>
                 </div>
@@ -523,6 +632,7 @@ const structuredData = [faqJsonLd, businessJsonLd];
                 </div>
               </div>
               <form
+                id="quote-form"
                 class="space-y-4 rounded-2xl border border-border bg-white/90 p-6 shadow-fine"
                 method="POST"
                 action="/api/quote"
@@ -628,6 +738,8 @@ const structuredData = [faqJsonLd, businessJsonLd];
                 <button
                   class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper hover:bg-ink/90"
                   type="submit"
+                  data-ga-event="form_submit"
+                  data-ga-label="quote_form"
                 >
                   Send request
                 </button>
@@ -663,21 +775,61 @@ const structuredData = [faqJsonLd, businessJsonLd];
         </div>
       </footer>
       <div class="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-paper/95 backdrop-blur md:hidden">
-        <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
+        <div
+          id="mobile-cta"
+          class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 opacity-0 pointer-events-none translate-y-3 transition duration-300"
+        >
           <a
             class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink"
             href={`tel:${business.phoneTel}`}
+            data-ga-event="cta_click"
+            data-ga-label="mobile_sticky_call"
           >
             Call or text
           </a>
           <a
             class="flex-1 rounded-full bg-ink px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper"
             href="#quote"
+            data-ga-event="cta_click"
+            data-ga-label="mobile_sticky_quote"
           >
             Get a quote
           </a>
         </div>
       </div>
+      <script is:inline>
+        {`
+          const heroSentinel = document.getElementById('hero-sentinel');
+          const mobileCta = document.getElementById('mobile-cta');
+          if (heroSentinel && mobileCta) {
+            const observer = new IntersectionObserver(([entry]) => {
+              if (entry.isIntersecting) {
+                mobileCta.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+              } else {
+                mobileCta.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+              }
+            }, { rootMargin: '-20% 0px 0px 0px' });
+            observer.observe(heroSentinel);
+          }
+
+          const gaId = ${gaId ? `'${gaId}'` : "null"};
+          if (gaId && window.gtag) {
+            document.querySelectorAll('[data-ga-event]').forEach((el) => {
+              el.addEventListener('click', () => {
+                const eventName = el.getAttribute('data-ga-event');
+                const label = el.getAttribute('data-ga-label');
+                window.gtag('event', eventName, { event_category: 'cta', event_label: label });
+              });
+            });
+            const quoteForm = document.getElementById('quote-form');
+            if (quoteForm) {
+              quoteForm.addEventListener('submit', () => {
+                window.gtag('event', 'form_submit', { event_category: 'form', event_label: 'quote_form' });
+              });
+            }
+          }
+        `}
+      </script>
     </div>
   </body>
 </html>
