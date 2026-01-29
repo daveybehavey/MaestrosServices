@@ -215,10 +215,10 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
     <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
   </head>
   <body>
-    <div class="relative flex min-h-screen flex-col overflow-hidden pb-24 md:pb-0">
+    <div class="relative flex min-h-screen flex-col pb-24 md:pb-0">
 
-      <header class="relative z-10 border-b border-border/70 bg-paper/80 backdrop-blur animate-fade">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5">
+      <header class="sticky top-0 z-50 border-b border-border/70 bg-paper/80 backdrop-blur animate-fade">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6 sm:py-4">
           <div class="flex items-center gap-3">
             <div class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/90">
               <picture>
@@ -250,8 +250,8 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
       </header>
 
       <main class="relative z-10 flex-1">
-        <section class="section pt-6 pb-8 sm:pt-16 sm:pb-16 lg:py-24">
-          <div class="mx-auto grid max-w-6xl gap-10 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <section class="section min-h-screen flex items-center pt-4 pb-4 sm:pt-8 sm:pb-8 lg:pt-10 lg:pb-10">
+          <div class="mx-auto grid max-w-6xl gap-4 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center w-full">
             <div class="space-y-3 sm:space-y-5 animate-rise" style="animation-delay: 50ms">
               <div class="mb-3 sm:mb-6 flex items-center gap-3 sm:gap-4">
                 <img src="/logo.png?v=2" alt="Maestros Services lotus logo" class="h-12 w-12 sm:h-16 sm:w-16" width="64" height="64" />
@@ -261,7 +261,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                 </div>
               </div>
               <p class="section-kicker">Lower-mid Vancouver Island</p>
-              <h1 class="max-w-2xl text-[1.75rem] leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              <h1 class="max-w-2xl text-[1.25rem] leading-tight tracking-tight sm:text-3xl lg:text-5xl">
                 Residential landscaping that keeps your yard clean, calm, and taken care of.
               </h1>
               <p class="max-w-xl text-sm text-ink-soft sm:text-lg">
@@ -272,7 +272,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
               <div class="mb-6 sm:mb-8 flex flex-col items-start gap-1 sm:gap-2">
                 <p class="text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for same-day quote</p>
                 <a
-                  class="text-2xl font-display font-semibold text-ink hover:text-ink/70 sm:text-4xl lg:text-5xl"
+                  class="text-xl font-display font-semibold text-ink hover:text-ink/70 sm:text-3xl lg:text-4xl"
                   href={`tel:${business.phoneTel}`}
                   data-ga-event="cta_click"
                   data-ga-label="hero_phone_primary"
@@ -303,7 +303,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                 <span class="rounded-full border border-border bg-white/90 px-4 py-1">Lower-mid island</span>
               </div>
             </div>
-            <div class="glass relative hidden rounded-2xl border border-border/70 p-7 shadow-soft animate-rise lg:block" style="animation-delay: 150ms">
+            <div class="glass relative hidden rounded-2xl border border-border/70 p-5 shadow-soft animate-rise xl:block" style="animation-delay: 150ms">
               <div class="space-y-5">
                 <p class="section-kicker">Quick service snapshot</p>
                 <h2 class="text-2xl sm:text-3xl">What you can expect</h2>
