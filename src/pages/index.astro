@@ -239,11 +239,11 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
             <a class="hover:text-ink" href="#quote">Get a quote</a>
           </nav>
           <div class="hidden flex-wrap items-center gap-3 text-sm md:flex">
-            <a class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink" href={`tel:${business.phoneTel}`}>
+            <a class="rounded-full bg-ink px-5 py-2.5 text-paper hover:bg-ink/90" href={`tel:${business.phoneTel}`}>
               Call or text {business.phone}
             </a>
-            <a class="rounded-full bg-ink px-4 py-2 text-paper hover:bg-ink/90" href="#quote">
-              Get a free quote
+            <a class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink" href="#quote">
+              Get a quote
             </a>
           </div>
         </div>
@@ -269,22 +269,33 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                 trimming to seasonal cleanups, we help homeowners keep their outdoor spaces looking sharp
                 without the hassle.
               </p>
+              <div class="mb-4 flex flex-col items-start gap-2">
+                <p class="text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for same-day quote</p>
+                <a
+                  class="text-3xl font-display font-semibold text-ink hover:text-ink/70 sm:text-4xl lg:text-5xl"
+                  href={`tel:${business.phoneTel}`}
+                  data-ga-event="cta_click"
+                  data-ga-label="hero_phone_primary"
+                >
+                  {business.phone}
+                </a>
+              </div>
               <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
-                  class="w-full rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-paper shadow-fine hover:bg-ink/90 sm:w-auto"
-                  href="#quote"
-                  data-ga-event="cta_click"
-                  data-ga-label="hero_get_quote"
-                >
-                  Get a free quote
-                </a>
-                <a
-                  class="w-full rounded-full border border-ink/20 px-6 py-3 text-center text-sm font-semibold hover:border-ink sm:w-auto"
+                  class="w-full rounded-full bg-ink px-8 py-4 text-center text-sm font-semibold text-paper shadow-fine hover:bg-ink/90 sm:w-auto"
                   href={`tel:${business.phoneTel}`}
                   data-ga-event="cta_click"
                   data-ga-label="hero_call_text"
                 >
-                  Call or text {business.phone}
+                  Call or text now
+                </a>
+                <a
+                  class="w-full rounded-full border border-ink/20 px-8 py-4 text-center text-sm font-semibold hover:border-ink sm:w-auto"
+                  href="#quote"
+                  data-ga-event="cta_click"
+                  data-ga-label="hero_get_quote"
+                >
+                  Get a free quote today
                 </a>
               </div>
               <div class="flex flex-wrap gap-3 text-[0.7rem] uppercase tracking-[0.25em] text-ink-soft">
@@ -512,11 +523,11 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                 </div>
               </div>
               <div class="glass rounded-2xl border border-border/70 p-7">
-                <p class="section-kicker">Preferred contact</p>
+                <p class="section-kicker">Get a same-day quote</p>
                 <h3 class="text-2xl">Call or text for the fastest response.</h3>
                 <div class="mt-5 space-y-3 text-sm">
                   <a
-                    class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 hover:border-ink"
+                    class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
                     href={`tel:${business.phoneTel}`}
                     data-ga-event="cta_click"
                     data-ga-label="service_area_call"
@@ -524,7 +535,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                     {business.phone}
                   </a>
                   <a
-                    class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 hover:border-ink"
+                    class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
                     href={`mailto:${business.email}`}
                     data-ga-event="cta_click"
                     data-ga-label="service_area_email"
@@ -610,25 +621,25 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                   <p class="section-kicker text-paper/60">Ready to book</p>
                   <h2 class="text-3xl font-display sm:text-4xl">Tell us what your yard needs.</h2>
                   <p class="mt-3 text-sm text-paper/80">
-                    Send a few details and we will reply with a clear quote and a proposed time.
+                    Call or text for a same-day quote. We aim to reply within one business day.
                   </p>
                 </div>
-                <div class="flex flex-wrap items-center gap-3">
+                <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                   <a
-                    class="rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink hover:bg-paper/90"
-                    href="#quote"
-                    data-ga-event="cta_click"
-                    data-ga-label="cta_band_get_quote"
-                  >
-                    Get a free quote
-                  </a>
-                  <a
-                    class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper"
+                    class="rounded-full bg-paper px-8 py-4 text-sm font-semibold text-ink hover:bg-paper/90"
                     href={`tel:${business.phoneTel}`}
                     data-ga-event="cta_click"
                     data-ga-label="cta_band_call"
                   >
-                    Call {business.phone}
+                    Call or text {business.phone}
+                  </a>
+                  <a
+                    class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper"
+                    href="#quote"
+                    data-ga-event="cta_click"
+                    data-ga-label="cta_band_get_quote"
+                  >
+                    Get a free quote today
                   </a>
                 </div>
               </div>
@@ -643,14 +654,14 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                 <p class="section-kicker">Get a free quote</p>
                 <h2 class="section-title">Request service in under a minute.</h2>
                 <p class="text-sm text-ink-soft">
-                  Fill out the form and we will follow up to confirm details. For urgent needs, call or text
-                  during the day for the fastest response.
+                  Fill out the form and we will follow up within one business day. For same-day quotes, call or text {business.phone} directly.
                 </p>
                 <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
-                  <p class="font-semibold text-ink">Fast response</p>
+                  <p class="font-semibold text-ink">Same-day quotes available</p>
+                  <p>Call or text {business.phone} for the fastest response.</p>
+                  <p class="mt-4 font-semibold text-ink">Email quotes</p>
                   <p>We aim to reply within one business day.</p>
-                  <p class="mt-4 font-semibold text-ink">Email</p>
-                  <a class="underline decoration-ink/30" href={`mailto:${business.email}`}>
+                  <a class="mt-1 inline-block underline decoration-ink/30" href={`mailto:${business.email}`}>
                     {business.email}
                   </a>
                 </div>
@@ -804,7 +815,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
           class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 opacity-0 pointer-events-none translate-y-3 transition duration-300"
         >
           <a
-            class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink"
+            class="flex-[1.2] rounded-full bg-ink px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper hover:bg-ink/90"
             href={`tel:${business.phoneTel}`}
             data-ga-event="cta_click"
             data-ga-label="mobile_sticky_call"
@@ -812,12 +823,12 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
             Call or text
           </a>
           <a
-            class="flex-1 rounded-full bg-ink px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper"
+            class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink hover:border-ink"
             href="#quote"
             data-ga-event="cta_click"
             data-ga-label="mobile_sticky_quote"
           >
-            Get a quote
+            Quote
           </a>
         </div>
       </div>
