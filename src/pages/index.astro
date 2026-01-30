@@ -384,19 +384,28 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {["Fresh edging", "Seasonal cleanup", "Garden bed refresh"].map((label, index) => (
+              {[
+                { label: "Fresh edging", image: "/lawn.webp", alt: "Freshly edged lawn with clean borders" },
+                { label: "Seasonal cleanup", image: "/cleanup.webp", alt: "Yard after seasonal cleanup" },
+                { label: "Garden bed refresh", image: "/garden.webp", alt: "Garden bed with fresh mulch and plants" },
+              ].map((item, index) => (
                 <div
                   class="group overflow-hidden rounded-2xl border border-border bg-white/90 shadow-fine animate-rise"
                   style={`animation-delay: ${index * 80}ms`}
                 >
-                  <div class="relative aspect-[4/3] bg-paper/80">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.8),transparent_45%)]"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-xs uppercase tracking-[0.35em] text-ink/40">
-                      Photo coming soon
-                    </div>
+                  <div class="relative aspect-[4/3] overflow-hidden bg-paper/80">
+                    <img
+                      src={item.image}
+                      alt={item.alt}
+                      width="600"
+                      height="450"
+                      class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                   <div class="p-5">
-                    <p class="text-sm font-semibold text-ink">{label}</p>
+                    <p class="text-sm font-semibold text-ink">{item.label}</p>
                     <p class="mt-1 text-xs text-ink-soft">Ask for recent references.</p>
                   </div>
                 </div>
