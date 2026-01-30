@@ -1,0 +1,194 @@
+---
+import { business } from "../data/business";
+
+interface Props {
+  preselectedService?: string;
+  preselectedArea?: string;
+  showInfoBox?: boolean;
+}
+
+const { preselectedService, preselectedArea, showInfoBox = true } = Astro.props;
+
+const submitted = Astro.url.searchParams.get("submitted");
+const error = Astro.url.searchParams.get("error");
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const turnstileEnabled = Boolean(turnstileSiteKey);
+---
+
+<div class="grid gap-10 lg:grid-cols-[1fr_1fr]">
+  {
+    showInfoBox && (
+      <div class="space-y-4">
+        <p class="section-kicker">Get a free quote</p>
+        <h2 class="section-title">Request service in under a minute.</h2>
+        <p class="text-sm text-ink-soft">
+          Fill out the form and we will follow up within one business day. For same-day
+          quotes, call or text {business.phone} directly.
+        </p>
+        <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
+          <p class="font-semibold text-ink">Same-day quotes available</p>
+          <p>Call or text {business.phone} for the fastest response.</p>
+          <p class="mt-4 font-semibold text-ink">Email quotes</p>
+          <p>We aim to reply within one business day.</p>
+          <a
+            class="mt-1 inline-block underline decoration-ink/30"
+            href={`mailto:${business.email}`}
+          >
+            {business.email}
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  <form
+    id="quote-form"
+    class="space-y-4 rounded-2xl border border-border bg-white/90 p-6 shadow-fine"
+    method="POST"
+    action="/api/quote"
+  >
+    {
+      submitted === "1" && (
+        <div class="rounded-xl border border-ink/20 bg-white/90 px-4 py-3 text-sm text-ink">
+          Thanks. We have your request and will follow up soon.
+        </div>
+      )
+    }
+    {
+      error === "1" && (
+        <div class="rounded-xl border border-ink/30 bg-white/90 px-4 py-3 text-sm text-ink">
+          Something went wrong. Please try again or call/text {business.phone}.
+        </div>
+      )
+    }
+
+    <div>
+      <label class="text-sm font-semibold" for="name">Name</label>
+      <input
+        class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        id="name"
+        name="name"
+        placeholder="Your name"
+        required
+      />
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold" for="phone">Phone</label>
+      <input
+        class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        id="phone"
+        name="phone"
+        type="tel"
+        autocomplete="tel"
+        placeholder="(250) 858-1781"
+        required
+      />
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold" for="email">Email (optional)</label>
+      <input
+        class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="email"
+        placeholder="you@email.com"
+      />
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold" for="area">Service area</label>
+      <input
+        class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        id="area"
+        name="area"
+        autocomplete="address-level2"
+        placeholder="Town or neighborhood"
+        value={preselectedArea || ""}
+        required
+      />
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold" for="service">Services needed</label>
+      <select
+        class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        id="service"
+        name="service"
+        required
+      >
+        <option value="">Choose a service</option>
+        <option value="mowing" selected={preselectedService === "mowing"}>
+          Mowing and edging
+        </option>
+        <option value="trim" selected={preselectedService === "trim"}>
+          Trimming and pruning
+        </option>
+        <option value="cleanup" selected={preselectedService === "cleanup"}>
+          Seasonal cleanup
+        </option>
+        <option value="mulch" selected={preselectedService === "mulch"}>
+          Mulch and garden beds
+        </option>
+        <option value="ongoing" selected={preselectedService === "ongoing"}>
+          Ongoing maintenance
+        </option>
+        <option value="other" selected={preselectedService === "other"}>
+          Other (describe below)
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold" for="details">Details</label>
+      <textarea
+        class="mt-2 min-h-[120px] w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        id="details"
+        name="details"
+        placeholder="Tell us about your yard, access, and timing."></textarea>
+    </div>
+
+    <!-- Honeypot -->
+    <div class="hidden" aria-hidden="true">
+      <label class="text-sm font-semibold" for="company">Company</label>
+      <input id="company" name="company" tabindex="-1" autocomplete="off" />
+    </div>
+
+    {
+      turnstileEnabled && (
+        <div class="mt-2">
+          <div class="cf-turnstile" data-sitekey={turnstileSiteKey} />
+        </div>
+      )
+    }
+
+    <button
+      class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper hover:bg-ink/90"
+      type="submit"
+      data-ga-event="form_submit"
+      data-ga-label="quote_form"
+    >
+      Send request
+    </button>
+
+    <p class="text-xs text-ink-soft">
+      By submitting, you agree to be contacted by phone or email about your request.
+    </p>
+  </form>
+</div>
+
+<script is:inline>
+  (function () {
+    var quoteForm = document.getElementById("quote-form");
+    if (quoteForm && window.gtag) {
+      quoteForm.addEventListener("submit", function () {
+        window.gtag("event", "form_submit", {
+          event_category: "form",
+          event_label: "quote_form",
+        });
+      });
+    }
+  })();
+</script>

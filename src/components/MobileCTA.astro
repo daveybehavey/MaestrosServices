@@ -1,0 +1,72 @@
+---
+import { business } from "../data/business";
+
+interface Props {
+  quoteHref?: string;
+}
+
+const { quoteHref = "/#quote" } = Astro.props;
+const gaId = import.meta.env.PUBLIC_GA_ID;
+---
+
+<div
+  id="mobile-cta"
+  class="pointer-events-none fixed inset-x-0 bottom-0 z-20 translate-y-3 border-t border-border/70 bg-paper/95 opacity-0 backdrop-blur transition duration-300 md:hidden"
+>
+  <div
+    class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
+  >
+    <a
+      class="flex-[1.2] rounded-full bg-ink px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper hover:bg-ink/90"
+      href={`tel:${business.phoneTel}`}
+      data-ga-event="cta_click"
+      data-ga-label="mobile_sticky_call"
+    >
+      Call or text
+    </a>
+    <a
+      class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink hover:border-ink"
+      href={quoteHref}
+      data-ga-event="cta_click"
+      data-ga-label="mobile_sticky_quote"
+    >
+      Quote
+    </a>
+  </div>
+</div>
+
+<script is:inline define:vars={{ gaId }}>
+  (function () {
+    var heroSentinel = document.getElementById("hero-sentinel");
+    var mobileCta = document.getElementById("mobile-cta");
+    if (heroSentinel && mobileCta) {
+      var observer = new IntersectionObserver(
+        function (entries) {
+          var entry = entries[0];
+          if (entry.isIntersecting) {
+            mobileCta.classList.add("opacity-0", "pointer-events-none", "translate-y-3");
+          } else {
+            mobileCta.classList.remove("opacity-0", "pointer-events-none", "translate-y-3");
+          }
+        },
+        { rootMargin: "-20% 0px 0px 0px" }
+      );
+      observer.observe(heroSentinel);
+    } else if (mobileCta) {
+      // No sentinel - show CTA after short delay
+      setTimeout(function () {
+        mobileCta.classList.remove("opacity-0", "pointer-events-none", "translate-y-3");
+      }, 500);
+    }
+
+    if (gaId && window.gtag) {
+      document.querySelectorAll("[data-ga-event]").forEach(function (el) {
+        el.addEventListener("click", function () {
+          var eventName = el.getAttribute("data-ga-event");
+          var label = el.getAttribute("data-ga-label");
+          window.gtag("event", eventName, { event_category: "cta", event_label: label });
+        });
+      });
+    }
+  })();
+</script>

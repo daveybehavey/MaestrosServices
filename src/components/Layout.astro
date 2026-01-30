@@ -1,0 +1,67 @@
+---
+import "../styles/global.css";
+import SEOHead from "./SEOHead.astro";
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+import MobileCTA from "./MobileCTA.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalUrl?: string;
+  structuredData?: object | object[];
+  showMobileCTA?: boolean;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  article?: {
+    publishedTime: string;
+    modifiedTime?: string;
+    author: string;
+    tags?: string[];
+  };
+  noindex?: boolean;
+  headerVariant?: "default" | "simple";
+  headerSubtitle?: string;
+  quoteHref?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalUrl,
+  structuredData,
+  showMobileCTA = true,
+  ogImage,
+  ogType,
+  article,
+  noindex,
+  headerVariant = "default",
+  headerSubtitle,
+  quoteHref = "/#quote",
+} = Astro.props;
+---
+
+<html lang="en-CA">
+  <head>
+    <SEOHead
+      title={title}
+      description={description}
+      canonicalUrl={canonicalUrl}
+      ogImage={ogImage}
+      ogType={ogType}
+      article={article}
+      noindex={noindex}
+      structuredData={structuredData}
+    />
+  </head>
+  <body>
+    <div class="relative flex min-h-screen flex-col">
+      <Header variant={headerVariant} subtitle={headerSubtitle} />
+      <main class="relative z-10 flex-1">
+        <slot />
+      </main>
+      <Footer includeMobilePadding={showMobileCTA} />
+      {showMobileCTA && <MobileCTA quoteHref={quoteHref} />}
+    </div>
+  </body>
+</html>

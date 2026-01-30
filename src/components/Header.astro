@@ -1,0 +1,102 @@
+---
+import { business } from "../data/business";
+
+interface Props {
+  variant?: "default" | "simple";
+  subtitle?: string;
+}
+
+const { variant = "default", subtitle } = Astro.props;
+---
+
+<header
+  class:list={[
+    "border-b border-border/70 bg-paper/80 backdrop-blur",
+    variant === "default" && "sticky top-0 z-50 animate-fade",
+  ]}
+>
+  <div
+    class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6 sm:py-4"
+  >
+    <a class="flex items-center gap-3" href="/">
+      <div
+        class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/90"
+      >
+        <picture>
+          <source srcset="/logo.png?v=2" type="image/png" />
+          <img
+            src="/logo.png?v=2"
+            alt={`${business.name} logo`}
+            class="h-8 w-8"
+            width="32"
+            height="32"
+          />
+        </picture>
+      </div>
+      <div class="leading-none">
+        <p class="text-lg font-display">{business.name}</p>
+        <p class="text-xs uppercase tracking-[0.3em] text-ink-soft">
+          {subtitle || business.tagline}
+        </p>
+      </div>
+    </a>
+
+    {
+      variant === "default" && (
+        <nav class="hidden flex-wrap items-center gap-4 text-sm text-ink-soft md:flex">
+          <a class="hover:text-ink" href="/#services">
+            Services
+          </a>
+          <a class="hover:text-ink" href="/#service-area">
+            Service area
+          </a>
+          <a class="hover:text-ink" href="/#about">
+            About
+          </a>
+          <a class="hover:text-ink" href="/#faq">
+            FAQ
+          </a>
+          <a class="hover:text-ink" href="/#quote">
+            Get a quote
+          </a>
+        </nav>
+      )
+    }
+
+    <div class="hidden flex-wrap items-center gap-3 text-sm md:flex">
+      {
+        variant === "default" ? (
+          <>
+            <a
+              class="rounded-full bg-ink px-5 py-2.5 text-paper hover:bg-ink/90"
+              href={`tel:${business.phoneTel}`}
+            >
+              Call or text {business.phone}
+            </a>
+            <a
+              class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink"
+              href="/#quote"
+            >
+              Get a quote
+            </a>
+          </>
+        ) : (
+          <>
+            <a
+              class="rounded-full border border-ink/20 px-4 py-2 text-ink hover:border-ink"
+              href={`tel:${business.phoneTel}`}
+            >
+              Call or text {business.phone}
+            </a>
+            <a
+              class="rounded-full bg-ink px-4 py-2 text-paper hover:bg-ink/90"
+              href="/#quote"
+            >
+              Get a free quote
+            </a>
+          </>
+        )
+      }
+    </div>
+  </div>
+</header>

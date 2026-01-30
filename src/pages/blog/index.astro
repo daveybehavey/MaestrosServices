@@ -1,0 +1,100 @@
+---
+import Layout from "../../components/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { getCollection } from "astro:content";
+import { business } from "../../data/business";
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const pageTitle = `Lawn Care Tips & Landscaping Blog | ${business.name}`;
+const pageDescription =
+  "Expert lawn care tips, seasonal landscaping advice, and garden maintenance guides for Vancouver Island homeowners. Learn how to keep your yard looking great year-round.";
+const canonicalUrl = `${business.siteUrl}/blog`;
+
+const breadcrumbItems = [{ name: "Blog", href: "/blog" }];
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  headerVariant="simple"
+  headerSubtitle="Blog"
+  quoteHref="/#quote"
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">Tips & Guides</p>
+        <h1 class="section-title">Lawn Care & Landscaping Blog</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          Expert advice for Vancouver Island homeowners. Learn seasonal maintenance tips,
+          best practices for lawn care, and how to keep your outdoor spaces looking their
+          best year-round.
+        </p>
+      </div>
+
+      {
+        posts.length === 0 ? (
+          <div class="rounded-2xl border border-border bg-white/90 p-8 text-center shadow-fine">
+            <p class="text-lg font-semibold text-ink">Coming soon</p>
+            <p class="mt-2 text-sm text-ink-soft">
+              We're working on helpful articles about lawn care and landscaping on Vancouver
+              Island. Check back soon!
+            </p>
+          </div>
+        ) : (
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post, index) => (
+              <a
+                href={`/blog/${post.slug}`}
+                class="group flex flex-col rounded-2xl border border-border bg-white/90 shadow-fine transition hover:border-ink/30 animate-rise"
+                style={`animation-delay: ${index * 60}ms`}
+              >
+                {post.data.image && (
+                  <div class="aspect-[16/10] overflow-hidden rounded-t-2xl bg-paper/80">
+                    <img
+                      src={post.data.image}
+                      alt={post.data.imageAlt || post.data.title}
+                      class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                )}
+                <div class="flex flex-1 flex-col p-6">
+                  <div class="mb-2 flex flex-wrap gap-2">
+                    {post.data.tags.slice(0, 2).map((tag) => (
+                      <span class="rounded-full border border-border bg-paper px-2 py-0.5 text-[0.65rem] uppercase tracking-wider text-ink-soft">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h2 class="mb-2 text-lg font-semibold text-ink group-hover:text-ink/80">
+                    {post.data.title}
+                  </h2>
+                  <p class="mb-4 flex-1 text-sm leading-relaxed text-ink-soft">
+                    {post.data.description}
+                  </p>
+                  <p class="text-xs text-ink-soft">{formatDate(post.data.pubDate)}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>

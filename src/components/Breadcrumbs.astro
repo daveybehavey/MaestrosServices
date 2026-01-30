@@ -1,0 +1,53 @@
+---
+import { business } from "../data/business";
+
+interface BreadcrumbItem {
+  name: string;
+  href: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+
+const allItems = [{ name: "Home", href: "/" }, ...items];
+
+export const createBreadcrumbSchema = (items: BreadcrumbItem[]) => {
+  const allItems = [{ name: "Home", href: "/" }, ...items];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: allItems.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.href.startsWith("http") ? item.href : `${business.siteUrl}${item.href}`,
+    })),
+  };
+};
+---
+
+<nav aria-label="Breadcrumb" class="mb-6">
+  <ol class="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+    {
+      allItems.map((item, index) => (
+        <>
+          {index > 0 && <span aria-hidden="true">/</span>}
+          <li>
+            {index === allItems.length - 1 ? (
+              <span class="text-ink" aria-current="page">
+                {item.name}
+              </span>
+            ) : (
+              <a class="hover:text-ink" href={item.href}>
+                {item.name}
+              </a>
+            )}
+          </li>
+        </>
+      ))
+    }
+  </ol>
+</nav>

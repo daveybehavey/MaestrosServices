@@ -1,0 +1,250 @@
+---
+import Layout from "../../components/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import QuoteForm from "../../components/QuoteForm.astro";
+import { business } from "../../data/business";
+import { locations, getLocationBySlug, getLocationById } from "../../data/locations";
+import { services } from "../../data/services";
+import { locationFaqs } from "../../data/faqs";
+import {
+  createLocationPageSchema,
+  createBreadcrumbSchema,
+  createFAQSchema,
+} from "../../lib/schema";
+
+export async function getStaticPaths() {
+  return locations.map((location) => ({
+    params: { slug: location.slug },
+    props: { location },
+  }));
+}
+
+const { location } = Astro.props;
+
+const nearbyLocations = location.nearbyAreas
+  .map((id) => getLocationById(id))
+  .filter(Boolean);
+
+const pageTitle = `Landscaping in ${location.name}, BC | ${business.name}`;
+const pageDescription = location.description;
+const canonicalUrl = `${business.siteUrl}/areas/${location.slug}`;
+
+const breadcrumbItems = [
+  { name: "Service Area", href: "/service-area" },
+  { name: location.name, href: `/areas/${location.slug}` },
+];
+
+const structuredData = [
+  createLocationPageSchema(location),
+  createBreadcrumbSchema(breadcrumbItems),
+  createFAQSchema(locationFaqs),
+];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle={location.name}
+  quoteHref="#quote"
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">{location.region}</p>
+        <h1 class="section-title">Landscaping in {location.name}</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          {location.description}
+        </p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="space-y-8">
+          <!-- Services Available -->
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">What we offer</p>
+            <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              Services in {location.name}
+            </h2>
+            <p class="mb-5 text-sm leading-relaxed text-ink-soft">
+              We provide full residential landscaping services to homeowners in {location.name}.
+              From regular lawn maintenance to seasonal cleanups, we keep your property looking
+              its best year-round.
+            </p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              {
+                services.slice(0, 4).map((service) => (
+                  <a
+                    href={`/services/${service.slug}`}
+                    class="group rounded-xl border border-border bg-paper/50 p-4 transition hover:border-ink/30"
+                  >
+                    <h3 class="text-sm font-semibold text-ink group-hover:text-ink/80">
+                      {service.shortName}
+                    </h3>
+                    <p class="mt-1 text-xs leading-relaxed text-ink-soft">
+                      {service.description.slice(0, 80)}...
+                    </p>
+                  </a>
+                ))
+              }
+            </div>
+            <div class="mt-6">
+              <a
+                class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                href="/services"
+              >
+                View all services →
+              </a>
+            </div>
+          </div>
+
+          <!-- Neighborhoods -->
+          {
+            location.neighborhoods && location.neighborhoods.length > 0 && (
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+                <p class="section-kicker">Areas we serve</p>
+                <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+                  Neighborhoods in {location.name}
+                </h2>
+                <p class="mb-5 text-sm leading-relaxed text-ink-soft">
+                  We serve residential properties throughout {location.name}, including these
+                  neighborhoods and surrounding areas.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  {location.neighborhoods.map((neighborhood) => (
+                    <span class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft">
+                      {neighborhood}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          <!-- Nearby Areas -->
+          {
+            nearbyLocations.length > 0 && (
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+                <p class="section-kicker">Nearby service areas</p>
+                <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+                  Also serving nearby communities
+                </h2>
+                <p class="mb-5 text-sm leading-relaxed text-ink-soft">
+                  In addition to {location.name}, we provide landscaping services to these nearby
+                  areas.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  {nearbyLocations.map((nearby) => (
+                    <a
+                      href={`/areas/${nearby!.slug}`}
+                      class="rounded-full border border-border bg-paper px-4 py-2 text-sm text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                    >
+                      {nearby!.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          <!-- FAQs -->
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Common questions</p>
+            <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              FAQs for {location.name}
+            </h2>
+            <div class="space-y-5">
+              {
+                locationFaqs.map((faq) => (
+                  <div class="border-b border-border pb-5 last:border-0 last:pb-0">
+                    <h3 class="mb-2 text-sm font-semibold text-ink">{faq.question}</h3>
+                    <p class="text-sm leading-relaxed text-ink-soft">{faq.answer}</p>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Service map</p>
+            <h2 class="mb-4 text-xl font-display font-semibold text-ink sm:text-2xl">
+              {location.name} coverage
+            </h2>
+            <div
+              class="flex items-center justify-center rounded-2xl border border-border bg-paper/80 p-6 text-ink/80"
+            >
+              <picture class="block w-full">
+                <source srcset="/VIMAP.svg?v=2" type="image/svg+xml" />
+                <img
+                  src="/VIMAP.png?v=2"
+                  alt={`Map showing landscaping service coverage in ${location.name}`}
+                  width="400"
+                  height="256"
+                  class="mx-auto h-48 w-auto max-w-full rounded-xl object-contain sm:h-56"
+                  loading="lazy"
+                />
+              </picture>
+            </div>
+            <p class="mt-4 text-xs text-ink-soft">
+              Serving {location.name} and surrounding areas.
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Get in touch</p>
+            <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Contact us
+            </h2>
+            <p class="mb-4 text-sm text-ink-soft">
+              Call or text for the fastest response. We typically reply within one business day.
+            </p>
+            <div class="space-y-3 text-sm">
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`tel:${business.phoneTel}`}
+                data-ga-event="cta_click"
+                data-ga-label={`location_${location.slug}_call`}
+              >
+                {business.phone}
+              </a>
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`mailto:${business.email}`}
+                data-ga-event="cta_click"
+                data-ga-label={`location_${location.slug}_email`}
+              >
+                {business.email}
+              </a>
+              <a
+                class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
+                href="#quote"
+                data-ga-event="cta_click"
+                data-ga-label={`location_${location.slug}_quote`}
+              >
+                Get a free quote
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quote Form Section -->
+  <section id="quote" class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-8 space-y-3">
+        <p class="section-kicker">Request a quote</p>
+        <h2 class="section-title">Get landscaping service in {location.name}</h2>
+      </div>
+      <QuoteForm preselectedArea={location.name} showInfoBox={true} />
+    </div>
+  </section>
+</Layout>

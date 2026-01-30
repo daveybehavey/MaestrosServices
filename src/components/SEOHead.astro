@@ -1,0 +1,152 @@
+---
+import { business } from "../data/business";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  article?: {
+    publishedTime: string;
+    modifiedTime?: string;
+    author: string;
+    tags?: string[];
+  };
+  noindex?: boolean;
+  structuredData?: object | object[];
+}
+
+const {
+  title,
+  description,
+  canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`,
+  ogImage = business.socialImage,
+  ogType = "website",
+  article,
+  noindex = false,
+  structuredData,
+} = Astro.props;
+
+const fullOgImage = ogImage.startsWith("http") ? ogImage : `${business.siteUrl}${ogImage}`;
+const gaId = import.meta.env.PUBLIC_GA_ID;
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const turnstileEnabled = Boolean(turnstileSiteKey);
+
+const structuredDataArray = structuredData
+  ? Array.isArray(structuredData)
+    ? structuredData
+    : [structuredData]
+  : [];
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<meta
+  name="robots"
+  content={noindex
+    ? "noindex, follow"
+    : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
+/>
+<link rel="canonical" href={canonicalUrl} />
+
+<!-- Open Graph -->
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={fullOgImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={`${business.name} residential landscaping`} />
+<meta property="og:locale" content="en_CA" />
+<meta property="og:site_name" content={business.name} />
+
+{
+  article && (
+    <>
+      <meta property="article:published_time" content={article.publishedTime} />
+      {article.modifiedTime && (
+        <meta property="article:modified_time" content={article.modifiedTime} />
+      )}
+      <meta property="article:author" content={article.author} />
+      {article.tags?.map((tag) => (
+        <meta property="article:tag" content={tag} />
+      ))}
+    </>
+  )
+}
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={fullOgImage} />
+<meta name="twitter:image:alt" content={`${business.name} residential landscaping`} />
+
+<!-- Theme & Geo -->
+<meta name="theme-color" content="#161616" />
+<meta name="geo.region" content="CA-BC" />
+<meta name="geo.placename" content={`${business.address.locality}, Victoria`} />
+<meta name="geo.position" content={`${business.geo.latitude};${business.geo.longitude}`} />
+<meta name="ICBM" content={`${business.geo.latitude}, ${business.geo.longitude}`} />
+
+<!-- Favicons -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
+<link rel="icon" href="/favicon.ico?v=2" />
+<link rel="apple-touch-icon" href="/favicon.png?v=2" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- Google Analytics -->
+{
+  gaId && (
+    <>
+      <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+      <script is:inline define:vars={{ gaId }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", gaId, { anonymize_ip: true });
+      </script>
+    </>
+  )
+}
+
+<!-- Cloudflare Turnstile -->
+{
+  turnstileEnabled && (
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      async
+      defer
+      is:inline
+    />
+  )
+}
+
+<!-- Structured Data -->
+{
+  structuredDataArray.length > 0 && (
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(
+        structuredDataArray.length === 1 ? structuredDataArray[0] : structuredDataArray
+      )}
+    />
+  )
+}

@@ -1,0 +1,104 @@
+---
+import Layout from "../../components/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { business } from "../../data/business";
+import { services } from "../../data/services";
+import { createBreadcrumbSchema, createOrganizationSchema } from "../../lib/schema";
+
+const pageTitle = `Landscaping Services | Vancouver Island | ${business.name}`;
+const pageDescription =
+  "Professional residential landscaping services on Vancouver Island. Lawn mowing, hedge trimming, garden maintenance, seasonal cleanups, and more. Serving Victoria to Duncan.";
+const canonicalUrl = `${business.siteUrl}/services`;
+
+const breadcrumbItems = [{ name: "Services", href: "/services" }];
+
+const structuredData = [
+  createOrganizationSchema(),
+  createBreadcrumbSchema(breadcrumbItems),
+];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle="Services"
+  quoteHref="/#quote"
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">What we do</p>
+        <h1 class="section-title">Residential Landscaping Services</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          From weekly lawn maintenance to seasonal cleanups, we provide the full range of
+          landscaping services your property needs. Based near Shawnigan Lake and serving
+          lower-mid Vancouver Island.
+        </p>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          services.map((service, index) => (
+            <a
+              href={`/services/${service.slug}`}
+              class="group rounded-2xl border border-border bg-white/90 p-6 shadow-fine transition hover:border-ink/30 hover:shadow-soft animate-rise"
+              style={`animation-delay: ${index * 60}ms`}
+            >
+              <h2 class="mb-2 text-lg font-semibold text-ink group-hover:text-ink/80">
+                {service.name}
+              </h2>
+              <p class="mb-4 text-sm leading-relaxed text-ink-soft">{service.description}</p>
+              <div class="flex flex-wrap gap-2">
+                {service.seasonalRelevance.map((season) => (
+                  <span class="rounded-full border border-border bg-paper px-2 py-0.5 text-xs text-ink-soft capitalize">
+                    {season}
+                  </span>
+                ))}
+              </div>
+              <p class="mt-4 text-sm font-semibold text-ink group-hover:text-ink/70">
+                Learn more →
+              </p>
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- CTA Section -->
+      <div class="mt-12 rounded-2xl border border-ink/10 bg-ink px-6 py-8 text-paper shadow-soft sm:px-8 sm:py-10">
+        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p class="section-kicker text-paper/60">Ready to get started?</p>
+            <h2 class="text-3xl font-display sm:text-4xl">Get a free quote today</h2>
+            <p class="mt-3 text-sm text-paper/80">
+              Call or text for a same-day quote. We serve all of lower-mid Vancouver Island from
+              Victoria to Duncan.
+            </p>
+          </div>
+          <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <a
+              class="rounded-full bg-paper px-8 py-4 text-sm font-semibold text-ink hover:bg-paper/90"
+              href={`tel:${business.phoneTel}`}
+              data-ga-event="cta_click"
+              data-ga-label="services_cta_call"
+            >
+              Call or text {business.phone}
+            </a>
+            <a
+              class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper"
+              href="/#quote"
+              data-ga-event="cta_click"
+              data-ga-label="services_cta_quote"
+            >
+              Get a free quote
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

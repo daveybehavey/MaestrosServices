@@ -1,0 +1,246 @@
+---
+import Layout from "../../components/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import QuoteForm from "../../components/QuoteForm.astro";
+import { business } from "../../data/business";
+import { services, getServiceBySlug, getServiceById } from "../../data/services";
+import { locations } from "../../data/locations";
+import {
+  createServiceSchema,
+  createBreadcrumbSchema,
+  createFAQSchema,
+} from "../../lib/schema";
+
+export async function getStaticPaths() {
+  return services.map((service) => ({
+    params: { slug: service.slug },
+    props: { service },
+  }));
+}
+
+const { service } = Astro.props;
+
+const relatedServices = service.relatedServices
+  .map((id) => getServiceById(id))
+  .filter(Boolean);
+
+const pageTitle = `${service.name} | Vancouver Island | ${business.name}`;
+const pageDescription = service.description;
+const canonicalUrl = `${business.siteUrl}/services/${service.slug}`;
+
+const breadcrumbItems = [
+  { name: "Services", href: "/services" },
+  { name: service.shortName, href: `/services/${service.slug}` },
+];
+
+const structuredData = [
+  createServiceSchema(service),
+  createBreadcrumbSchema(breadcrumbItems),
+  createFAQSchema(service.faqs),
+];
+
+// Map service to form value
+const serviceFormMap: Record<string, string> = {
+  "lawn-mowing": "mowing",
+  "hedge-trimming": "trim",
+  "garden-bed-maintenance": "mulch",
+  "seasonal-cleanups": "cleanup",
+  "weed-control": "other",
+  "yard-waste-removal": "other",
+  "brush-clearing": "other",
+};
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle={service.shortName}
+  quoteHref="#quote"
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">Our services</p>
+        <h1 class="section-title">{service.name}</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          {service.longDescription}
+        </p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="space-y-8">
+          <!-- Features -->
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">What's included</p>
+            <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              {service.shortName} features
+            </h2>
+            <ul class="space-y-3">
+              {
+                service.features.map((feature) => (
+                  <li class="flex gap-3 text-sm text-ink-soft">
+                    <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                    {feature}
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <!-- Seasonal Relevance -->
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Best times</p>
+            <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              When to schedule
+            </h2>
+            <p class="mb-4 text-sm leading-relaxed text-ink-soft">
+              This service is typically available and most beneficial during these seasons on
+              Vancouver Island:
+            </p>
+            <div class="flex flex-wrap gap-2">
+              {
+                service.seasonalRelevance.map((season) => (
+                  <span class="rounded-full border border-border bg-paper px-4 py-2 text-sm text-ink capitalize">
+                    {season}
+                  </span>
+                ))
+              }
+            </div>
+          </div>
+
+          <!-- FAQs -->
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Common questions</p>
+            <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              {service.shortName} FAQs
+            </h2>
+            <div class="space-y-5">
+              {
+                service.faqs.map((faq) => (
+                  <div class="border-b border-border pb-5 last:border-0 last:pb-0">
+                    <h3 class="mb-2 text-sm font-semibold text-ink">{faq.question}</h3>
+                    <p class="text-sm leading-relaxed text-ink-soft">{faq.answer}</p>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <!-- Related Services -->
+          {
+            relatedServices.length > 0 && (
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+                <p class="section-kicker">You might also need</p>
+                <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+                  Related services
+                </h2>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  {relatedServices.map((related) => (
+                    <a
+                      href={`/services/${related!.slug}`}
+                      class="group rounded-xl border border-border bg-paper/50 p-4 transition hover:border-ink/30"
+                    >
+                      <h3 class="text-sm font-semibold text-ink group-hover:text-ink/80">
+                        {related!.shortName}
+                      </h3>
+                      <p class="mt-1 text-xs leading-relaxed text-ink-soft">
+                        {related!.description.slice(0, 80)}...
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Service areas</p>
+            <h2 class="mb-4 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Where we offer this
+            </h2>
+            <p class="mb-4 text-sm text-ink-soft">
+              We provide {service.shortName.toLowerCase()} services throughout lower-mid
+              Vancouver Island, from Victoria to Duncan.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              {
+                locations.slice(0, 8).map((location) => (
+                  <a
+                    href={`/areas/${location.slug}`}
+                    class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                  >
+                    {location.name}
+                  </a>
+                ))
+              }
+              <a
+                href="/service-area"
+                class="rounded-full border border-ink/20 bg-paper px-3 py-1 text-xs text-ink hover:border-ink"
+              >
+                + {locations.length - 8} more
+              </a>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Get in touch</p>
+            <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Request {service.shortName.toLowerCase()}
+            </h2>
+            <p class="mb-4 text-sm text-ink-soft">
+              Call or text for the fastest response. We typically reply within one business day.
+            </p>
+            <div class="space-y-3 text-sm">
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`tel:${business.phoneTel}`}
+                data-ga-event="cta_click"
+                data-ga-label={`service_${service.slug}_call`}
+              >
+                {business.phone}
+              </a>
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`mailto:${business.email}`}
+                data-ga-event="cta_click"
+                data-ga-label={`service_${service.slug}_email`}
+              >
+                {business.email}
+              </a>
+              <a
+                class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
+                href="#quote"
+                data-ga-event="cta_click"
+                data-ga-label={`service_${service.slug}_quote`}
+              >
+                Get a free quote
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quote Form Section -->
+  <section id="quote" class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-8 space-y-3">
+        <p class="section-kicker">Request a quote</p>
+        <h2 class="section-title">Get {service.shortName.toLowerCase()} service</h2>
+      </div>
+      <QuoteForm
+        preselectedService={serviceFormMap[service.slug] || "other"}
+        showInfoBox={true}
+      />
+    </div>
+  </section>
+</Layout>
