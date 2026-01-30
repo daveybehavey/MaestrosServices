@@ -65,6 +65,8 @@ const faqs = [
 
 const siteUrl = "https://maestrosservices.com";
 const canonicalUrl = `${siteUrl}/service-area`;
+const socialImageUrl = `${siteUrl}/og-image.png?v=4`;
+const gaId = import.meta.env.PUBLIC_GA_ID;
 
 const serviceAreaSchema = {
   "@context": "https://schema.org",
@@ -132,6 +134,23 @@ const structuredData = [serviceAreaSchema, breadcrumbSchema];
     <meta property="og:description" content="Residential lawn care and landscaping across lower-mid Vancouver Island. Serving Greater Victoria and Cowichan Valley." />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Maestros Services residential landscaping" />
+    <meta property="og:locale" content="en_CA" />
+    <meta property="og:site_name" content="Maestros Services" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Landscaping Service Area: Victoria to Duncan | Maestros Services" />
+    <meta name="twitter:description" content="Residential lawn care and landscaping across lower-mid Vancouver Island. Serving Greater Victoria and Cowichan Valley." />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <meta name="twitter:image:alt" content="Maestros Services residential landscaping" />
+    <meta name="theme-color" content="#161616" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="geo.region" content="CA-BC" />
+    <meta name="geo.placename" content="Shawnigan Lake, Victoria" />
+    <meta name="geo.position" content="48.6289;-123.8690" />
+    <meta name="ICBM" content="48.6289, -123.8690" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
     <link rel="icon" href="/favicon.ico?v=2" />
@@ -143,6 +162,19 @@ const structuredData = [serviceAreaSchema, breadcrumbSchema];
       rel="stylesheet"
     />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+    {gaId ? (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+        <script is:inline>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${gaId}', { anonymize_ip: true });
+          `}
+        </script>
+      </>
+    ) : null}
   </head>
   <body>
     <div class="relative min-h-screen bg-paper">
@@ -248,6 +280,8 @@ const structuredData = [serviceAreaSchema, breadcrumbSchema];
                       <img
                         src="/VIMAP.png?v=2"
                         alt="Map showing landscaping service coverage across lower-mid Vancouver Island"
+                        width="400"
+                        height="256"
                         class="mx-auto h-56 w-auto max-w-full rounded-xl object-contain sm:h-64"
                         loading="lazy"
                       />
@@ -286,6 +320,29 @@ const structuredData = [serviceAreaSchema, breadcrumbSchema];
           </div>
         </section>
       </main>
+
+      <footer class="border-t border-border/70 bg-paper/80">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-8 text-sm text-ink-soft sm:px-6 sm:py-10">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90">
+              <img src="/logo.png?v=2" alt="Maestros Services logo" class="h-6 w-6" width="24" height="24" />
+            </div>
+            <div class="space-y-1">
+              <p class="text-base font-semibold text-ink">{business.name}</p>
+              <p>Residential landscaping across lower-mid Vancouver Island.</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p class="font-semibold text-ink">Contact</p>
+            <a class="block hover:text-ink" href={`tel:${business.phoneTel}`}>
+              {business.phone}
+            </a>
+            <a class="block hover:text-ink" href={`mailto:${business.email}`}>
+              {business.email}
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   </body>
 </html>
