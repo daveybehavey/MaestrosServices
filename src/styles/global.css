@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: oklch(0.99 0 0);
-  --color-paper-deep: oklch(0.965 0 0);
-  --color-ink: oklch(0.16 0 0);
-  --color-ink-soft: oklch(0.38 0 0);
-  --color-border: oklch(0.88 0 0);
+  --color-paper: oklch(0.985 0.006 85);
+  --color-paper-deep: oklch(0.96 0.008 80);
+  --color-ink: oklch(0.18 0.01 60);
+  --color-ink-soft: oklch(0.42 0.012 70);
+  --color-border: oklch(0.87 0.01 75);
 
   --font-display: "Cormorant Garamond", serif;
   --font-body: "Manrope", sans-serif;
@@ -13,8 +13,8 @@
   --radius-xl: 1.25rem;
   --radius-2xl: 1.75rem;
 
-  --shadow-soft: 0 22px 50px oklch(0 0 0 / 0.09);
-  --shadow-fine: 0 10px 26px oklch(0 0 0 / 0.07);
+  --shadow-soft: 0 24px 55px oklch(0.25 0.02 60 / 0.12);
+  --shadow-fine: 0 12px 30px oklch(0.3 0.015 65 / 0.09);
 
   --animate-rise: rise 0.7s ease-out both;
   --animate-fade: fade 0.7s ease-out both;
@@ -63,9 +63,9 @@
   body {
     @apply bg-paper text-ink font-body antialiased;
     background-image:
-      radial-gradient(60rem 40rem at 80% -10%, oklch(0.97 0 0 / 0.6), transparent 60%),
-      radial-gradient(40rem 30rem at 10% 10%, oklch(0.985 0 0 / 0.8), transparent 55%),
-      linear-gradient(180deg, oklch(1 0 0 / 0.95), oklch(0.97 0 0 / 0.95));
+      radial-gradient(70rem 50rem at 85% -15%, oklch(0.95 0.015 85 / 0.5), transparent 65%),
+      radial-gradient(50rem 40rem at 5% 15%, oklch(0.97 0.01 90 / 0.6), transparent 60%),
+      linear-gradient(180deg, oklch(0.99 0.005 85), oklch(0.96 0.01 80));
   }
 
   h1,
@@ -76,7 +76,7 @@
   }
 
   ::selection {
-    background: oklch(0.86 0 0 / 0.45);
+    background: oklch(0.85 0.015 75 / 0.45);
   }
 }
 
@@ -96,13 +96,13 @@
 
 @layer utilities {
   .glass {
-    background: oklch(0.99 0 0 / 0.9);
+    background: oklch(0.985 0.005 85 / 0.85);
     box-shadow: var(--shadow-soft);
     backdrop-filter: blur(10px);
   }
 
   .grid-dots {
-    background-image: radial-gradient(transparent 1px, oklch(0.97 0 0 / 0.9) 1px);
+    background-image: radial-gradient(transparent 1px, oklch(0.96 0.008 80 / 0.9) 1px);
     background-size: 18px 18px;
   }
 }
