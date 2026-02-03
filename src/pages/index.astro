@@ -5,78 +5,12 @@ import Footer from "../components/Footer.astro";
 import MobileCTA from "../components/MobileCTA.astro";
 import QuoteForm from "../components/QuoteForm.astro";
 import { business } from "../data/business";
-
-const services = [
-  "Lawn mowing and clean edging",
-  "Hedge, shrub, and small tree trimming",
-  "Garden bed refresh and mulching",
-  "Seasonal cleanups (spring and fall)",
-  "Weed control and tidy-ups",
-  "Yard waste haul-away",
-  "Small brush clearing",
-];
-
-const packages = [
-  {
-    name: "Weekly maintenance",
-    description: "Consistent care to keep lawns and beds sharp all season.",
-  },
-  {
-    name: "Bi-weekly maintenance",
-    description: "Balanced upkeep for busy homeowners and rental properties.",
-  },
-  {
-    name: "One-time cleanups",
-    description: "Perfect for move-ins, pre-sale, or a fresh start.",
-  },
-  {
-    name: "Seasonal prep",
-    description: "Spring wake-up and fall reset to protect your yard.",
-  },
-];
-
-const serviceAreas = [
-  "Victoria",
-  "Saanich",
-  "Central Saanich",
-  "North Saanich",
-  "Brentwood Bay",
-  "Sidney",
-  "Langford",
-  "Colwood",
-  "View Royal",
-  "Esquimalt",
-  "Sooke",
-  "Metchosin",
-  "Highlands",
-  "Shawnigan Lake",
-  "Mill Bay",
-  "Cobble Hill",
-  "Cowichan Bay",
-  "Maple Bay",
-  "Lake Cowichan",
-  "Duncan",
-  "Cowichan Valley",
-];
-
-const faqs = [
-  {
-    question: "Do I need to be home during service?",
-    answer: "No. As long as we can access the yard, we can take care of everything.",
-  },
-  {
-    question: "Do you haul away yard waste?",
-    answer: "Yes. Let us know if you want everything removed or neatly stacked on site.",
-  },
-  {
-    question: "Can you do large tree removal?",
-    answer: "Not yet. We handle shrubs, hedges, and small trees, but no large tree felling at this time.",
-  },
-  {
-    question: "How soon can you start?",
-    answer: "We try to book quickly. Send a few details and we will confirm the next available time.",
-  },
-];
+import {
+  homepageFaqs,
+  homepagePackages,
+  homepageServiceAreas,
+  homepageServiceHighlights,
+} from "../data/homepage";
 
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
@@ -90,7 +24,7 @@ const metaDescription =
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqs.map((faq) => ({
+  mainEntity: homepageFaqs.map((faq) => ({
     "@type": "Question",
     name: faq.question,
     acceptedAnswer: {
@@ -108,8 +42,8 @@ const businessJsonLd = {
   email: business.email,
   image: socialImageUrl,
   description: metaDescription,
-  areaServed: serviceAreas,
-  serviceType: services,
+  areaServed: homepageServiceAreas,
+  serviceType: homepageServiceHighlights,
 };
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -129,7 +63,7 @@ const websiteJsonLd = {
   name: business.name,
   url: siteUrl,
 };
-const serviceSchemas = services.map((service) => ({
+const serviceSchemas = homepageServiceHighlights.map((service) => ({
   "@context": "https://schema.org",
   "@type": "Service",
   serviceType: service,
@@ -397,7 +331,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map((service, index) => (
+              {homepageServiceHighlights.map((service, index) => (
                 <div
                   class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine animate-rise"
                   style={`animation-delay: ${index * 60}ms`}
@@ -419,7 +353,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-              {packages.map((item, index) => (
+              {homepagePackages.map((item, index) => (
                 <div class="rounded-2xl border border-border bg-white/85 p-6 animate-rise" style={`animation-delay: ${index * 80}ms`}>
                   <p class="text-lg font-semibold">{item.name}</p>
                   <p class="text-sm text-ink-soft">{item.description}</p>
@@ -473,7 +407,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
                 View full service area -&gt;
               </a>
               <div class="flex flex-wrap gap-3 text-sm text-ink-soft">
-                {serviceAreas.map((area) => (
+                {homepageServiceAreas.map((area) => (
                   <span class="rounded-full border border-border bg-white/90 px-4 py-1">{area}</span>
                 ))}
               </div>
@@ -580,7 +514,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
               <h2 class="section-title">Common questions.</h2>
             </div>
             <div class="grid gap-4 lg:grid-cols-2">
-              {faqs.map((faq, index) => (
+              {homepageFaqs.map((faq, index) => (
                 <div
                   class="rounded-2xl border border-border bg-white/90 p-6 animate-rise"
                   style={`animation-delay: ${index * 60}ms`}
