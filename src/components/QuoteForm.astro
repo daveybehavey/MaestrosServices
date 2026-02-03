@@ -183,10 +183,14 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
   (function () {
     var quoteForm = document.getElementById("quote-form");
     if (quoteForm && window.gtag) {
+      var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
       quoteForm.addEventListener("submit", function () {
         window.gtag("event", "form_submit", {
           event_category: "form",
           event_label: "quote_form",
+          page_group: analyticsContext.pageGroup || "site",
+          page_type: analyticsContext.pageType || "default",
+          page_template: analyticsContext.pageTemplate || "default",
         });
       });
     }

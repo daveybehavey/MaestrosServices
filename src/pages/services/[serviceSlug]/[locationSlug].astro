@@ -1,0 +1,370 @@
+---
+import Layout from "../../../components/Layout.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import QuoteForm from "../../../components/QuoteForm.astro";
+import { business } from "../../../data/business";
+import type { Location } from "../../../data/locations";
+import { getLocationById } from "../../../data/locations";
+import type { Service } from "../../../data/services";
+import { serviceLocationPages, hasServiceLocationPage, getServiceLocationPagesForLocation } from "../../../data/serviceLocationPages";
+import {
+  createBreadcrumbSchema,
+  createFAQSchema,
+  createServiceLocationSchema,
+} from "../../../lib/schema";
+
+export async function getStaticPaths() {
+  return serviceLocationPages.map((entry) => ({
+    params: {
+      serviceSlug: entry.service.slug,
+      locationSlug: entry.location.slug,
+    },
+    props: {
+      service: entry.service,
+      location: entry.location,
+    },
+  }));
+}
+
+const { service, location } = Astro.props as {
+  service: Service;
+  location: Location;
+};
+
+const pageTitle = `${service.shortName} in ${location.name}, BC | ${business.name}`;
+const pageDescription = `${service.name} in ${location.name}, BC. ${service.description}`;
+const canonicalUrl = `${business.siteUrl}/services/${service.slug}/${location.slug}`;
+
+const breadcrumbItems = [
+  { name: "Services", href: "/services" },
+  { name: service.shortName, href: `/services/${service.slug}` },
+  { name: location.name, href: `/services/${service.slug}/${location.slug}` },
+];
+
+const pageFaqs = [
+  {
+    question: `Do you offer ${service.shortName.toLowerCase()} in ${location.name}?`,
+    answer: `Yes. ${business.name} provides ${service.shortName.toLowerCase()} for homeowners in ${location.name} and nearby neighborhoods.`,
+  },
+  {
+    question: `How often should I book ${service.shortName.toLowerCase()} in ${location.name}?`,
+    answer: `Most properties book during ${service.seasonalRelevance.join(", ")}. We can recommend a weekly, bi-weekly, or seasonal schedule based on your yard.`,
+  },
+  {
+    question: `Can I combine ${service.shortName.toLowerCase()} with other services in ${location.name}?`,
+    answer: `Absolutely. Many homeowners bundle this service with recurring maintenance, garden bed care, and seasonal cleanup visits.`,
+  },
+];
+
+const structuredData = [
+  createServiceLocationSchema(service, location),
+  createBreadcrumbSchema(breadcrumbItems),
+  createFAQSchema(pageFaqs),
+];
+
+const nearbyPages = location.nearbyAreas
+  .map((id) => getLocationById(id))
+  .filter((nearby): nearby is Location => Boolean(nearby))
+  .filter((nearby) => hasServiceLocationPage(service.id, nearby.id))
+  .map((nearby) => ({
+    name: nearby.name,
+    href: `/services/${service.slug}/${nearby.slug}`,
+  }));
+
+const relatedServicePages = getServiceLocationPagesForLocation(location.id)
+  .filter((entry) => entry.service.id !== service.id)
+  .map((entry) => ({
+    name: entry.service.shortName,
+    href: entry.href,
+    description: entry.service.description,
+  }));
+
+const neighborhoodList = location.neighborhoods?.slice(0, 6) ?? [];
+const landmarkList = location.localLandmarks?.slice(0, 4) ?? [];
+
+const serviceGoalById: Record<Service["id"], string> = {
+  "lawn-mowing": "a consistently clean lawn with less weekly effort",
+  "hedge-trimming": "clean lines and healthy regrowth between seasons",
+  "garden-bed-maintenance": "weed suppression and stronger curb appeal",
+  "seasonal-cleanups": "a cleaner reset before weather shifts",
+  "weed-control": "longer gaps between regrowth cycles",
+  "yard-waste-removal": "faster post-project cleanup",
+  "brush-clearing": "safer and more usable outdoor space",
+};
+
+const normalizeFeature = (feature: string) =>
+  feature.charAt(0).toLowerCase() + feature.slice(1).replace(/\.$/, "");
+
+const primaryNeighborhood = neighborhoodList[0] ?? location.name;
+const primaryLandmark = landmarkList[0] ?? `${location.name} town core`;
+const seasonNames = service.seasonalRelevance.map(
+  (season) => season.charAt(0).toUpperCase() + season.slice(1)
+);
+const seasonSummary =
+  seasonNames.length > 1
+    ? `${seasonNames.slice(0, -1).join(", ")} and ${seasonNames[seasonNames.length - 1]}`
+    : seasonNames[0] ?? "all seasons";
+const relatedServiceSummary = relatedServicePages
+  .slice(0, 2)
+  .map((entry) => entry.name.toLowerCase())
+  .join(" and ");
+const serviceGoal = serviceGoalById[service.id];
+
+const localProofItems = [
+  {
+    title: `Common request in ${primaryNeighborhood}`,
+    detail: `Around ${primaryLandmark}, homeowners usually ask for ${normalizeFeature(service.features[0])} to keep properties tidy with minimal disruption.`,
+  },
+  {
+    title: `${location.name} seasonal pattern`,
+    detail: `${service.shortName} bookings here are strongest in ${seasonSummary}. We keep scheduling flexible around local weather windows.`,
+  },
+  {
+    title: `Typical bundled scope`,
+    detail: relatedServiceSummary
+      ? `Many quotes in ${location.name} combine this with ${relatedServiceSummary} for ${serviceGoal}.`
+      : `Many quotes in ${location.name} combine this with general yard upkeep for ${serviceGoal}.`,
+  },
+];
+
+const serviceFormMap: Record<string, string> = {
+  "lawn-mowing": "mowing",
+  "hedge-trimming": "trim",
+  "garden-bed-maintenance": "mulch",
+  "seasonal-cleanups": "cleanup",
+  "weed-control": "other",
+  "yard-waste-removal": "other",
+  "brush-clearing": "other",
+};
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle={`${service.shortName} in ${location.name}`}
+  quoteHref="#quote"
+  analytics={{
+    pageGroup: "service_location_pages",
+    pageType: "service_location",
+    pageTemplate: "service-location",
+  }}
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">{location.region}</p>
+        <h1 class="section-title">{service.shortName} in {location.name}</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          {service.longDescription} Homeowners in {location.name} trust us for consistent, friendly
+          service and clear communication from quote to cleanup.
+        </p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="space-y-8">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">What is included</p>
+            <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              {service.shortName} visit checklist
+            </h2>
+            <ul class="space-y-3">
+              {
+                service.features.map((feature) => (
+                  <li class="flex gap-3 text-sm text-ink-soft">
+                    <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                    {feature}
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Local focus</p>
+            <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              Service details for {location.name}
+            </h2>
+            <p class="mb-5 text-sm leading-relaxed text-ink-soft">
+              We schedule around local weather, lot sizes, and neighborhood access patterns in {location.name}
+              to keep your property looking sharp without disruption.
+            </p>
+
+            {
+              neighborhoodList.length > 0 && (
+                <div class="mb-5">
+                  <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
+                    Neighborhoods we regularly serve
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    {neighborhoodList.map((name) => (
+                      <span class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+
+            {
+              landmarkList.length > 0 && (
+                <div>
+                  <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
+                    Local landmarks
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    {landmarkList.map((name) => (
+                      <span class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Local proof</p>
+            <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              What homeowners ask for in {location.name}
+            </h2>
+            <div class="grid gap-4 sm:grid-cols-3">
+              {
+                localProofItems.map((item) => (
+                  <article class="rounded-xl border border-border bg-paper/60 p-4">
+                    <h3 class="text-sm font-semibold text-ink">{item.title}</h3>
+                    <p class="mt-2 text-xs leading-relaxed text-ink-soft">{item.detail}</p>
+                  </article>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Common questions</p>
+            <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              {service.shortName} FAQs for {location.name}
+            </h2>
+            <div class="space-y-5">
+              {
+                pageFaqs.map((faq) => (
+                  <div class="border-b border-border pb-5 last:border-0 last:pb-0">
+                    <h3 class="mb-2 text-sm font-semibold text-ink">{faq.question}</h3>
+                    <p class="text-sm leading-relaxed text-ink-soft">{faq.answer}</p>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Nearby areas</p>
+            <h2 class="mb-4 text-xl font-display font-semibold text-ink sm:text-2xl">
+              {service.shortName} near {location.name}
+            </h2>
+            {
+              nearbyPages.length > 0 ? (
+                <div class="flex flex-wrap gap-2">
+                  {nearbyPages.map((nearby) => (
+                    <a
+                      href={nearby.href}
+                      class="rounded-full border border-border bg-paper px-4 py-2 text-sm text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                    >
+                      {nearby.name}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p class="text-sm text-ink-soft">
+                  Also available across Greater Victoria and the Cowichan Valley.
+                </p>
+              )
+            }
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">More in {location.name}</p>
+            <h2 class="mb-4 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Related services
+            </h2>
+            <div class="space-y-3">
+              {
+                relatedServicePages.map((related) => (
+                  <a
+                    href={related.href}
+                    class="block rounded-xl border border-border bg-paper/50 p-4 transition hover:border-ink/30"
+                  >
+                    <p class="text-sm font-semibold text-ink">{related.name}</p>
+                    <p class="mt-1 text-xs leading-relaxed text-ink-soft">
+                      {related.description}
+                    </p>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Get a quote</p>
+            <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Book {service.shortName.toLowerCase()}
+            </h2>
+            <p class="mb-4 text-sm text-ink-soft">
+              Call or text for the fastest response. We usually reply within one business day.
+            </p>
+            <div class="space-y-3 text-sm">
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`tel:${business.phoneTel}`}
+                data-ga-event="cta_click"
+                data-ga-label={`service_location_${service.slug}_${location.slug}_call`}
+              >
+                {business.phone}
+              </a>
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`mailto:${business.email}`}
+                data-ga-event="cta_click"
+                data-ga-label={`service_location_${service.slug}_${location.slug}_email`}
+              >
+                {business.email}
+              </a>
+              <a
+                class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
+                href="#quote"
+                data-ga-event="cta_click"
+                data-ga-label={`service_location_${service.slug}_${location.slug}_quote`}
+              >
+                Get a free quote
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="quote" class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-8 space-y-3">
+        <p class="section-kicker">Request a quote</p>
+        <h2 class="section-title">
+          Get {service.shortName.toLowerCase()} in {location.name}
+        </h2>
+      </div>
+      <QuoteForm
+        preselectedService={serviceFormMap[service.slug] || "other"}
+        preselectedArea={location.name}
+        showInfoBox={true}
+      />
+    </div>
+  </section>
+</Layout>

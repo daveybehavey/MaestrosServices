@@ -3,8 +3,9 @@ import Layout from "../../components/Layout.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import QuoteForm from "../../components/QuoteForm.astro";
 import { business } from "../../data/business";
-import { locations, getLocationBySlug, getLocationById } from "../../data/locations";
+import { locations, getLocationById } from "../../data/locations";
 import { services } from "../../data/services";
+import { hasServiceLocationPage } from "../../data/serviceLocationPages";
 import { locationFaqs } from "../../data/faqs";
 import {
   createLocationPageSchema,
@@ -24,6 +25,17 @@ const { location } = Astro.props;
 const nearbyLocations = location.nearbyAreas
   .map((id) => getLocationById(id))
   .filter(Boolean);
+
+const featuredServices = services.slice(0, 4).map((service) => ({
+  ...service,
+  href: hasServiceLocationPage(service.id, location.id)
+    ? `/services/${service.slug}/${location.slug}`
+    : `/services/${service.slug}`,
+}));
+
+const hasLocalizedServicePages = featuredServices.some((service) =>
+  service.href.includes(`/${location.slug}`)
+);
 
 const pageTitle = `Landscaping in ${location.name}, BC | ${business.name}`;
 const pageDescription = location.description;
@@ -77,9 +89,9 @@ const structuredData = [
             </p>
             <div class="grid gap-4 sm:grid-cols-2">
               {
-                services.slice(0, 4).map((service) => (
+                featuredServices.map((service) => (
                   <a
-                    href={`/services/${service.slug}`}
+                    href={service.href}
                     class="group rounded-xl border border-border bg-paper/50 p-4 transition hover:border-ink/30"
                   >
                     <h3 class="text-sm font-semibold text-ink group-hover:text-ink/80">
@@ -93,12 +105,23 @@ const structuredData = [
               }
             </div>
             <div class="mt-6">
-              <a
-                class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
-                href="/services"
-              >
-                View all services →
-              </a>
+              {
+                hasLocalizedServicePages ? (
+                  <a
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                    href="/services-by-area"
+                  >
+                    View all localized services →
+                  </a>
+                ) : (
+                  <a
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                    href="/services"
+                  >
+                    View all services →
+                  </a>
+                )
+              }
             </div>
           </div>
 

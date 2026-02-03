@@ -60,11 +60,18 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
     }
 
     if (gaId && window.gtag) {
+      var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
       document.querySelectorAll("[data-ga-event]").forEach(function (el) {
         el.addEventListener("click", function () {
           var eventName = el.getAttribute("data-ga-event");
           var label = el.getAttribute("data-ga-label");
-          window.gtag("event", eventName, { event_category: "cta", event_label: label });
+          window.gtag("event", eventName, {
+            event_category: "cta",
+            event_label: label,
+            page_group: analyticsContext.pageGroup || "site",
+            page_type: analyticsContext.pageType || "default",
+            page_template: analyticsContext.pageTemplate || "default",
+          });
         });
       });
     }

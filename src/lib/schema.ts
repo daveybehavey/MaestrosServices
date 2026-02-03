@@ -84,6 +84,29 @@ export const createServiceSchema = (service: Service) => ({
   },
 });
 
+export const createServiceLocationSchema = (service: Service, location: Location) => ({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${business.siteUrl}/services/${service.slug}/${location.slug}/#service`,
+  name: `${service.shortName} in ${location.name}`,
+  serviceType: service.name,
+  description: `${service.description} Serving homeowners in ${location.name}, British Columbia.`,
+  provider: {
+    "@type": "LandscapingBusiness",
+    "@id": `${business.siteUrl}/#business`,
+    name: business.name,
+    telephone: business.phoneTel,
+  },
+  areaServed: {
+    "@type": "City",
+    name: location.name,
+    containedInPlace: {
+      "@type": "AdministrativeArea",
+      name: "British Columbia",
+    },
+  },
+});
+
 export const createFAQSchema = (faqs: FAQ[]) => ({
   "@context": "https://schema.org",
   "@type": "FAQPage",

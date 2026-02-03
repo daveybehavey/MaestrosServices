@@ -1,0 +1,153 @@
+---
+import Layout from "../components/Layout.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import { business } from "../data/business";
+import { serviceLocationPages } from "../data/serviceLocationPages";
+import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema";
+
+const pageTitle = `Landscaping Services by Area | ${business.name}`;
+const pageDescription =
+  "Browse localized landscaping service pages for top communities across Greater Victoria and the Cowichan Valley.";
+const canonicalUrl = `${business.siteUrl}/services-by-area`;
+
+const breadcrumbItems = [{ name: "Services by Area", href: "/services-by-area" }];
+
+const structuredData = [
+  createOrganizationSchema(),
+  createBreadcrumbSchema(breadcrumbItems),
+];
+
+const locationMap = new Map<
+  string,
+  {
+    location: (typeof serviceLocationPages)[number]["location"];
+    entries: typeof serviceLocationPages;
+  }
+>();
+
+serviceLocationPages.forEach((entry) => {
+  const existing = locationMap.get(entry.location.id);
+  if (existing) {
+    existing.entries.push(entry);
+    return;
+  }
+
+  locationMap.set(entry.location.id, {
+    location: entry.location,
+    entries: [entry],
+  });
+});
+
+const serviceMap = new Map<
+  string,
+  {
+    service: (typeof serviceLocationPages)[number]["service"];
+    entries: typeof serviceLocationPages;
+  }
+>();
+
+serviceLocationPages.forEach((entry) => {
+  const existing = serviceMap.get(entry.service.id);
+  if (existing) {
+    existing.entries.push(entry);
+    return;
+  }
+
+  serviceMap.set(entry.service.id, {
+    service: entry.service,
+    entries: [entry],
+  });
+});
+
+const locationGroups = [...locationMap.values()];
+const serviceGroups = [...serviceMap.values()];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle="Services by Area"
+  quoteHref="/#quote"
+  analytics={{
+    pageGroup: "service_location_pages",
+    pageType: "service_location_hub",
+    pageTemplate: "service-location-hub",
+  }}
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">Programmatic landing pages</p>
+        <h1 class="section-title">Landscaping services by area</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          These localized pages combine specific services with specific communities so homeowners
+          can quickly find the right option for their area. We currently publish
+          {` ${serviceLocationPages.length} `}service + location combinations.
+        </p>
+      </div>
+
+      <div class="space-y-10">
+        <div>
+          <h2 class="mb-5 text-2xl font-display font-semibold text-ink sm:text-3xl">
+            Browse by location
+          </h2>
+          <div class="grid gap-6 sm:grid-cols-2">
+            {
+              locationGroups.map((group) => (
+                <article class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+                  <p class="section-kicker">{group.location.region}</p>
+                  <h3 class="mb-2 text-xl font-display font-semibold text-ink">
+                    {group.location.name}
+                  </h3>
+                  <p class="mb-4 text-sm text-ink-soft">{group.location.description}</p>
+                  <ul class="space-y-2 text-sm">
+                    {group.entries.map((entry) => (
+                      <li>
+                        <a class="text-ink-soft hover:text-ink" href={entry.href}>
+                          {entry.service.shortName} in {entry.location.name} →
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+
+        <div>
+          <h2 class="mb-5 text-2xl font-display font-semibold text-ink sm:text-3xl">
+            Browse by service
+          </h2>
+          <div class="grid gap-6 sm:grid-cols-2">
+            {
+              serviceGroups.map((group) => (
+                <article class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+                  <p class="section-kicker">Service focus</p>
+                  <h3 class="mb-2 text-xl font-display font-semibold text-ink">
+                    {group.service.name}
+                  </h3>
+                  <p class="mb-4 text-sm text-ink-soft">{group.service.description}</p>
+                  <ul class="space-y-2 text-sm">
+                    {group.entries.map((entry) => (
+                      <li>
+                        <a class="text-ink-soft hover:text-ink" href={entry.href}>
+                          {entry.location.name} →
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))
+          }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

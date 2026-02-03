@@ -3,8 +3,9 @@ import Layout from "../../components/Layout.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import QuoteForm from "../../components/QuoteForm.astro";
 import { business } from "../../data/business";
-import { services, getServiceBySlug, getServiceById } from "../../data/services";
+import { services, getServiceById } from "../../data/services";
 import { locations } from "../../data/locations";
+import { getServiceLocationPagesForService } from "../../data/serviceLocationPages";
 import {
   createServiceSchema,
   createBreadcrumbSchema,
@@ -23,6 +24,8 @@ const { service } = Astro.props;
 const relatedServices = service.relatedServices
   .map((id) => getServiceById(id))
   .filter(Boolean);
+
+const localizedServicePages = getServiceLocationPagesForService(service.id);
 
 const pageTitle = `${service.name} | Vancouver Island | ${business.name}`;
 const pageDescription = service.description;
@@ -170,24 +173,47 @@ const serviceFormMap: Record<string, string> = {
               We provide {service.shortName.toLowerCase()} services throughout lower-mid
               Vancouver Island, from Victoria to Duncan.
             </p>
-            <div class="flex flex-wrap gap-2">
-              {
-                locations.slice(0, 8).map((location) => (
+            {
+              localizedServicePages.length > 0 ? (
+                <>
+                  <div class="flex flex-wrap gap-2">
+                    {localizedServicePages.slice(0, 8).map((entry) => (
+                      <a
+                        href={entry.href}
+                        class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                      >
+                        {entry.location.name}
+                      </a>
+                    ))}
+                  </div>
                   <a
-                    href={`/areas/${location.slug}`}
-                    class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                    href="/services-by-area"
+                    class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
                   >
-                    {location.name}
+                    See all {localizedServicePages.length} localized pages →
                   </a>
-                ))
-              }
-              <a
-                href="/service-area"
-                class="rounded-full border border-ink/20 bg-paper px-3 py-1 text-xs text-ink hover:border-ink"
-              >
-                + {locations.length - 8} more
-              </a>
-            </div>
+                </>
+              ) : (
+                <div class="flex flex-wrap gap-2">
+                  {
+                    locations.slice(0, 8).map((location) => (
+                      <a
+                        href={`/areas/${location.slug}`}
+                        class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                      >
+                        {location.name}
+                      </a>
+                    ))
+                  }
+                  <a
+                    href="/service-area"
+                    class="rounded-full border border-ink/20 bg-paper px-3 py-1 text-xs text-ink hover:border-ink"
+                  >
+                    + {locations.length - 8} more
+                  </a>
+                </div>
+              )
+            }
           </div>
 
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">

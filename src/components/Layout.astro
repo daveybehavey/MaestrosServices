@@ -23,6 +23,11 @@ interface Props {
   headerVariant?: "default" | "simple";
   headerSubtitle?: string;
   quoteHref?: string;
+  analytics?: {
+    pageGroup?: string;
+    pageType?: string;
+    pageTemplate?: string;
+  };
 }
 
 const {
@@ -38,6 +43,7 @@ const {
   headerVariant = "default",
   headerSubtitle,
   quoteHref = "/#quote",
+  analytics,
 } = Astro.props;
 ---
 
@@ -52,6 +58,7 @@ const {
       article={article}
       noindex={noindex}
       structuredData={structuredData}
+      analytics={analytics}
     />
   </head>
   <body>
