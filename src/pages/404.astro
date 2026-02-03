@@ -1,105 +1,72 @@
 ---
-import "../styles/global.css";
+import Layout from "../components/Layout.astro";
+import { business } from "../data/business";
 
-const business = {
-  name: "Maestros Services",
-  phone: "250-858-1781",
-  phoneTel: "+12508581781",
-  email: "quotes@maestrosservices.com",
-};
+const pageTitle = `Page Not Found | ${business.name}`;
+const pageDescription =
+  "The page you're looking for doesn't exist. Get back to Maestros Services landscaping.";
+const canonicalUrl = `${business.siteUrl}/404`;
 ---
 
-<html lang="en-CA">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Page Not Found | Maestros Services</title>
-    <meta name="description" content="The page you're looking for doesn't exist. Get back to Maestros Services landscaping." />
-    <meta name="robots" content="noindex, follow" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
-    <link rel="icon" href="/favicon.ico?v=2" />
-    <link rel="apple-touch-icon" href="/favicon.png?v=2" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="relative flex min-h-screen flex-col bg-paper">
-      <header class="border-b border-border/70 bg-paper/80 backdrop-blur">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5">
-          <a class="flex items-center gap-3" href="/">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/90">
-              <img src="/logo.png?v=2" alt="Maestros Services logo" class="h-8 w-8" width="32" height="32" />
-            </div>
-            <span class="text-lg font-display text-ink">{business.name}</span>
-          </a>
-        </div>
-      </header>
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  noindex={true}
+  headerVariant="simple"
+  showMobileCTA={false}
+  quoteHref="/#quote"
+>
+  <section class="flex min-h-[70vh] items-center justify-center px-5 py-20 sm:px-6">
+    <div class="max-w-2xl text-center">
+      <p class="mb-4 text-sm uppercase tracking-[0.3em] text-ink-soft">Error 404</p>
+      <h1 class="mb-6 text-5xl font-display font-semibold tracking-tight text-ink sm:text-6xl">
+        Page not found
+      </h1>
+      <p class="mb-10 text-base leading-relaxed text-ink-soft">
+        The page you're looking for doesn't exist or has been moved. Let's get you back on track.
+      </p>
 
-      <main class="flex flex-1 items-center justify-center px-5 py-20">
-        <div class="max-w-2xl text-center">
-          <p class="mb-4 text-sm uppercase tracking-[0.3em] text-ink-soft">Error 404</p>
-          <h1 class="mb-6 text-5xl font-display font-semibold tracking-tight text-ink sm:text-6xl">
-            Page not found
-          </h1>
-          <p class="mb-10 text-base leading-relaxed text-ink-soft">
-            The page you're looking for doesn't exist or has been moved. Let's get you back on track.
-          </p>
+      <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a
+          class="w-full rounded-full bg-ink px-8 py-3 text-center font-semibold text-paper hover:bg-ink/90 sm:w-auto"
+          href="/"
+        >
+          Go to homepage
+        </a>
+        <a
+          class="w-full rounded-full border border-ink/20 px-8 py-3 text-center font-semibold text-ink hover:border-ink sm:w-auto"
+          href="/#quote"
+        >
+          Get a free quote
+        </a>
+      </div>
 
-          <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <a
-              class="w-full rounded-full bg-ink px-8 py-3 text-center font-semibold text-paper hover:bg-ink/90 sm:w-auto"
-              href="/"
-            >
-              Go to homepage
+      <div class="mt-12 rounded-2xl border border-border bg-white/90 p-8 text-left shadow-fine">
+        <p class="mb-4 text-sm font-semibold text-ink">Popular pages</p>
+        <ul class="space-y-3 text-sm">
+          <li>
+            <a class="text-ink-soft hover:text-ink" href="/#services">
+              → Services we offer
             </a>
-            <a
-              class="w-full rounded-full border border-ink/20 px-8 py-3 text-center font-semibold text-ink hover:border-ink sm:w-auto"
-              href="/#quote"
-            >
-              Get a free quote
+          </li>
+          <li>
+            <a class="text-ink-soft hover:text-ink" href="/service-area">
+              → Service area coverage
             </a>
-          </div>
-
-          <div class="mt-12 rounded-2xl border border-border bg-white/90 p-8 text-left shadow-fine">
-            <p class="mb-4 text-sm font-semibold text-ink">Popular pages</p>
-            <ul class="space-y-3 text-sm">
-              <li>
-                <a class="text-ink-soft hover:text-ink" href="/#services">
-                  → Services we offer
-                </a>
-              </li>
-              <li>
-                <a class="text-ink-soft hover:text-ink" href="/service-area">
-                  → Service area coverage
-                </a>
-              </li>
-              <li>
-                <a class="text-ink-soft hover:text-ink" href="/#quote">
-                  → Request a quote
-                </a>
-              </li>
-              <li>
-                <a class="text-ink-soft hover:text-ink" href={`tel:${business.phoneTel}`}>
-                  → Call or text {business.phone}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </main>
-
-      <footer class="border-t border-border/70 bg-paper/80 py-6">
-        <div class="mx-auto max-w-6xl px-5 text-center sm:px-6">
-          <p class="text-xs text-ink-soft">
-            © 2026 {business.name}. Lower-mid Vancouver Island.
-          </p>
-        </div>
-      </footer>
+          </li>
+          <li>
+            <a class="text-ink-soft hover:text-ink" href="/#quote">
+              → Request a quote
+            </a>
+          </li>
+          <li>
+            <a class="text-ink-soft hover:text-ink" href={`tel:${business.phoneTel}`}>
+              → Call or text {business.phone}
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </body>
-</html>
+  </section>
+</Layout>
