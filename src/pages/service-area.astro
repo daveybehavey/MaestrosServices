@@ -1,85 +1,40 @@
 ---
-import "../styles/global.css";
+import Layout from "../components/Layout.astro";
+import { business } from "../data/business";
+import { serviceAreaFaqs } from "../data/faqs";
+import { locations, regions } from "../data/locations";
+import {
+  createBreadcrumbSchema,
+  createFAQSchema,
+} from "../lib/schema";
 
-const business = {
-  name: "Maestros Services",
-  phone: "250-858-1781",
-  phoneTel: "+12508581781",
-  email: "quotes@maestrosservices.com",
-};
+const pageTitle = `Landscaping Service Area: Victoria, Langford, Duncan & Cowichan Valley | ${business.name}`;
+const pageDescription =
+  "Professional residential landscaping services across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Duncan & Cowichan Valley. Lawn care, maintenance, cleanups & more.";
+const canonicalUrl = `${business.siteUrl}/service-area`;
 
-const serviceAreas = [
-  { name: "Victoria", region: "Greater Victoria" },
-  { name: "Saanich", region: "Greater Victoria" },
-  { name: "Central Saanich", region: "Greater Victoria" },
-  { name: "North Saanich", region: "Greater Victoria" },
-  { name: "Brentwood Bay", region: "Greater Victoria" },
-  { name: "Sidney", region: "Greater Victoria" },
-  { name: "Langford", region: "Greater Victoria" },
-  { name: "Colwood", region: "Greater Victoria" },
-  { name: "View Royal", region: "Greater Victoria" },
-  { name: "Esquimalt", region: "Greater Victoria" },
-  { name: "Sooke", region: "Greater Victoria" },
-  { name: "Metchosin", region: "Greater Victoria" },
-  { name: "Highlands", region: "Greater Victoria" },
-  { name: "Shawnigan Lake", region: "Cowichan Valley" },
-  { name: "Mill Bay", region: "Cowichan Valley" },
-  { name: "Cobble Hill", region: "Cowichan Valley" },
-  { name: "Cowichan Bay", region: "Cowichan Valley" },
-  { name: "Maple Bay", region: "Cowichan Valley" },
-  { name: "Lake Cowichan", region: "Cowichan Valley" },
-  { name: "Duncan", region: "Cowichan Valley" },
-];
+const breadcrumbItems = [{ name: "Service Area", href: "/service-area" }];
 
-const regions = [
-  {
-    name: "Greater Victoria",
-    description: "Professional residential landscaping services throughout the Capital Regional District, including lawn maintenance, garden bed care, seasonal cleanups, and property upkeep.",
-    cities: serviceAreas.filter(a => a.region === "Greater Victoria").map(a => a.name),
-  },
-  {
-    name: "Cowichan Valley",
-    description: "Reliable lawn care and landscaping for homes across the Cowichan Valley, from Shawnigan Lake to Duncan. We provide weekly mowing, trimming, mulching, and seasonal yard maintenance.",
-    cities: serviceAreas.filter(a => a.region === "Cowichan Valley").map(a => a.name),
-  },
-];
-
-const faqs = [
-  {
-    question: "Do you service my area?",
-    answer: "We serve all communities across lower-mid Vancouver Island, from Victoria to Duncan. If you're within 50km of Shawnigan Lake, we can likely help. Call or text to confirm availability in your neighborhood.",
-  },
-  {
-    question: "Is there a travel fee for areas outside Victoria?",
-    answer: "No travel fees for any location within our standard service area. We keep pricing simple and transparent.",
-  },
-  {
-    question: "How quickly can you start in my area?",
-    answer: "Most areas can be scheduled within 3–5 business days, depending on current workload and season. Call or text for the fastest response.",
-  },
-  {
-    question: "Do you offer services outside the listed areas?",
-    answer: "Possibly. If you're close to our service area, reach out and we'll let you know if we can accommodate your location.",
-  },
-];
-
-const siteUrl = "https://maestrosservices.com";
-const canonicalUrl = `${siteUrl}/service-area`;
-const socialImageUrl = `${siteUrl}/og-image.png?v=4`;
-const gaId = import.meta.env.PUBLIC_GA_ID;
+const regionCards = regions.map((region) => ({
+  name: region.name,
+  description: region.description,
+  cities: locations
+    .filter((location) => location.region === region.name)
+    .map((location) => location.name),
+}));
 
 const serviceAreaSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": `${siteUrl}/#business`,
+  "@id": `${business.siteUrl}/#business`,
   name: business.name,
-  url: siteUrl,
+  url: business.siteUrl,
   telephone: business.phoneTel,
   email: business.email,
-  priceRange: "$$",
-  areaServed: serviceAreas.map(area => ({
+  priceRange: business.priceRange,
+  areaServed: locations.map((location) => ({
     "@type": "City",
-    name: area.name,
+    name: location.name,
     containedInPlace: {
       "@type": "AdministrativeArea",
       name: "British Columbia",
@@ -87,267 +42,187 @@ const serviceAreaSchema = {
   })),
   geo: {
     "@type": "GeoCoordinates",
-    latitude: "48.6289",
-    longitude: "-123.8690",
+    latitude: business.geo.latitude,
+    longitude: business.geo.longitude,
   },
   address: {
     "@type": "PostalAddress",
-    addressLocality: "Shawnigan Lake",
-    addressRegion: "BC",
-    addressCountry: "CA",
+    addressLocality: business.address.locality,
+    addressRegion: business.address.region,
+    addressCountry: business.address.country,
   },
 };
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: siteUrl,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Service Area",
-      item: canonicalUrl,
-    },
-  ],
-};
-
-const structuredData = [serviceAreaSchema, breadcrumbSchema];
+const structuredData = [
+  serviceAreaSchema,
+  createBreadcrumbSchema(breadcrumbItems),
+  createFAQSchema(serviceAreaFaqs),
+];
 ---
 
-<html lang="en-CA">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Landscaping Service Area: Victoria, Langford, Duncan & Cowichan Valley | Maestros Services</title>
-    <meta
-      name="description"
-      content="Professional residential landscaping services across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Duncan & Cowichan Valley. Lawn care, maintenance, cleanups & more."
-    />
-    <link rel="canonical" href={canonicalUrl} />
-    <meta property="og:title" content="Landscaping Service Area: Victoria to Duncan | Maestros Services" />
-    <meta property="og:description" content="Residential lawn care and landscaping across lower-mid Vancouver Island. Serving Greater Victoria and Cowichan Valley." />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content={socialImageUrl} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Maestros Services residential landscaping" />
-    <meta property="og:locale" content="en_CA" />
-    <meta property="og:site_name" content="Maestros Services" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Landscaping Service Area: Victoria to Duncan | Maestros Services" />
-    <meta name="twitter:description" content="Residential lawn care and landscaping across lower-mid Vancouver Island. Serving Greater Victoria and Cowichan Valley." />
-    <meta name="twitter:image" content={socialImageUrl} />
-    <meta name="twitter:image:alt" content="Maestros Services residential landscaping" />
-    <meta name="theme-color" content="#161616" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="geo.region" content="CA-BC" />
-    <meta name="geo.placename" content="Shawnigan Lake, Victoria" />
-    <meta name="geo.position" content="48.6289;-123.8690" />
-    <meta name="ICBM" content="48.6289, -123.8690" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
-    <link rel="icon" href="/favicon.ico?v=2" />
-    <link rel="apple-touch-icon" href="/favicon.png?v=2" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-    {gaId ? (
-      <>
-        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-        <script is:inline>
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${gaId}', { anonymize_ip: true });
-          `}
-        </script>
-      </>
-    ) : null}
-  </head>
-  <body>
-    <div class="relative min-h-screen bg-paper">
-      <header class="border-b border-border/70 bg-paper/80 backdrop-blur">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5">
-          <a class="flex items-center gap-3" href="/">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/90">
-              <img src="/logo.png?v=2" alt="Maestros Services logo" class="h-8 w-8" width="32" height="32" />
-            </div>
-            <div class="leading-none">
-              <p class="text-lg font-display text-ink">{business.name}</p>
-              <p class="text-xs uppercase tracking-[0.3em] text-ink-soft">Service area</p>
-            </div>
-          </a>
-          <div class="flex flex-wrap items-center gap-3 text-sm">
-            <a class="rounded-full border border-ink/20 px-4 py-2 text-ink hover:border-ink" href={`tel:${business.phoneTel}`}>
-              Call or text {business.phone}
-            </a>
-            <a class="rounded-full bg-ink px-4 py-2 text-paper hover:bg-ink/90" href="/#quote">
-              Get a free quote
-            </a>
-          </div>
-        </div>
-      </header>
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle="Service area"
+  quoteHref="/#quote"
+  showMobileCTA={false}
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-10 space-y-4">
+        <p class="section-kicker">Lower-mid Vancouver Island</p>
+        <h1 class="section-title">Landscaping service area</h1>
+        <p class="max-w-3xl text-base text-ink-soft">
+          Based near Shawnigan Lake and serving residential properties across the lower-mid
+          island. We provide lawn care, garden maintenance, seasonal cleanups, and property upkeep
+          throughout Greater Victoria and the Cowichan Valley.
+        </p>
+      </div>
 
-      <main class="flex-1">
-        <section class="section">
-          <div class="mx-auto max-w-6xl px-5 sm:px-6">
-            <div class="mb-10 space-y-4">
-              <p class="section-kicker">Lower-mid Vancouver Island</p>
-              <h1 class="section-title">Landscaping service area</h1>
-              <p class="max-w-3xl text-base text-ink-soft">
-                Based near Shawnigan Lake and serving residential properties across the lower-mid island. We provide lawn care, garden maintenance, seasonal cleanups, and property upkeep throughout Greater Victoria and the Cowichan Valley.
-              </p>
-            </div>
-
-            <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-              <div class="space-y-8">
-                {regions.map((region) => (
-                  <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
-                    <h2 class="mb-3 text-2xl font-display font-semibold text-ink sm:text-3xl">{region.name}</h2>
-                    <p class="mb-5 text-sm leading-relaxed text-ink-soft">{region.description}</p>
-                    <div class="flex flex-wrap gap-2">
-                      {region.cities.map((city) => (
-                        <span class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft">{city}</span>
-                      ))}
-                    </div>
-                  </div>
+      <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="space-y-8">
+          {regionCards.map((region) => (
+            <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+              <h2 class="mb-3 text-2xl font-display font-semibold text-ink sm:text-3xl">
+                {region.name}
+              </h2>
+              <p class="mb-5 text-sm leading-relaxed text-ink-soft">{region.description}</p>
+              <div class="flex flex-wrap gap-2">
+                {region.cities.map((city) => (
+                  <span class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft">
+                    {city}
+                  </span>
                 ))}
-
-                <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
-                  <p class="section-kicker">Services we offer</p>
-                  <h2 class="mb-3 text-2xl font-display font-semibold text-ink sm:text-3xl">Residential landscaping across the island</h2>
-                  <p class="mb-5 text-sm leading-relaxed text-ink-soft">
-                    We specialize in residential lawn care and landscaping services for homeowners across lower-mid Vancouver Island. From weekly mowing and trimming to seasonal cleanups and garden bed maintenance, we keep your property looking sharp year-round.
-                  </p>
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-2">
-                      <h3 class="text-sm font-semibold text-ink">Lawn maintenance</h3>
-                      <p class="text-xs leading-relaxed text-ink-soft">Weekly or bi-weekly mowing, edging, and trimming to keep your lawn looking crisp.</p>
-                    </div>
-                    <div class="space-y-2">
-                      <h3 class="text-sm font-semibold text-ink">Garden care</h3>
-                      <p class="text-xs leading-relaxed text-ink-soft">Weeding, mulching, pruning, and garden bed refreshes for a tidy yard.</p>
-                    </div>
-                    <div class="space-y-2">
-                      <h3 class="text-sm font-semibold text-ink">Seasonal cleanups</h3>
-                      <p class="text-xs leading-relaxed text-ink-soft">Spring and fall cleanups, leaf removal, and debris hauling.</p>
-                    </div>
-                    <div class="space-y-2">
-                      <h3 class="text-sm font-semibold text-ink">Property upkeep</h3>
-                      <p class="text-xs leading-relaxed text-ink-soft">Hedge trimming, pathway clearing, and general yard maintenance.</p>
-                    </div>
-                  </div>
-                  <div class="mt-6">
-                    <div class="flex flex-wrap items-center gap-4">
-                      <a class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70" href="/#services">
-                        View all services →
-                      </a>
-                      <a class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70" href="/services-by-area">
-                        Browse services by area →
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
-                  <p class="section-kicker">Common questions</p>
-                  <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">Service area FAQs</h2>
-                  <div class="space-y-5">
-                    {faqs.map((faq) => (
-                      <div class="border-b border-border pb-5 last:border-0 last:pb-0">
-                        <h3 class="mb-2 text-sm font-semibold text-ink">{faq.question}</h3>
-                        <p class="text-sm leading-relaxed text-ink-soft">{faq.answer}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
+            </div>
+          ))}
 
-              <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
-                <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
-                  <p class="section-kicker">Service map</p>
-                  <h2 class="mb-4 text-xl font-display font-semibold text-ink sm:text-2xl">Coverage area</h2>
-                  <div class="flex items-center justify-center rounded-2xl border border-border bg-paper/80 p-6 text-ink/80">
-                    <picture class="block w-full">
-                      <source srcset="/VIMAP.svg?v=2" type="image/svg+xml" />
-                      <img
-                        src="/VIMAP.png?v=2"
-                        alt="Map showing landscaping service coverage across lower-mid Vancouver Island"
-                        width="400"
-                        height="256"
-                        class="mx-auto h-56 w-auto max-w-full rounded-xl object-contain sm:h-64"
-                        loading="lazy"
-                      />
-                    </picture>
-                  </div>
-                  <p class="mt-4 text-xs text-ink-soft">Serving communities within 50km of Shawnigan Lake.</p>
-                </div>
-
-                <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
-                  <p class="section-kicker">Get in touch</p>
-                  <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">Contact us</h2>
-                  <p class="mb-4 text-sm text-ink-soft">Call or text for the fastest response. We typically reply within one business day.</p>
-                  <div class="space-y-3 text-sm">
-                    <a
-                      class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
-                      href={`tel:${business.phoneTel}`}
-                    >
-                      {business.phone}
-                    </a>
-                    <a
-                      class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
-                      href={`mailto:${business.email}`}
-                    >
-                      {business.email}
-                    </a>
-                    <a
-                      class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
-                      href="/#quote"
-                    >
-                      Get a free quote
-                    </a>
-                  </div>
-                </div>
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Services we offer</p>
+            <h2 class="mb-3 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              Residential landscaping across the island
+            </h2>
+            <p class="mb-5 text-sm leading-relaxed text-ink-soft">
+              We specialize in residential lawn care and landscaping services for homeowners across
+              lower-mid Vancouver Island. From weekly mowing and trimming to seasonal cleanups and
+              garden bed maintenance, we keep your property looking sharp year-round.
+            </p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-ink">Lawn maintenance</h3>
+                <p class="text-xs leading-relaxed text-ink-soft">
+                  Weekly or bi-weekly mowing, edging, and trimming to keep your lawn looking crisp.
+                </p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-ink">Garden care</h3>
+                <p class="text-xs leading-relaxed text-ink-soft">
+                  Weeding, mulching, pruning, and garden bed refreshes for a tidy yard.
+                </p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-ink">Seasonal cleanups</h3>
+                <p class="text-xs leading-relaxed text-ink-soft">
+                  Spring and fall cleanups, leaf removal, and debris hauling.
+                </p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-ink">Property upkeep</h3>
+                <p class="text-xs leading-relaxed text-ink-soft">
+                  Hedge trimming, pathway clearing, and general yard maintenance.
+                </p>
+              </div>
+            </div>
+            <div class="mt-6">
+              <div class="flex flex-wrap items-center gap-4">
+                <a
+                  class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                  href="/#services"
+                >
+                  View all services →
+                </a>
+                <a
+                  class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                  href="/services-by-area"
+                >
+                  Browse services by area →
+                </a>
               </div>
             </div>
           </div>
-        </section>
-      </main>
 
-      <footer class="border-t border-border/70 bg-paper/80">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-8 text-sm text-ink-soft sm:px-6 sm:py-10">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90">
-              <img src="/logo.png?v=2" alt="Maestros Services logo" class="h-6 w-6" width="24" height="24" />
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Common questions</p>
+            <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
+              Service area FAQs
+            </h2>
+            <div class="space-y-5">
+              {serviceAreaFaqs.map((faq) => (
+                <div class="border-b border-border pb-5 last:border-0 last:pb-0">
+                  <h3 class="mb-2 text-sm font-semibold text-ink">{faq.question}</h3>
+                  <p class="text-sm leading-relaxed text-ink-soft">{faq.answer}</p>
+                </div>
+              ))}
             </div>
-            <div class="space-y-1">
-              <p class="text-base font-semibold text-ink">{business.name}</p>
-              <p>Residential landscaping across lower-mid Vancouver Island.</p>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <p class="font-semibold text-ink">Contact</p>
-            <a class="block hover:text-ink" href={`tel:${business.phoneTel}`}>
-              {business.phone}
-            </a>
-            <a class="block hover:text-ink" href={`mailto:${business.email}`}>
-              {business.email}
-            </a>
           </div>
         </div>
-      </footer>
+
+        <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Service map</p>
+            <h2 class="mb-4 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Coverage area
+            </h2>
+            <div
+              class="flex items-center justify-center rounded-2xl border border-border bg-paper/80 p-6 text-ink/80"
+            >
+              <picture class="block w-full">
+                <source srcset="/VIMAP.svg?v=2" type="image/svg+xml" />
+                <img
+                  src="/VIMAP.png?v=2"
+                  alt="Map showing landscaping service coverage across lower-mid Vancouver Island"
+                  width="400"
+                  height="256"
+                  class="mx-auto h-56 w-auto max-w-full rounded-xl object-contain sm:h-64"
+                  loading="lazy"
+                />
+              </picture>
+            </div>
+            <p class="mt-4 text-xs text-ink-soft">Serving communities within 50km of Shawnigan Lake.</p>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Get in touch</p>
+            <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">Contact us</h2>
+            <p class="mb-4 text-sm text-ink-soft">
+              Call or text for the fastest response. We typically reply within one business day.
+            </p>
+            <div class="space-y-3 text-sm">
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`tel:${business.phoneTel}`}
+              >
+                {business.phone}
+              </a>
+              <a
+                class="block rounded-xl border border-ink/15 bg-white/90 px-4 py-3 text-center hover:border-ink"
+                href={`mailto:${business.email}`}
+              >
+                {business.email}
+              </a>
+              <a
+                class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
+                href="/#quote"
+              >
+                Get a free quote
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </body>
-</html>
+  </section>
+</Layout>
