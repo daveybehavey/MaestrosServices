@@ -1,12 +1,10 @@
 ---
 import "../styles/global.css";
-
-const business = {
-  name: "Maestros Services",
-  phone: "250-858-1781",
-  phoneTel: "+12508581781",
-  email: "quotes@maestrosservices.com",
-};
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import MobileCTA from "../components/MobileCTA.astro";
+import QuoteForm from "../components/QuoteForm.astro";
+import { business } from "../data/business";
 
 const services = [
   "Lawn mowing and clean edging",
@@ -80,8 +78,6 @@ const faqs = [
   },
 ];
 
-const submitted = Astro.url.searchParams.get("submitted");
-const error = Astro.url.searchParams.get("error");
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
 const siteUrl = Astro.site?.toString().replace(/\/$/, "") ?? "https://maestrosservices.com";
@@ -193,6 +189,11 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '${gaId}', { anonymize_ip: true });
+            window.__MS_ANALYTICS_CONTEXT__ = {
+              pageGroup: 'homepage',
+              pageType: 'home',
+              pageTemplate: 'home'
+            };
           `}
         </script>
       </>
@@ -216,38 +217,7 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
   </head>
   <body>
     <div class="relative flex min-h-screen flex-col">
-
-      <header class="sticky top-0 z-50 border-b border-border/70 bg-paper/80 backdrop-blur animate-fade">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6 sm:py-4">
-          <div class="flex items-center gap-3">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/90">
-              <picture>
-                <source srcset="/logo.png?v=2" type="image/png" />
-                <img src="/logo.png?v=2" alt="Maestros Services logo" class="h-8 w-8" width="32" height="32" />
-              </picture>
-            </div>
-            <div class="leading-none">
-              <p class="text-lg font-display">{business.name}</p>
-              <p class="text-xs uppercase tracking-[0.3em] text-ink-soft">Residential landscaping</p>
-            </div>
-          </div>
-          <nav class="hidden flex-wrap items-center gap-4 text-sm text-ink-soft md:flex">
-            <a class="hover:text-ink" href="#services">Services</a>
-            <a class="hover:text-ink" href="#service-area">Service area</a>
-            <a class="hover:text-ink" href="#about">About</a>
-            <a class="hover:text-ink" href="#faq">FAQ</a>
-            <a class="hover:text-ink" href="#quote">Get a quote</a>
-          </nav>
-          <div class="hidden flex-wrap items-center gap-3 text-sm md:flex">
-            <a class="rounded-full bg-ink px-5 py-2.5 text-paper hover:bg-ink/90" href={`tel:${business.phoneTel}`}>
-              Call or text {business.phone}
-            </a>
-            <a class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink" href="#quote">
-              Get a quote
-            </a>
-          </div>
-        </div>
-      </header>
+      <Header quoteHref="#quote" />
 
       <main class="relative z-10 flex-1">
         <section class="section sm:min-h-screen flex items-start pt-4 pb-4 sm:items-center sm:pt-8 sm:pb-8 lg:pt-10 lg:pb-10">
@@ -659,225 +629,13 @@ const structuredData = [faqJsonLd, businessJsonLd, organizationJsonLd, websiteJs
 
         <section id="quote" class="section">
           <div class="mx-auto max-w-6xl px-5 sm:px-6">
-            <div class="grid gap-10 lg:grid-cols-[1fr_1fr]">
-              <div class="space-y-4">
-                <p class="section-kicker">Get a free quote</p>
-                <h2 class="section-title">Request service in under a minute.</h2>
-                <p class="text-sm text-ink-soft">
-                  Fill out the form and we will follow up within one business day. For same-day quotes, call or text {business.phone} directly.
-                </p>
-                <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
-                  <p class="font-semibold text-ink">Same-day quotes available</p>
-                  <p>Call or text {business.phone} for the fastest response.</p>
-                  <p class="mt-4 font-semibold text-ink">Email quotes</p>
-                  <p>We aim to reply within one business day.</p>
-                  <a class="mt-1 inline-block underline decoration-ink/30" href={`mailto:${business.email}`}>
-                    {business.email}
-                  </a>
-                </div>
-              </div>
-              <form
-                id="quote-form"
-                class="space-y-4 rounded-2xl border border-border bg-white/90 p-6 shadow-fine"
-                method="POST"
-                action="/api/quote"
-              >
-                {
-                  submitted === "1" ? (
-                    <div class="rounded-xl border border-ink/20 bg-white/90 px-4 py-3 text-sm text-ink">
-                      Thanks. We have your request and will follow up soon.
-                    </div>
-                  ) : null
-                }
-                {
-                  error === "1" ? (
-                    <div class="rounded-xl border border-ink/30 bg-white/90 px-4 py-3 text-sm text-ink">
-                      Something went wrong. Please try again or call/text {business.phone}.
-                    </div>
-                  ) : null
-                }
-                <div>
-                  <label class="text-sm font-semibold" for="name">Name</label>
-                  <input
-                    class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
-                    id="name"
-                    name="name"
-                    placeholder="Your name"
-                    required
-                  />
-                </div>
-                <div>
-                  <label class="text-sm font-semibold" for="phone">Phone</label>
-                  <input
-                    class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autocomplete="tel"
-                    placeholder="(250) 858-1781"
-                    required
-                  />
-                </div>
-                <div>
-                  <label class="text-sm font-semibold" for="email">Email (optional)</label>
-                  <input
-                    class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
-                    id="email"
-                    name="email"
-                    type="email"
-                    autocomplete="email"
-                    placeholder="you@email.com"
-                  />
-                </div>
-                <div>
-                  <label class="text-sm font-semibold" for="area">Service area</label>
-                  <input
-                    class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
-                    id="area"
-                    name="area"
-                    autocomplete="address-level2"
-                    placeholder="Town or neighborhood"
-                    required
-                  />
-                </div>
-                <div>
-                  <label class="text-sm font-semibold" for="service">Services needed</label>
-                  <select
-                    class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
-                    id="service"
-                    name="service"
-                    required
-                  >
-                    <option value="">Choose a service</option>
-                    <option value="mowing">Mowing and edging</option>
-                    <option value="trim">Trimming and pruning</option>
-                    <option value="cleanup">Seasonal cleanup</option>
-                    <option value="mulch">Mulch and garden beds</option>
-                    <option value="ongoing">Ongoing maintenance</option>
-                    <option value="other">Other (describe below)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-sm font-semibold" for="details">Details</label>
-                  <textarea
-                    class="mt-2 min-h-[120px] w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
-                    id="details"
-                    name="details"
-                    placeholder="Tell us about your yard, access, and timing."
-                  ></textarea>
-                </div>
-                <div class="hidden" aria-hidden="true">
-                  <label class="text-sm font-semibold" for="company">Company</label>
-                  <input
-                    id="company"
-                    name="company"
-                    tabindex="-1"
-                    autocomplete="off"
-                  />
-                </div>
-                {turnstileEnabled ? (
-                  <div class="mt-2">
-                    <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>
-                  </div>
-                ) : null}
-                <button
-                  class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper hover:bg-ink/90"
-                  type="submit"
-                  data-ga-event="form_submit"
-                  data-ga-label="quote_form"
-                >
-                  Send request
-                </button>
-                <p class="text-xs text-ink-soft">
-                  By submitting, you agree to be contacted by phone or email about your request.
-                </p>
-              </form>
-            </div>
+            <QuoteForm showInfoBox={true} />
           </div>
         </section>
       </main>
 
-      <footer class="border-t border-border/70 bg-paper/80 pb-24 md:pb-0">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-8 text-sm text-ink-soft sm:px-6 sm:py-10">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90">
-              <img src="/logo.png?v=2" alt="Maestros Services logo" class="h-6 w-6" width="24" height="24" />
-            </div>
-            <div class="space-y-1">
-              <p class="text-base font-semibold text-ink">{business.name}</p>
-              <p>Residential landscaping across lower-mid Vancouver Island.</p>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <p class="font-semibold text-ink">Contact</p>
-            <a class="block hover:text-ink" href={`tel:${business.phoneTel}`}>
-              {business.phone}
-            </a>
-            <a class="block hover:text-ink" href={`mailto:${business.email}`}>
-              {business.email}
-            </a>
-          </div>
-        </div>
-      </footer>
-      <div
-        id="mobile-cta"
-        class="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-paper/95 backdrop-blur md:hidden opacity-0 pointer-events-none translate-y-3 transition duration-300"
-      >
-        <div
-          class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
-        >
-          <a
-            class="flex-[1.2] rounded-full bg-ink px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper hover:bg-ink/90"
-            href={`tel:${business.phoneTel}`}
-            data-ga-event="cta_click"
-            data-ga-label="mobile_sticky_call"
-          >
-            Call or text
-          </a>
-          <a
-            class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink hover:border-ink"
-            href="#quote"
-            data-ga-event="cta_click"
-            data-ga-label="mobile_sticky_quote"
-          >
-            Quote
-          </a>
-        </div>
-      </div>
-      <script is:inline set:html={`
-        (function() {
-          var heroSentinel = document.getElementById('hero-sentinel');
-          var mobileCta = document.getElementById('mobile-cta');
-          if (heroSentinel && mobileCta) {
-            var observer = new IntersectionObserver(function(entries) {
-              var entry = entries[0];
-              if (entry.isIntersecting) {
-                mobileCta.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
-              } else {
-                mobileCta.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
-              }
-            }, { rootMargin: '-20% 0px 0px 0px' });
-            observer.observe(heroSentinel);
-          }
-
-          var gaId = ${gaId ? `'${gaId}'` : 'null'};
-          if (gaId && window.gtag) {
-            document.querySelectorAll('[data-ga-event]').forEach(function(el) {
-              el.addEventListener('click', function() {
-                var eventName = el.getAttribute('data-ga-event');
-                var label = el.getAttribute('data-ga-label');
-                window.gtag('event', eventName, { event_category: 'cta', event_label: label });
-              });
-            });
-            var quoteForm = document.getElementById('quote-form');
-            if (quoteForm) {
-              quoteForm.addEventListener('submit', function() {
-                window.gtag('event', 'form_submit', { event_category: 'form', event_label: 'quote_form' });
-              });
-            }
-          }
-        })();
-      `}></script>
+      <Footer includeMobilePadding={true} />
+      <MobileCTA quoteHref="#quote" />
     </div>
   </body>
 </html>
