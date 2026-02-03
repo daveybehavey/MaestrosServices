@@ -192,3 +192,14 @@ export const createWebsiteSchema = () => ({
   name: business.name,
   url: business.siteUrl,
 });
+
+export const createHomepageBusinessSchema = (
+  areaServed: string[],
+  serviceType: string[],
+  description: string
+) => ({
+  ...createLocalBusinessSchema(),
+  areaServed,
+  serviceType,
+  description,
+});
