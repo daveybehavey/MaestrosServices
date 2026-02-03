@@ -4,9 +4,10 @@ import { business } from "../data/business";
 interface Props {
   variant?: "default" | "simple";
   subtitle?: string;
+  quoteHref?: string;
 }
 
-const { variant = "default", subtitle } = Astro.props;
+const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
 ---
 
 <header
@@ -56,7 +57,7 @@ const { variant = "default", subtitle } = Astro.props;
           <a class="hover:text-ink" href="/#faq">
             FAQ
           </a>
-          <a class="hover:text-ink" href="/#quote">
+          <a class="hover:text-ink" href={quoteHref}>
             Get a quote
           </a>
         </nav>
@@ -75,7 +76,7 @@ const { variant = "default", subtitle } = Astro.props;
             </a>
             <a
               class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink"
-              href="/#quote"
+              href={quoteHref}
             >
               Get a quote
             </a>
@@ -90,7 +91,7 @@ const { variant = "default", subtitle } = Astro.props;
             </a>
             <a
               class="rounded-full bg-ink px-4 py-2 text-paper hover:bg-ink/90"
-              href="/#quote"
+              href={quoteHref}
             >
               Get a free quote
             </a>
