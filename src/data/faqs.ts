@@ -44,7 +44,7 @@ export const serviceAreaFaqs: FAQ[] = [
 export const locationFaqs: FAQ[] = [
   {
     question: "What services do you offer in this area?",
-    answer: "We provide full residential landscaping services including lawn mowing, hedge trimming, garden bed maintenance, seasonal cleanups, weed control, and yard waste removal.",
+    answer: "We provide landscaping services including lawn mowing, hedge trimming, garden bed maintenance, driveway grading, gravel driveway refreshes, seasonal cleanups, weed control, and yard waste removal.",
   },
   {
     question: "How do I get a quote for my property?",

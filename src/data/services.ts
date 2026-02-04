@@ -201,6 +201,60 @@ export const services: Service[] = [
     relatedServices: ["yard-waste-removal", "seasonal-cleanups"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
   },
+  {
+    id: "driveway-grading",
+    slug: "driveway-grading",
+    name: "Driveway Grading and Re-Leveling",
+    shortName: "Driveway Grading",
+    description: "Improve drainage and driveway performance with professional grading and re-leveling.",
+    longDescription: "Ruts, pooling water, and washboard surfaces can shorten driveway life and create ongoing maintenance headaches. Our driveway grading service reshapes and compacts gravel and aggregate surfaces for better drainage, smoother access, and a cleaner finish.",
+    features: [
+      "Driveway re-leveling and crown correction",
+      "Rut and pothole repair with fresh aggregate",
+      "Drainage-focused slope adjustments",
+      "Compaction for longer-lasting surface stability",
+      "Optional tie-in with nearby pathway grading",
+    ],
+    faqs: [
+      {
+        question: "Do you grade existing gravel driveways?",
+        answer: "Yes. We re-grade existing driveways to correct ruts, improve runoff, and restore a smoother driving surface.",
+      },
+      {
+        question: "Can you help with recurring puddles and soft spots?",
+        answer: "Absolutely. We adjust surface slope and can add aggregate in problem areas to reduce pooling and improve stability.",
+      },
+    ],
+    relatedServices: ["gravel-driveway-installation", "yard-waste-removal", "brush-clearing"],
+    seasonalRelevance: ["spring", "summer", "fall"],
+  },
+  {
+    id: "gravel-driveway-installation",
+    slug: "gravel-driveway-installation",
+    name: "Gravel Driveway Installation and Refresh",
+    shortName: "Gravel Driveways",
+    description: "Build or refresh gravel driveways with proper base prep, aggregate placement, and finishing.",
+    longDescription: "Whether you're upgrading an older surface or adding a new gravel section, we provide practical driveway installation and refresh work tailored to your property. We focus on durable base preparation, clean edges, and even aggregate distribution for a strong, professional result.",
+    features: [
+      "New gravel driveway installation (small to mid-size projects)",
+      "Surface refresh with fresh aggregate top-up",
+      "Base prep and leveling before placement",
+      "Edge cleanup and driveway border definition",
+      "Final grading for runoff and access",
+    ],
+    faqs: [
+      {
+        question: "Do you handle complete driveway rebuilds?",
+        answer: "We handle many small to mid-size rebuild and refresh projects. For larger engineered installations, we can assess and confirm scope during quoting.",
+      },
+      {
+        question: "What gravel type do you recommend?",
+        answer: "We typically recommend locally available crushed aggregate suited to your traffic and drainage needs, then adjust based on your budget and finish preference.",
+      },
+    ],
+    relatedServices: ["driveway-grading", "yard-waste-removal", "weed-control"],
+    seasonalRelevance: ["spring", "summer", "fall"],
+  },
 ];
 
 export const getServiceBySlug = (slug: string): Service | undefined =>

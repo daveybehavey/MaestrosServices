@@ -3,7 +3,7 @@ export const business = {
   phone: "250-858-1781",
   phoneTel: "+12508581781",
   email: "quotes@maestrosservices.com",
-  tagline: "Residential Landscaping",
+  tagline: "Landscaping Services",
   address: {
     locality: "Shawnigan Lake",
     region: "BC",
