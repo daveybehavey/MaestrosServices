@@ -8,6 +8,7 @@ import {
   homepageServiceAreas,
   homepageServiceHighlights,
 } from "../data/homepage";
+import { projectProfiles } from "../data/projects";
 import { services as serviceCatalog } from "../data/services";
 import {
   createFAQSchema,
@@ -216,6 +217,39 @@ const galleryItems = [
               <p class="mt-1 text-xs text-ink-soft">Recent residential work from our service area.</p>
             </div>
           </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-6 sm:mb-10">
+        <div class="space-y-3">
+          <p class="section-kicker">Project types</p>
+          <h2 class="section-title">Scope that goes beyond basic cleanup.</h2>
+        </div>
+        <a
+          class="text-sm font-semibold text-ink hover:text-ink/70"
+          href="/projects"
+          data-ga-event="cta_click"
+          data-ga-label="homepage_project_types"
+        >
+          See all project profiles -&gt;
+        </a>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {projectProfiles.map((project, index) => (
+          <article
+            class="rounded-2xl border border-border bg-white/90 p-5 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 70}ms`}
+          >
+            <p class="text-lg font-semibold">{project.title}</p>
+            <p class="mt-2 text-sm text-ink-soft">{project.summary}</p>
+            <p class="mt-3 text-xs uppercase tracking-[0.2em] text-ink-soft">
+              Typical timeline: {project.timeline}
+            </p>
+          </article>
         ))}
       </div>
     </div>

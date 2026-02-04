@@ -35,6 +35,18 @@ const { includeMobilePadding = true } = Astro.props;
       </div>
     </div>
     <div class="space-y-2">
+      <p class="font-semibold text-ink">Explore</p>
+      <a class="block hover:text-ink" href="/services">
+        Services
+      </a>
+      <a class="block hover:text-ink" href="/projects">
+        Projects
+      </a>
+      <a class="block hover:text-ink" href="/service-area">
+        Service Area
+      </a>
+    </div>
+    <div class="space-y-2">
       <p class="font-semibold text-ink">Contact</p>
       <a class="block hover:text-ink" href={`tel:${business.phoneTel}`}>
         {business.phone}
