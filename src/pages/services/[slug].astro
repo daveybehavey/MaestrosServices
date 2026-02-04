@@ -118,6 +118,41 @@ const serviceFormMap: Record<string, string> = {
             </div>
           </div>
 
+          {
+            service.beforeAfterScenarios && service.beforeAfterScenarios.length > 0 && (
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+                <p class="section-kicker">Before and after</p>
+                <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
+                  Typical {service.shortName.toLowerCase()} outcomes
+                </h2>
+                <div class="grid gap-4">
+                  {service.beforeAfterScenarios.map((scenario) => (
+                    <article class="grid gap-3 rounded-xl border border-border bg-paper/60 p-4 sm:grid-cols-3">
+                      <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
+                          Before
+                        </p>
+                        <p class="mt-1 text-sm text-ink-soft">{scenario.before}</p>
+                      </div>
+                      <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
+                          After
+                        </p>
+                        <p class="mt-1 text-sm text-ink-soft">{scenario.after}</p>
+                      </div>
+                      <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
+                          Result
+                        </p>
+                        <p class="mt-1 text-sm text-ink">{scenario.result}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
           <!-- FAQs -->
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
             <p class="section-kicker">Common questions</p>

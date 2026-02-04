@@ -7,6 +7,11 @@ export interface Service {
   longDescription: string;
   features: string[];
   faqs: Array<{ question: string; answer: string }>;
+  beforeAfterScenarios?: Array<{
+    before: string;
+    after: string;
+    result: string;
+  }>;
   relatedServices: string[];
   seasonalRelevance: ("spring" | "summer" | "fall" | "winter")[];
 }
@@ -225,6 +230,24 @@ export const services: Service[] = [
         answer: "Absolutely. We adjust surface slope and can add aggregate in problem areas to reduce pooling and improve stability.",
       },
     ],
+    beforeAfterScenarios: [
+      {
+        before:
+          "Driveway had ruts, washboarding, and puddles at the entrance after rain.",
+        after:
+          "Surface was re-shaped with corrected crown, low spots filled, and grade tuned for runoff.",
+        result:
+          "Smoother access, less standing water, and fewer repeat touchups through the season.",
+      },
+      {
+        before:
+          "Aggregate had drifted to edges and centerline was uneven from repeated vehicle tracks.",
+        after:
+          "Material was redistributed and compacted with a more consistent profile across travel lanes.",
+        result:
+          "Cleaner look from the road and better day-to-day drivability for cars and work vehicles.",
+      },
+    ],
     relatedServices: ["gravel-driveway-installation", "yard-waste-removal", "brush-clearing"],
     seasonalRelevance: ["spring", "summer", "fall"],
   },
@@ -250,6 +273,24 @@ export const services: Service[] = [
       {
         question: "What gravel type do you recommend?",
         answer: "We typically recommend locally available crushed aggregate suited to your traffic and drainage needs, then adjust based on your budget and finish preference.",
+      },
+    ],
+    beforeAfterScenarios: [
+      {
+        before:
+          "Older gravel surface was thin, patchy, and soft in key turn and parking areas.",
+        after:
+          "New aggregate was placed over leveled base sections with edges defined and finished.",
+        result:
+          "Stronger surface hold, improved drainage behavior, and a visibly upgraded entrance.",
+      },
+      {
+        before:
+          "Driveway had mixed stone sizes and inconsistent depth from years of piecemeal top-ups.",
+        after:
+          "Surface was refreshed with coordinated material and final grading across the full run.",
+        result:
+          "More even compaction, cleaner finish, and less tracking of loose stone into adjacent areas.",
       },
     ],
     relatedServices: ["driveway-grading", "yard-waste-removal", "weed-control"],
