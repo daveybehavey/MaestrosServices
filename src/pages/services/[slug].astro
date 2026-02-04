@@ -24,6 +24,8 @@ const { service } = Astro.props;
 const relatedServices = service.relatedServices
   .map((id) => getServiceById(id))
   .filter(Boolean);
+const isDrivewayService =
+  service.slug === "driveway-grading" || service.slug === "gravel-driveway-installation";
 
 const localizedServicePages = getServiceLocationPagesForService(service.id);
 
@@ -288,6 +290,26 @@ const serviceFormMap: Record<string, string> = {
               </a>
             </div>
           </div>
+
+          {
+            isDrivewayService && (
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+                <p class="section-kicker">Need quick answers?</p>
+                <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">
+                  Driveway FAQ
+                </h2>
+                <p class="mb-4 text-sm text-ink-soft">
+                  Compare grading vs gravel refresh, drainage fixes, timelines, and quote prep.
+                </p>
+                <a
+                  class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                  href="/driveway-faq"
+                >
+                  Open driveway FAQ →
+                </a>
+              </div>
+            )
+          }
         </div>
       </div>
     </div>

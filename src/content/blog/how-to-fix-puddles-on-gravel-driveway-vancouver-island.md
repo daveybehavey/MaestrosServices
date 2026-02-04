@@ -70,3 +70,5 @@ Small corrections early are usually cheaper than full rebuild work later.
 The strongest window for durable driveway correction is usually spring through fall, when finishing and compaction conditions are more consistent.
 
 If you are seeing recurring puddles now, a quick assessment can confirm the right fix before the problem spreads.
+
+Need quick answers in one place? See: [/driveway-faq](/driveway-faq)

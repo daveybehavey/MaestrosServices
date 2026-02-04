@@ -1,0 +1,137 @@
+---
+import Layout from "../components/Layout.astro";
+import { business } from "../data/business";
+import { createBreadcrumbSchema, createFAQSchema } from "../lib/schema";
+
+const pageTitle = "Driveway FAQ | Grading, Gravel, Drainage | Maestros Services";
+const pageDescription =
+  "Common questions about driveway grading, gravel refreshes, puddle fixes, and scheduling on Vancouver Island. Get practical answers before you request a quote.";
+const canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`;
+
+const faqs = [
+  {
+    question: "How do I know if I need driveway grading or new gravel?",
+    answer:
+      "If material is still present but shape is poor, grading is usually the first step. If the surface is thin, patchy, or soft, a gravel refresh is often needed alongside grading.",
+  },
+  {
+    question: "Can driveway grading fix puddles?",
+    answer:
+      "Often yes. Recurring puddles usually come from low spots and poor runoff profile. Regrading can restore crown and slope so water sheds more effectively.",
+  },
+  {
+    question: "How long does a typical driveway job take?",
+    answer:
+      "Many small to mid-size grading or refresh projects are completed within one day, depending on driveway length, access, and material needs.",
+  },
+  {
+    question: "When is the best time of year for driveway work?",
+    answer:
+      "Spring through fall is usually best for finishing and compaction conditions on Vancouver Island, though urgent corrections can still be handled outside peak season.",
+  },
+  {
+    question: "Do you handle full driveway rebuilds?",
+    answer:
+      "We handle many small to mid-size rebuild and refresh projects. For larger engineered scopes, we assess and confirm fit during quoting.",
+  },
+  {
+    question: "What details should I send for a faster quote?",
+    answer:
+      "Share driveway length/width, main problem areas, whether puddling repeats, and whether you want a short-term fix or longer-term reset.",
+  },
+];
+
+const breadcrumbItems = [{ name: "Driveway FAQ", href: "/driveway-faq" }];
+
+const structuredData = [
+  createBreadcrumbSchema(breadcrumbItems),
+  createFAQSchema(faqs),
+];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  quoteHref="/#quote"
+  analytics={{
+    pageGroup: "driveway_faq",
+    pageType: "faq",
+    pageTemplate: "driveway-faq",
+  }}
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="max-w-3xl space-y-4">
+        <p class="section-kicker">Driveway help</p>
+        <h1 class="section-title">Driveway grading and gravel FAQ</h1>
+        <p class="text-sm text-ink-soft sm:text-base">
+          Quick answers for homeowners comparing driveway grading, gravel refresh work, and drainage
+          fixes on Vancouver Island.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="mx-auto grid max-w-6xl gap-8 px-5 sm:px-6 lg:grid-cols-[1.15fr_0.85fr]">
+      <div class="space-y-4">
+        {faqs.map((faq, index) => (
+          <article
+            class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 50}ms`}
+          >
+            <h2 class="text-xl font-display">{faq.question}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-ink-soft">{faq.answer}</p>
+          </article>
+        ))}
+      </div>
+
+      <aside class="space-y-5 lg:sticky lg:top-6 lg:self-start">
+        <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+          <p class="section-kicker">Service links</p>
+          <h2 class="mb-3 text-2xl">Driveway services</h2>
+          <div class="space-y-2 text-sm">
+            <a class="block hover:text-ink" href="/services/driveway-grading">
+              Driveway Grading
+            </a>
+            <a class="block hover:text-ink" href="/services/gravel-driveway-installation">
+              Gravel Driveway Installation
+            </a>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+          <p class="section-kicker">Related guides</p>
+          <h2 class="mb-3 text-2xl">Read next</h2>
+          <div class="space-y-2 text-sm">
+            <a class="block hover:text-ink" href="/blog/driveway-grading-vs-gravel-refresh-vancouver-island">
+              Grading vs gravel refresh
+            </a>
+            <a class="block hover:text-ink" href="/blog/how-to-fix-puddles-on-gravel-driveway-vancouver-island">
+              Fixing driveway puddles
+            </a>
+            <a class="block hover:text-ink" href="/blog/gravel-driveway-cost-factors-vancouver-island">
+              Cost factors guide
+            </a>
+            <a class="block hover:text-ink" href="/blog/when-to-regrade-driveway-vancouver-island">
+              When to regrade
+            </a>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-border bg-ink p-6 text-paper shadow-soft">
+          <p class="section-kicker text-paper/60">Need a quote?</p>
+          <h2 class="mt-2 text-3xl font-display text-paper">Call or text today.</h2>
+          <a
+            class="mt-4 inline-block rounded-full bg-paper px-5 py-2.5 text-sm font-semibold text-ink hover:bg-paper/90"
+            href={`tel:${business.phoneTel}`}
+          >
+            {business.phone}
+          </a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Layout>
