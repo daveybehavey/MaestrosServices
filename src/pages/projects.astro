@@ -6,7 +6,7 @@ import { createBreadcrumbSchema } from "../lib/schema";
 
 const pageTitle = "Landscaping Project Profiles | Maestros Services";
 const metaDescription =
-  "Explore landscaping project profiles from Maestros Services, including driveway grading, gravel driveway refreshes, overgrowth clearing, and curb-appeal upgrades across lower-mid Vancouver Island.";
+  "Explore landscaping project profiles from Maestros Services, including power washing resets, rock wall upgrades, driveway grading, gravel driveway refreshes, overgrowth clearing, and curb-appeal upgrades across lower-mid Vancouver Island.";
 const canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`;
 const breadcrumbItems = [{ name: "Projects", href: "/projects" }];
 
@@ -31,7 +31,7 @@ const structuredData = [
   description={metaDescription}
   canonicalUrl={canonicalUrl}
   structuredData={structuredData}
-  quoteHref="/#quote"
+  quoteHref="/quote"
   analytics={{
     pageGroup: "projects",
     pageType: "list",
@@ -43,9 +43,10 @@ const structuredData = [
       <div class="max-w-3xl space-y-4">
         <p class="section-kicker">Project profiles</p>
         <h1 class="section-title">Landscaping projects we are built to handle.</h1>
-        <p class="text-sm text-ink-soft sm:text-base">
+        <p class="section-copy">
           These profiles show the kind of higher-value work we quote and complete most often across
-          lower-mid Vancouver Island, from driveway correction to full-property resets.
+          lower-mid Vancouver Island, from power washing and rock wall installs to driveway correction
+          and full-property resets.
         </p>
       </div>
     </div>
@@ -61,14 +62,10 @@ const structuredData = [
           >
             <p class="text-2xl font-display">{project.title}</p>
             <p class="mt-2 text-sm text-ink-soft">{project.summary}</p>
-            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div class="mt-5">
               <div class="rounded-xl border border-border bg-white/80 p-4">
                 <p class="text-xs uppercase tracking-[0.25em] text-ink-soft">Ideal for</p>
                 <p class="mt-2 text-sm text-ink">{project.idealFor}</p>
-              </div>
-              <div class="rounded-xl border border-border bg-white/80 p-4">
-                <p class="text-xs uppercase tracking-[0.25em] text-ink-soft">Typical timeline</p>
-                <p class="mt-2 text-sm text-ink">{project.timeline}</p>
               </div>
             </div>
             <div class="mt-5">
@@ -118,7 +115,7 @@ const structuredData = [
           </a>
           <a
             class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper"
-            href="/#quote"
+            href="/quote"
             data-ga-event="cta_click"
             data-ga-label="projects_quote"
           >

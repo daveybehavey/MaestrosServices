@@ -24,6 +24,9 @@ export const createLocalBusinessSchema = (location?: Location) => ({
     addressRegion: business.address.region,
     addressCountry: business.address.country,
   },
+  ...(business.sameAs.length > 0 && {
+    sameAs: [...business.sameAs],
+  }),
   ...(location && {
     areaServed: {
       "@type": "City",
@@ -64,6 +67,9 @@ export const createLocationPageSchema = (location: Location) => ({
     addressRegion: business.address.region,
     addressCountry: business.address.country,
   },
+  ...(business.sameAs.length > 0 && {
+    sameAs: [...business.sameAs],
+  }),
 });
 
 export const createServiceSchema = (service: Service) => ({
@@ -179,6 +185,9 @@ export const createOrganizationSchema = () => ({
   name: business.name,
   url: business.siteUrl,
   logo: `${business.siteUrl}/logo.png`,
+  ...(business.sameAs.length > 0 && {
+    sameAs: [...business.sameAs],
+  }),
   contactPoint: {
     "@type": "ContactPoint",
     telephone: business.phoneTel,

@@ -17,72 +17,93 @@ const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
   ]}
 >
   <div
-    class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6 sm:py-4"
+    class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:gap-4 sm:px-6 sm:py-4"
   >
-    <a class="flex items-center gap-3" href="/">
+    <a
+      class="flex min-w-0 items-center gap-2.5 sm:gap-3"
+      href="/"
+      data-ga-event="cta_click"
+      data-ga-label="header_logo_home"
+    >
       <div
-        class="flex h-12 w-12 items-center justify-center rounded-full border border-ink/15 bg-white/90"
+        class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90 sm:h-12 sm:w-12"
       >
         <picture>
           <source srcset="/logo.png?v=2" type="image/png" />
           <img
             src="/logo.png?v=2"
             alt={`${business.name} logo`}
-            class="h-8 w-8"
+            class="h-7 w-7 sm:h-8 sm:w-8"
             width="32"
             height="32"
           />
         </picture>
       </div>
-      <div class="leading-none">
-        <p class="text-lg font-display">{business.name}</p>
-        <p class="text-xs uppercase tracking-[0.3em] text-ink-soft">
+      <div class="min-w-0 leading-none">
+        <p class="truncate text-base font-display sm:text-lg">{business.name}</p>
+        <p class="hidden text-[0.62rem] uppercase tracking-[0.24em] text-ink-soft sm:block sm:text-xs sm:tracking-[0.3em]">
           {subtitle || business.tagline}
         </p>
       </div>
     </a>
 
-    {
-      variant === "default" && (
-        <nav class="hidden flex-wrap items-center gap-4 text-sm text-ink-soft md:flex">
-          <a class="hover:text-ink" href="/#services">
-            Services
-          </a>
-          <a class="hover:text-ink" href="/projects">
-            Projects
-          </a>
-          <a class="hover:text-ink" href="/blog">
-            Blog
-          </a>
-          <a class="hover:text-ink" href="/#service-area">
-            Service area
-          </a>
-          <a class="hover:text-ink" href="/#about">
-            About
-          </a>
-          <a class="hover:text-ink" href="/#faq">
-            FAQ
-          </a>
-          <a class="hover:text-ink" href={quoteHref}>
-            Get a quote
-          </a>
-        </nav>
-      )
-    }
-
-    <div class="hidden flex-wrap items-center gap-3 text-sm md:flex">
+    <nav class="hidden flex-wrap items-center gap-4 text-sm text-ink-soft md:flex">
       {
         variant === "default" ? (
           <>
             <a
-              class="rounded-full bg-ink px-5 py-2.5 text-paper hover:bg-ink/90"
-              href={`tel:${business.phoneTel}`}
+              class="hover:text-ink"
+              href="/#services"
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_services"
             >
-              Call or text {business.phone}
+              Services
             </a>
             <a
-              class="rounded-full border border-ink/20 px-4 py-2 hover:border-ink"
+              class="hover:text-ink"
+              href="/projects"
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_projects"
+            >
+              Projects
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/blog"
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_blog"
+            >
+              Blog
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/#service-area"
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_service_area"
+            >
+              Service area
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/#about"
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_about"
+            >
+              About
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/#faq"
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_faq"
+            >
+              FAQ
+            </a>
+            <a
+              class="hover:text-ink"
               href={quoteHref}
+              data-ga-event="cta_click"
+              data-ga-label="header_nav_quote"
             >
               Get a quote
             </a>
@@ -90,14 +111,105 @@ const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
         ) : (
           <>
             <a
-              class="rounded-full border border-ink/20 px-4 py-2 text-ink hover:border-ink"
+              class="hover:text-ink"
+              href="/services"
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_nav_services"
+            >
+              Services
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/service-area"
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_nav_service_area"
+            >
+              Service area
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/projects"
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_nav_projects"
+            >
+              Projects
+            </a>
+            <a
+              class="hover:text-ink"
+              href="/blog"
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_nav_blog"
+            >
+              Blog
+            </a>
+            <a
+              class="hover:text-ink"
+              href={quoteHref}
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_nav_quote"
+            >
+              Get a quote
+            </a>
+          </>
+        )
+      }
+    </nav>
+
+    <div class="flex items-center gap-2 md:hidden">
+      <a
+        class="btn-primary px-3.5 py-2 text-[0.65rem] uppercase tracking-[0.18em]"
+        href={`tel:${business.phoneTel}`}
+        data-ga-event="cta_click"
+        data-ga-label="header_mobile_call"
+      >
+        Call
+      </a>
+      <a
+        class="btn-secondary px-3 py-2 text-[0.65rem] uppercase tracking-[0.18em]"
+        href={quoteHref}
+        data-ga-event="cta_click"
+        data-ga-label="header_mobile_quote"
+      >
+        Quote
+      </a>
+    </div>
+
+    <div class="hidden flex-wrap items-center gap-3 text-sm md:flex">
+      {
+        variant === "default" ? (
+          <>
+            <a
+              class="btn-primary px-5 py-2.5"
               href={`tel:${business.phoneTel}`}
+              data-ga-event="cta_click"
+              data-ga-label="header_cta_call_primary"
             >
               Call or text {business.phone}
             </a>
             <a
-              class="rounded-full bg-ink px-4 py-2 text-paper hover:bg-ink/90"
+              class="btn-secondary px-4 py-2"
               href={quoteHref}
+              data-ga-event="cta_click"
+              data-ga-label="header_cta_quote_secondary"
+            >
+              Get a quote
+            </a>
+          </>
+        ) : (
+          <>
+            <a
+              class="btn-secondary px-4 py-2"
+              href={`tel:${business.phoneTel}`}
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_call"
+            >
+              Call or text {business.phone}
+            </a>
+            <a
+              class="btn-primary px-4 py-2"
+              href={quoteHref}
+              data-ga-event="cta_click"
+              data-ga-label="header_simple_quote"
             >
               Get a free quote
             </a>

@@ -53,6 +53,12 @@ const serviceFormMap: Record<string, string> = {
   "weed-control": "other",
   "yard-waste-removal": "other",
   "brush-clearing": "other",
+  "gutter-cleaning-ground-access": "gutter",
+  "light-pruning": "pruning",
+  "moss-algae-treatment": "moss",
+  "fence-work-minor-repairs": "fence",
+  "power-washing": "powerwash",
+  "rock-work-walls": "rock",
   "driveway-grading": "driveway",
   "gravel-driveway-installation": "gravel",
 };
@@ -66,6 +72,11 @@ const serviceFormMap: Record<string, string> = {
   headerVariant="simple"
   headerSubtitle={service.shortName}
   quoteHref="#quote"
+  analytics={{
+    pageGroup: "service_pages",
+    pageType: "service_page",
+    pageTemplate: "service",
+  }}
 >
   <section class="section">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
@@ -74,7 +85,7 @@ const serviceFormMap: Record<string, string> = {
       <div class="mb-10 space-y-4">
         <p class="section-kicker">Our services</p>
         <h1 class="section-title">{service.name}</h1>
-        <p class="max-w-3xl text-base text-ink-soft">
+        <p class="section-copy max-w-3xl">
           {service.longDescription}
         </p>
       </div>
@@ -261,7 +272,7 @@ const serviceFormMap: Record<string, string> = {
               Request {service.shortName.toLowerCase()}
             </h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. We typically reply within one business day.
+              Call or text for the fastest response. We typically reply within 1 hour during work hours.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -321,6 +332,18 @@ const serviceFormMap: Record<string, string> = {
       <div class="mb-8 space-y-3">
         <p class="section-kicker">Request a quote</p>
         <h2 class="section-title">Get {service.shortName.toLowerCase()} service</h2>
+        <p class="text-sm text-ink-soft">
+          Prefer phone? Call or text{" "}
+          <a
+            class="font-semibold text-ink hover:text-ink/70"
+            href={`tel:${business.phoneTel}`}
+            data-ga-event="cta_click"
+            data-ga-label={`service_${service.slug}_quote_section_call`}
+          >
+            {business.phone}
+          </a>
+          .
+        </p>
       </div>
       <QuoteForm
         preselectedService={serviceFormMap[service.slug] || "other"}

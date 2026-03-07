@@ -14,7 +14,7 @@ const canonicalUrl = `${business.siteUrl}/404`;
   canonicalUrl={canonicalUrl}
   noindex={true}
   headerVariant="simple"
-  quoteHref="/#quote"
+  quoteHref="/quote"
 >
   <section class="flex min-h-[70vh] items-center justify-center px-5 py-20 sm:px-6">
     <div class="max-w-2xl text-center">
@@ -28,14 +28,14 @@ const canonicalUrl = `${business.siteUrl}/404`;
 
       <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
         <a
-          class="w-full rounded-full bg-ink px-8 py-3 text-center font-semibold text-paper hover:bg-ink/90 sm:w-auto"
+          class="btn-primary w-full px-8 py-3 text-center sm:w-auto"
           href={`tel:${business.phoneTel}`}
         >
           Call or text {business.phone}
         </a>
         <a
-          class="w-full rounded-full border border-ink/20 px-8 py-3 text-center font-semibold text-ink hover:border-ink sm:w-auto"
-          href="/#quote"
+          class="btn-secondary w-full px-8 py-3 text-center sm:w-auto"
+          href="/quote"
         >
           Get a free quote
         </a>
@@ -58,7 +58,7 @@ const canonicalUrl = `${business.siteUrl}/404`;
             </a>
           </li>
           <li>
-            <a class="text-ink-soft hover:text-ink" href="/#quote">
+            <a class="text-ink-soft hover:text-ink" href="/quote">
               → Request a quote
             </a>
           </li>

@@ -1,0 +1,74 @@
+---
+import { business } from "../data/business";
+
+interface Props {
+  quoteHref?: string;
+}
+
+const { quoteHref = "/#quote" } = Astro.props;
+---
+
+<div
+  id="desktop-cta"
+  class="pointer-events-none fixed bottom-6 right-6 z-30 hidden translate-y-3 flex-col gap-3 opacity-0 transition duration-300 lg:flex"
+>
+  <a
+    class="btn-primary pointer-events-auto px-6 py-3 text-center shadow-soft"
+    href={`tel:${business.phoneTel}`}
+    data-ga-event="cta_click"
+    data-ga-label="desktop_sticky_call"
+  >
+    Call or text {business.phone}
+  </a>
+  <a
+    class="btn-secondary pointer-events-auto bg-white/95 px-6 py-3 text-center shadow-fine"
+    href={quoteHref}
+    data-ga-event="cta_click"
+    data-ga-label="desktop_sticky_quote"
+  >
+    Get a quote
+  </a>
+</div>
+
+<script is:inline>
+  (function () {
+    var heroSentinel = document.getElementById("hero-sentinel");
+    var desktopCta = document.getElementById("desktop-cta");
+    if (!desktopCta) return;
+
+    var show = function () {
+      desktopCta.classList.remove("opacity-0", "pointer-events-none", "translate-y-3");
+    };
+
+    var hide = function () {
+      desktopCta.classList.add("opacity-0", "pointer-events-none", "translate-y-3");
+    };
+
+    if (heroSentinel) {
+      var ticking = false;
+
+      var syncVisibility = function () {
+        // Keep CTA hidden until the hero sentinel has scrolled past the top edge.
+        if (heroSentinel.getBoundingClientRect().top <= 0) {
+          show();
+        } else {
+          hide();
+        }
+        ticking = false;
+      };
+
+      var onScrollOrResize = function () {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(syncVisibility);
+      };
+
+      syncVisibility();
+      window.addEventListener("scroll", onScrollOrResize, { passive: true });
+      window.addEventListener("resize", onScrollOrResize);
+      return;
+    }
+
+    setTimeout(show, 300);
+  })();
+</script>

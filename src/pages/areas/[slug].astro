@@ -26,16 +26,12 @@ const nearbyLocations = location.nearbyAreas
   .map((id) => getLocationById(id))
   .filter(Boolean);
 
-const featuredServices = services.slice(0, 4).map((service) => ({
+const areaServices = services.map((service) => ({
   ...service,
   href: hasServiceLocationPage(service.id, location.id)
     ? `/services/${service.slug}/${location.slug}`
     : `/services/${service.slug}`,
 }));
-
-const hasLocalizedServicePages = featuredServices.some((service) =>
-  service.href.includes(`/${location.slug}`)
-);
 
 const pageTitle = `Landscaping in ${location.name}, BC | ${business.name}`;
 const pageDescription = location.description;
@@ -61,6 +57,11 @@ const structuredData = [
   headerVariant="simple"
   headerSubtitle={location.name}
   quoteHref="#quote"
+  analytics={{
+    pageGroup: "area_pages",
+    pageType: "area_page",
+    pageTemplate: "area",
+  }}
 >
   <section class="section">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
@@ -69,7 +70,7 @@ const structuredData = [
       <div class="mb-10 space-y-4">
         <p class="section-kicker">{location.region}</p>
         <h1 class="section-title">Landscaping in {location.name}</h1>
-        <p class="max-w-3xl text-base text-ink-soft">
+        <p class="section-copy max-w-3xl">
           {location.description}
         </p>
       </div>
@@ -83,13 +84,12 @@ const structuredData = [
               Services in {location.name}
             </h2>
             <p class="mb-5 text-sm leading-relaxed text-ink-soft">
-              We provide full residential landscaping services to homeowners in {location.name}.
-              From regular lawn maintenance to seasonal cleanups, we keep your property looking
-              its best year-round.
+              We provide full residential landscaping services to homeowners in {location.name},
+              including fence work, maintenance, cleanup, mulching, power washing, rock work, and driveway services.
             </p>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {
-                featuredServices.map((service) => (
+                areaServices.map((service) => (
                   <a
                     href={service.href}
                     class="group rounded-xl border border-border bg-paper/50 p-4 transition hover:border-ink/30"
@@ -105,23 +105,12 @@ const structuredData = [
               }
             </div>
             <div class="mt-6">
-              {
-                hasLocalizedServicePages ? (
-                  <a
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
-                    href="/services-by-area"
-                  >
-                    View all localized services →
-                  </a>
-                ) : (
-                  <a
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
-                    href="/services"
-                  >
-                    View all services →
-                  </a>
-                )
-              }
+              <a
+                class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+                href="/services-by-area"
+              >
+                View all localized services →
+              </a>
             </div>
           </div>
 
@@ -226,7 +215,7 @@ const structuredData = [
               Contact us
             </h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. We typically reply within one business day.
+              Call or text for the fastest response. We typically reply within 1 hour during work hours.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -266,6 +255,18 @@ const structuredData = [
       <div class="mb-8 space-y-3">
         <p class="section-kicker">Request a quote</p>
         <h2 class="section-title">Get landscaping service in {location.name}</h2>
+        <p class="text-sm text-ink-soft">
+          Need a faster response? Call or text{" "}
+          <a
+            class="font-semibold text-ink hover:text-ink/70"
+            href={`tel:${business.phoneTel}`}
+            data-ga-event="cta_click"
+            data-ga-label={`location_${location.slug}_quote_section_call`}
+          >
+            {business.phone}
+          </a>
+          .
+        </p>
       </div>
       <QuoteForm preselectedArea={location.name} showInfoBox={true} />
     </div>

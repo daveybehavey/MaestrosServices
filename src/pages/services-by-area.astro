@@ -59,8 +59,12 @@ serviceLocationPages.forEach((entry) => {
   });
 });
 
-const locationGroups = [...locationMap.values()];
-const serviceGroups = [...serviceMap.values()];
+const locationGroups = [...locationMap.values()].sort((a, b) =>
+  a.location.name.localeCompare(b.location.name)
+);
+const serviceGroups = [...serviceMap.values()].sort((a, b) =>
+  a.service.name.localeCompare(b.service.name)
+);
 ---
 
 <Layout
@@ -70,7 +74,7 @@ const serviceGroups = [...serviceMap.values()];
   structuredData={structuredData}
   headerVariant="simple"
   headerSubtitle="Services by Area"
-  quoteHref="/#quote"
+  quoteHref="/quote"
   analytics={{
     pageGroup: "service_location_pages",
     pageType: "service_location_hub",
@@ -84,7 +88,7 @@ const serviceGroups = [...serviceMap.values()];
       <div class="mb-10 space-y-4">
         <p class="section-kicker">Programmatic landing pages</p>
         <h1 class="section-title">Landscaping services by area</h1>
-        <p class="max-w-3xl text-base text-ink-soft">
+        <p class="section-copy max-w-3xl">
           These localized pages combine specific services with specific communities so homeowners
           can quickly find the right option for their area. We currently publish
           {` ${serviceLocationPages.length} `}service + location combinations.
@@ -105,6 +109,17 @@ const serviceGroups = [...serviceMap.values()];
                     {group.location.name}
                   </h3>
                   <p class="mb-4 text-sm text-ink-soft">{group.location.description}</p>
+                  <div class="mb-4 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] text-ink-soft">
+                    <span>{group.entries.length} service pages</span>
+                    <a
+                      class="text-xs font-semibold tracking-normal text-ink hover:text-ink/70"
+                      href={`/areas/${group.location.slug}`}
+                      data-ga-event="cta_click"
+                      data-ga-label={`service_by_area_location_${group.location.slug}`}
+                    >
+                      Area page
+                    </a>
+                  </div>
                   <ul class="space-y-2 text-sm">
                     {group.entries.map((entry) => (
                       <li>
@@ -133,6 +148,17 @@ const serviceGroups = [...serviceMap.values()];
                     {group.service.name}
                   </h3>
                   <p class="mb-4 text-sm text-ink-soft">{group.service.description}</p>
+                  <div class="mb-4 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] text-ink-soft">
+                    <span>{group.entries.length} locations</span>
+                    <a
+                      class="text-xs font-semibold tracking-normal text-ink hover:text-ink/70"
+                      href={`/services/${group.service.slug}`}
+                      data-ga-event="cta_click"
+                      data-ga-label={`service_by_area_service_${group.service.slug}`}
+                    >
+                      Service page
+                    </a>
+                  </div>
                   <ul class="space-y-2 text-sm">
                     {group.entries.map((entry) => (
                       <li>

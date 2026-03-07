@@ -44,11 +44,11 @@ export const serviceAreaFaqs: FAQ[] = [
 export const locationFaqs: FAQ[] = [
   {
     question: "What services do you offer in this area?",
-    answer: "We provide landscaping services including lawn mowing, hedge trimming, garden bed maintenance, driveway grading, gravel driveway refreshes, seasonal cleanups, weed control, and yard waste removal.",
+    answer: "We provide landscaping services including fence work and minor repairs, lawn mowing, hedge trimming, mulching and garden bed refreshes, light pruning, ground-accessible gutter cleaning, moss/algae treatment, power washing, rock work and small wall builds, driveway grading, gravel driveway refreshes, seasonal cleanups, weed control, and yard waste removal.",
   },
   {
     question: "How do I get a quote for my property?",
-    answer: "Call or text 250-858-1781 for the fastest response. You can also fill out our online quote form and we'll get back to you within one business day.",
+    answer: "Call or text 250-858-1781 for the fastest response. We usually reply within 1 hour during work hours. You can also fill out our online quote form.",
   },
   {
     question: "Do you offer recurring maintenance plans?",

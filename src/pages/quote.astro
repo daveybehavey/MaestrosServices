@@ -1,0 +1,85 @@
+---
+import Layout from "../components/Layout.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import QuoteForm from "../components/QuoteForm.astro";
+import { business } from "../data/business";
+import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema";
+
+const pageTitle = `Get a Free Quote | ${business.name}`;
+const pageDescription =
+  "Request a landscaping quote in under a minute. Call or text first for the fastest response across lower-mid Vancouver Island.";
+const canonicalUrl = `${business.siteUrl}/quote`;
+
+const breadcrumbItems = [{ name: "Get a quote", href: "/quote" }];
+
+const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(breadcrumbItems)];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle="Get a quote"
+  quoteHref="#quote"
+  analytics={{
+    pageGroup: "lead_capture",
+    pageType: "quote_page",
+    pageTemplate: "quote",
+  }}
+>
+  <section id="quote" class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="mb-8 max-w-3xl space-y-3">
+        <p class="section-kicker">Fast quote request</p>
+        <h1 class="section-title">Get a free landscaping quote.</h1>
+        <p class="section-copy">
+          Share a few details and we will reply quickly. For the fastest response, call or text
+          {business.phone} first.
+        </p>
+      </div>
+
+      <div class="mb-8 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-ink-soft">
+        <a
+          class="btn-secondary px-4 py-2 shadow-fine hover:border-ink/30"
+          href={`tel:${business.phoneTel}`}
+          data-ga-event="cta_click"
+          data-ga-label="quote_page_call_primary"
+        >
+          Call or text {business.phone}
+        </a>
+        <span class="rounded-full border border-border bg-white/90 px-4 py-2 shadow-fine">
+          Reply within 1 hour during work hours
+        </span>
+        <span class="rounded-full border border-border bg-white/90 px-4 py-2 shadow-fine">
+          Residential only
+        </span>
+      </div>
+
+      <div class="mb-8 grid gap-4 lg:grid-cols-2">
+        <div class="rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
+          <p class="font-semibold text-ink">Book-now offers this week</p>
+          <ul class="mt-2 space-y-1">
+            <li>- Fence Refresh and Minor Repair</li>
+            <li>- Rock Work Refresh</li>
+            <li>- Power Wash Reset</li>
+            <li>- Mulch Refresh</li>
+          </ul>
+        </div>
+        <div class="rounded-xl border border-border bg-white/90 p-4 text-sm text-ink-soft">
+          <p class="font-semibold text-ink">What to send for a fast quote</p>
+          <ul class="mt-2 space-y-1">
+            <li>- Area or neighborhood</li>
+            <li>- Service needed (fence, rock work, mulch, or power washing)</li>
+            <li>- When you want the work done</li>
+          </ul>
+        </div>
+      </div>
+
+      <QuoteForm returnTo="/quote#quote" showInfoBox={false} />
+    </div>
+  </section>
+</Layout>

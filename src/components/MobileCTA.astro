@@ -17,7 +17,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
     class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
   >
     <a
-      class="flex-[1.2] rounded-full bg-ink px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-paper hover:bg-ink/90"
+      class="btn-primary flex-[1.2] px-5 py-3 text-center text-xs uppercase tracking-[0.25em]"
       href={`tel:${business.phoneTel}`}
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_call"
@@ -25,7 +25,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
       Call or text
     </a>
     <a
-      class="flex-1 rounded-full border border-ink/25 bg-white/90 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.25em] text-ink hover:border-ink"
+      class="btn-secondary flex-1 px-4 py-3 text-center text-xs uppercase tracking-[0.25em]"
       href={quoteHref}
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_quote"

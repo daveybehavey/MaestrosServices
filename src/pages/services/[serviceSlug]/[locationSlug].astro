@@ -92,6 +92,12 @@ const serviceGoalById: Record<Service["id"], string> = {
   "weed-control": "longer gaps between regrowth cycles",
   "yard-waste-removal": "faster post-project cleanup",
   "brush-clearing": "safer and more usable outdoor space",
+  "gutter-cleaning-ground-access": "cleaner drainage flow and less overflow risk",
+  "light-pruning": "cleaner plant shape with healthy seasonal growth",
+  "moss-algae-treatment": "safer, cleaner hard surfaces in wet seasons",
+  "fence-work-minor-repairs": "a cleaner, straighter perimeter with better everyday function",
+  "power-washing": "cleaner hard surfaces and stronger curb appeal",
+  "rock-work-walls": "a cleaner property layout with stronger visual structure",
   "driveway-grading": "better driveway access and fewer drainage issues",
   "gravel-driveway-installation": "a stronger, cleaner driveway surface",
 };
@@ -139,6 +145,12 @@ const serviceFormMap: Record<string, string> = {
   "weed-control": "other",
   "yard-waste-removal": "other",
   "brush-clearing": "other",
+  "gutter-cleaning-ground-access": "gutter",
+  "light-pruning": "pruning",
+  "moss-algae-treatment": "moss",
+  "fence-work-minor-repairs": "fence",
+  "power-washing": "powerwash",
+  "rock-work-walls": "rock",
   "driveway-grading": "driveway",
   "gravel-driveway-installation": "gravel",
 };
@@ -165,7 +177,7 @@ const serviceFormMap: Record<string, string> = {
       <div class="mb-10 space-y-4">
         <p class="section-kicker">{location.region}</p>
         <h1 class="section-title">{service.shortName} in {location.name}</h1>
-        <p class="max-w-3xl text-base text-ink-soft">
+        <p class="section-copy max-w-3xl">
           {service.longDescription} Homeowners in {location.name} trust us for consistent, friendly
           service and clear communication from quote to cleanup.
         </p>
@@ -359,7 +371,7 @@ const serviceFormMap: Record<string, string> = {
               Book {service.shortName.toLowerCase()}
             </h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. We usually reply within one business day.
+              Call or text for the fastest response. We usually reply within 1 hour during work hours.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -420,6 +432,18 @@ const serviceFormMap: Record<string, string> = {
         <h2 class="section-title">
           Get {service.shortName.toLowerCase()} in {location.name}
         </h2>
+        <p class="text-sm text-ink-soft">
+          Need a faster response? Call or text{" "}
+          <a
+            class="font-semibold text-ink hover:text-ink/70"
+            href={`tel:${business.phoneTel}`}
+            data-ga-event="cta_click"
+            data-ga-label={`service_location_${service.slug}_${location.slug}_quote_section_call`}
+          >
+            {business.phone}
+          </a>
+          .
+        </p>
       </div>
       <QuoteForm
         preselectedService={serviceFormMap[service.slug] || "other"}

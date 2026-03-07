@@ -232,6 +232,101 @@ const structuredDataArray = structuredData
   )
 }
 
+<script is:inline define:vars={{ analyticsContext }}>
+  (function () {
+    var storageKey = "ms_attribution_v1";
+    var queryKeys = [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_content",
+      "utm_term",
+      "gclid",
+      "fbclid",
+      "msclkid",
+    ];
+
+    var readStored = function () {
+      try {
+        var raw = window.localStorage.getItem(storageKey);
+        if (!raw) return {};
+        var parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    };
+
+    var writeStored = function (value) {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(value));
+      } catch {
+        // Ignore storage errors in private mode.
+      }
+    };
+
+    var params = new URLSearchParams(window.location.search);
+    var queryAttribution = {};
+    var hasQueryAttribution = false;
+
+    queryKeys.forEach(function (key) {
+      var value = params.get(key);
+      if (!value) return;
+      queryAttribution[key] = value.slice(0, 120);
+      hasQueryAttribution = true;
+    });
+
+    var storedAttribution = readStored();
+    var attribution = Object.assign({}, storedAttribution, queryAttribution);
+
+    if (!attribution.landing_page) {
+      attribution.landing_page = window.location.pathname;
+    }
+    if (!attribution.referrer && document.referrer) {
+      attribution.referrer = document.referrer.slice(0, 400);
+    }
+
+    if (hasQueryAttribution) {
+      attribution.landing_page = (window.location.pathname + window.location.search).slice(0, 300);
+      if (document.referrer) {
+        attribution.referrer = document.referrer.slice(0, 400);
+      }
+      writeStored(attribution);
+    }
+
+    window.__MS_ATTRIBUTION__ = attribution;
+
+    var hasCampaignData = Boolean(
+      attribution.utm_source ||
+        attribution.utm_medium ||
+        attribution.utm_campaign ||
+        attribution.gclid ||
+        attribution.fbclid ||
+        attribution.msclkid
+    );
+
+    if (window.gtag && hasCampaignData) {
+      var dedupeKey = "ms_campaign_landing:" + window.location.pathname + window.location.search;
+      if (!window.sessionStorage.getItem(dedupeKey)) {
+        window.gtag("event", "campaign_landing", {
+          page_group: analyticsContext.pageGroup || "site",
+          page_type: analyticsContext.pageType || "default",
+          page_template: analyticsContext.pageTemplate || "default",
+          utm_source: attribution.utm_source || "(not set)",
+          utm_medium: attribution.utm_medium || "(not set)",
+          utm_campaign: attribution.utm_campaign || "(not set)",
+          utm_content: attribution.utm_content || "(not set)",
+          utm_term: attribution.utm_term || "(not set)",
+          gclid: attribution.gclid || "",
+          fbclid: attribution.fbclid || "",
+          msclkid: attribution.msclkid || "",
+        });
+        window.sessionStorage.setItem(dedupeKey, "1");
+      }
+    }
+  })();
+</script>
+
 <!-- Cloudflare Turnstile -->
 {
   turnstileEnabled && (

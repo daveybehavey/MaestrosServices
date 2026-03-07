@@ -7,7 +7,7 @@ import { createBreadcrumbSchema, createOrganizationSchema } from "../../lib/sche
 
 const pageTitle = `Landscaping Services | Vancouver Island | ${business.name}`;
 const pageDescription =
-  "Professional landscaping services on Vancouver Island, including lawn care, hedge trimming, driveway grading, gravel driveway refreshes, and property improvement projects. Serving Victoria to Duncan.";
+  "Professional landscaping services on Vancouver Island, including fence work, lawn care, hedge trimming, mulching, power washing, rock work and small walls, driveway grading, gravel driveway refreshes, and property improvement projects. Serving Victoria to Duncan.";
 const canonicalUrl = `${business.siteUrl}/services`;
 
 const breadcrumbItems = [{ name: "Services", href: "/services" }];
@@ -25,7 +25,7 @@ const structuredData = [
   structuredData={structuredData}
   headerVariant="simple"
   headerSubtitle="Services"
-  quoteHref="/#quote"
+  quoteHref="/quote"
 >
   <section class="section">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
@@ -34,10 +34,24 @@ const structuredData = [
       <div class="mb-10 space-y-4">
         <p class="section-kicker">What we do</p>
         <h1 class="section-title">Landscaping Services</h1>
-        <p class="max-w-3xl text-base text-ink-soft">
-          From weekly maintenance to driveway and property improvement work, we provide practical,
-          high-quality landscaping services across lower-mid Vancouver Island.
+        <p class="section-copy max-w-3xl">
+          From fence and rock work to mulching, power washing, and driveway improvement
+          work, we provide practical, local service across lower-mid Vancouver Island.
         </p>
+        <div class="grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="rounded-xl border border-border bg-paper/70 px-4 py-3 text-sm text-ink">
+            Fence Refresh
+          </div>
+          <div class="rounded-xl border border-border bg-paper/70 px-4 py-3 text-sm text-ink">
+            Rock Work Refresh
+          </div>
+          <div class="rounded-xl border border-border bg-paper/70 px-4 py-3 text-sm text-ink">
+            Power Wash Reset
+          </div>
+          <div class="rounded-xl border border-border bg-paper/70 px-4 py-3 text-sm text-ink">
+            Mulch Refresh
+          </div>
+        </div>
         <a
           class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
           href="/services-by-area"
@@ -80,8 +94,8 @@ const structuredData = [
             <p class="section-kicker text-paper/60">Ready to get started?</p>
             <h2 class="text-3xl font-display sm:text-4xl">Get a free quote today</h2>
             <p class="mt-3 text-sm text-paper/80">
-              Call or text for a same-day quote. We serve all of lower-mid Vancouver Island from
-              Victoria to Duncan.
+              Call or text first for the fastest quote. We usually reply within 1 hour during
+              work hours and serve all of lower-mid Vancouver Island from Victoria to Duncan.
             </p>
           </div>
           <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -95,7 +109,7 @@ const structuredData = [
             </a>
             <a
               class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper hover:border-paper"
-              href="/#quote"
+              href="/quote"
               data-ga-event="cta_click"
               data-ga-label="services_cta_quote"
             >

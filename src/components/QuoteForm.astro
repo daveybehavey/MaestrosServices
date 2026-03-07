@@ -5,9 +5,15 @@ interface Props {
   preselectedService?: string;
   preselectedArea?: string;
   showInfoBox?: boolean;
+  returnTo?: string;
 }
 
-const { preselectedService, preselectedArea, showInfoBox = true } = Astro.props;
+const {
+  preselectedService,
+  preselectedArea,
+  showInfoBox = true,
+  returnTo = `${Astro.url.pathname}#quote`,
+} = Astro.props;
 
 const submitted = Astro.url.searchParams.get("submitted");
 const error = Astro.url.searchParams.get("error");
@@ -22,14 +28,24 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         <p class="section-kicker">Get a free quote</p>
         <h2 class="section-title">Request service in under a minute.</h2>
         <p class="text-sm text-ink-soft">
-          Fill out the form and we will follow up within one business day. For same-day
-          quotes, call or text {business.phone} directly.
+          Fill out the form and we usually reply within 1 hour during work hours. For the
+          fastest quote, call or text {business.phone} first.
         </p>
+        <p class="text-xs uppercase tracking-[0.25em] text-ink-soft">Takes about 30 seconds</p>
+        <div class="rounded-2xl border border-border bg-paper/70 p-6 text-sm text-ink-soft">
+          <p class="font-semibold text-ink">Book-now offers this week</p>
+          <ul class="mt-2 space-y-1">
+            <li>- Fence Refresh and Minor Repair</li>
+            <li>- Rock Work Refresh</li>
+            <li>- Power Wash Reset</li>
+            <li>- Mulch Refresh</li>
+          </ul>
+        </div>
         <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
           <p class="font-semibold text-ink">Same-day quotes available</p>
           <p>Call or text {business.phone} for the fastest response.</p>
           <p class="mt-4 font-semibold text-ink">Email quotes</p>
-          <p>We aim to reply within one business day.</p>
+          <p>We aim to reply within 1 hour during work hours.</p>
           <a
             class="mt-1 inline-block underline decoration-ink/30"
             href={`mailto:${business.email}`}
@@ -61,6 +77,12 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         </div>
       )
     }
+    <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Takes about 30 seconds</p>
+    <div class="flex flex-wrap gap-2 text-[0.62rem] uppercase tracking-[0.22em] text-ink-soft">
+      <span class="rounded-full border border-border bg-paper px-3 py-1">Owner-operated</span>
+      <span class="rounded-full border border-border bg-paper px-3 py-1">Residential service</span>
+      <span class="rounded-full border border-border bg-paper px-3 py-1">Reply within 1 hour</span>
+    </div>
 
     <div>
       <label class="text-sm font-semibold" for="name">Name</label>
@@ -68,6 +90,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
         id="name"
         name="name"
+        autocomplete="name"
         placeholder="Your name"
         required
       />
@@ -80,6 +103,7 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         id="phone"
         name="phone"
         type="tel"
+        inputmode="tel"
         autocomplete="tel"
         placeholder="(250) 858-1781"
         required
@@ -112,14 +136,14 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     </div>
 
     <div>
-      <label class="text-sm font-semibold" for="service">Services needed</label>
+      <label class="text-sm font-semibold" for="service">Primary service needed</label>
       <select
         class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
         id="service"
         name="service"
         required
       >
-        <option value="">Choose a service</option>
+        <option value="not-sure" selected={!preselectedService}>Not sure yet (we can recommend)</option>
         <option value="mowing" selected={preselectedService === "mowing"}>
           Mowing and edging
         </option>
@@ -130,7 +154,25 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
           Seasonal cleanup
         </option>
         <option value="mulch" selected={preselectedService === "mulch"}>
-          Mulch and garden beds
+          Mulching and garden beds
+        </option>
+        <option value="powerwash" selected={preselectedService === "powerwash"}>
+          Power washing (driveway, patio, exterior)
+        </option>
+        <option value="rock" selected={preselectedService === "rock"}>
+          Rock work / rock walls
+        </option>
+        <option value="fence" selected={preselectedService === "fence"}>
+          Fence work / minor repairs
+        </option>
+        <option value="gutter" selected={preselectedService === "gutter"}>
+          Gutter cleaning (ground-accessible)
+        </option>
+        <option value="pruning" selected={preselectedService === "pruning"}>
+          Light pruning and shape-up
+        </option>
+        <option value="moss" selected={preselectedService === "moss"}>
+          Moss/algae treatment
         </option>
         <option value="driveway" selected={preselectedService === "driveway"}>
           Driveway grading or repair
@@ -148,39 +190,65 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     </div>
 
     <div>
-      <label class="text-sm font-semibold" for="details">Details</label>
+      <label class="text-sm font-semibold" for="details">Details (optional)</label>
       <textarea
-        class="mt-2 min-h-[120px] w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+        class="mt-2 min-h-[96px] w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10 sm:min-h-[120px]"
         id="details"
         name="details"
         placeholder="Tell us about your yard, access, and timing."></textarea>
     </div>
 
+    <div class="rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
+      <p class="font-semibold text-ink">What to send for a fast quote</p>
+      <ul class="mt-2 space-y-1">
+        <li>- Your area or neighborhood</li>
+        <li>- Service needed (fence, rock work, mulch, power wash, or other)</li>
+        <li>- Preferred timing (this week, next week, or flexible)</li>
+      </ul>
+    </div>
+
     <!-- Honeypot -->
+    <input type="hidden" name="return_to" value={returnTo} />
+    <input type="hidden" id="utm-source" name="utm_source" value="" />
+    <input type="hidden" id="utm-medium" name="utm_medium" value="" />
+    <input type="hidden" id="utm-campaign" name="utm_campaign" value="" />
+    <input type="hidden" id="utm-content" name="utm_content" value="" />
+    <input type="hidden" id="utm-term" name="utm_term" value="" />
+    <input type="hidden" id="gclid" name="gclid" value="" />
+    <input type="hidden" id="fbclid" name="fbclid" value="" />
+    <input type="hidden" id="msclkid" name="msclkid" value="" />
+    <input type="hidden" id="landing-page" name="landing_page" value="" />
+    <input type="hidden" id="referrer" name="referrer" value="" />
+
     <div class="hidden" aria-hidden="true">
       <label class="text-sm font-semibold" for="company">Company</label>
       <input id="company" name="company" tabindex="-1" autocomplete="off" />
     </div>
+    <div class="hidden" aria-hidden="true">
+      <label class="text-sm font-semibold" for="website">Website</label>
+      <input id="website" name="website" tabindex="-1" autocomplete="off" />
+    </div>
+    <input id="form-started-at" type="hidden" name="form_started_at" value="" />
 
     {
       turnstileEnabled && (
         <div class="mt-2">
-          <div class="cf-turnstile" data-sitekey={turnstileSiteKey} />
+          <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-action="quote_form" />
         </div>
       )
     }
 
     <button
-      class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper hover:bg-ink/90"
+      class="btn-primary w-full px-6 py-3"
       type="submit"
       data-ga-event="form_submit"
       data-ga-label="quote_form"
     >
-      Send request
+      Get my free quote
     </button>
 
     <p class="text-xs text-ink-soft">
-      By submitting, you agree to be contacted by phone or email about your request.
+      By submitting, you agree to be contacted by phone or email about your request. No spam.
     </p>
   </form>
 </div>
@@ -188,17 +256,104 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
 <script is:inline>
   (function () {
     var quoteForm = document.getElementById("quote-form");
-    if (quoteForm && window.gtag) {
+    var startedAtInput = document.getElementById("form-started-at");
+    var localStorageKey = "ms_attribution_v1";
+
+    var readStoredAttribution = function () {
+      try {
+        var raw = window.localStorage.getItem(localStorageKey);
+        if (!raw) return {};
+        var parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    };
+
+    var attribution = Object.assign(
+      {},
+      readStoredAttribution(),
+      window.__MS_ATTRIBUTION__ || {}
+    );
+
+    var attributionFieldByKey = {
+      utm_source: "utm-source",
+      utm_medium: "utm-medium",
+      utm_campaign: "utm-campaign",
+      utm_content: "utm-content",
+      utm_term: "utm-term",
+      gclid: "gclid",
+      fbclid: "fbclid",
+      msclkid: "msclkid",
+      landing_page: "landing-page",
+      referrer: "referrer",
+    };
+
+    Object.keys(attributionFieldByKey).forEach(function (key) {
+      var input = document.getElementById(attributionFieldByKey[key]);
+      if (!input) return;
+      var value = attribution[key];
+      if (!value) return;
+      input.value = String(value).slice(0, 400);
+    });
+
+    var landingPageInput = document.getElementById("landing-page");
+    if (landingPageInput && !landingPageInput.value) {
+      landingPageInput.value = (window.location.pathname + window.location.search).slice(0, 300);
+    }
+
+    var referrerInput = document.getElementById("referrer");
+    if (referrerInput && !referrerInput.value && document.referrer) {
+      referrerInput.value = document.referrer.slice(0, 400);
+    }
+
+    if (startedAtInput) {
+      startedAtInput.value = String(Date.now());
+    }
+    if (window.gtag) {
       var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
-      quoteForm.addEventListener("submit", function () {
-        window.gtag("event", "form_submit", {
+      var urlParams = new URLSearchParams(window.location.search);
+      var submittedStatus = urlParams.get("submitted");
+      var errorStatus = urlParams.get("error");
+      var successEventKey = "ms_quote_success:" + window.location.pathname + window.location.search;
+      var errorEventKey = "ms_quote_error:" + window.location.pathname + window.location.search;
+
+      if (submittedStatus === "1" && !window.sessionStorage.getItem(successEventKey)) {
+        window.gtag("event", "generate_lead", {
           event_category: "form",
-          event_label: "quote_form",
+          event_label: "quote_form_success",
+          page_group: analyticsContext.pageGroup || "site",
+          page_type: analyticsContext.pageType || "default",
+          page_template: analyticsContext.pageTemplate || "default",
+          utm_source: attribution.utm_source || "(not set)",
+          utm_medium: attribution.utm_medium || "(not set)",
+          utm_campaign: attribution.utm_campaign || "(not set)",
+        });
+        window.sessionStorage.setItem(successEventKey, "1");
+      }
+
+      if (errorStatus === "1" && !window.sessionStorage.getItem(errorEventKey)) {
+        window.gtag("event", "form_submit_error", {
+          event_category: "form",
+          event_label: "quote_form_error",
           page_group: analyticsContext.pageGroup || "site",
           page_type: analyticsContext.pageType || "default",
           page_template: analyticsContext.pageTemplate || "default",
         });
-      });
+        window.sessionStorage.setItem(errorEventKey, "1");
+      }
+
+      if (quoteForm) {
+        quoteForm.addEventListener("submit", function () {
+          window.gtag("event", "form_submit", {
+            event_category: "form",
+            event_label: "quote_form",
+            page_group: analyticsContext.pageGroup || "site",
+            page_type: analyticsContext.pageType || "default",
+            page_template: analyticsContext.pageTemplate || "default",
+          });
+        });
+      }
     }
   })();
 </script>

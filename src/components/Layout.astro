@@ -4,6 +4,7 @@ import SEOHead from "./SEOHead.astro";
 import Header from "./Header.astro";
 import Footer from "./Footer.astro";
 import MobileCTA from "./MobileCTA.astro";
+import DesktopCTA from "./DesktopCTA.astro";
 
 interface Props {
   title: string;
@@ -11,6 +12,7 @@ interface Props {
   canonicalUrl?: string;
   structuredData?: object | object[];
   showMobileCTA?: boolean;
+  showDesktopCTA?: boolean;
   ogImage?: string;
   ogType?: "website" | "article";
   article?: {
@@ -36,6 +38,7 @@ const {
   canonicalUrl,
   structuredData,
   showMobileCTA = true,
+  showDesktopCTA = true,
   ogImage,
   ogType,
   article,
@@ -62,13 +65,20 @@ const {
     />
   </head>
   <body>
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 rounded-md bg-ink px-3 py-2 text-sm text-paper"
+    >
+      Skip to main content
+    </a>
     <div class="relative flex min-h-screen flex-col">
       <Header variant={headerVariant} subtitle={headerSubtitle} quoteHref={quoteHref} />
-      <main class="relative z-10 flex-1">
+      <main id="main-content" class="relative z-10 flex-1">
         <slot />
       </main>
       <Footer includeMobilePadding={showMobileCTA} />
       {showMobileCTA && <MobileCTA quoteHref={quoteHref} />}
+      {showDesktopCTA && <DesktopCTA quoteHref={quoteHref} />}
     </div>
   </body>
 </html>

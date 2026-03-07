@@ -6,6 +6,7 @@ interface Props {
 }
 
 const { includeMobilePadding = true } = Astro.props;
+const facebookUrl = business.sameAs.find((url) => url.includes("facebook.com"));
 ---
 
 <footer
@@ -36,30 +37,87 @@ const { includeMobilePadding = true } = Astro.props;
     </div>
     <div class="space-y-2">
       <p class="font-semibold text-ink">Explore</p>
-      <a class="block hover:text-ink" href="/services">
+      <a
+        class="block hover:text-ink"
+        href="/services"
+        data-ga-event="cta_click"
+        data-ga-label="footer_nav_services"
+      >
         Services
       </a>
-      <a class="block hover:text-ink" href="/projects">
+      <a
+        class="block hover:text-ink"
+        href="/projects"
+        data-ga-event="cta_click"
+        data-ga-label="footer_nav_projects"
+      >
         Projects
       </a>
-      <a class="block hover:text-ink" href="/blog">
+      <a
+        class="block hover:text-ink"
+        href="/blog"
+        data-ga-event="cta_click"
+        data-ga-label="footer_nav_blog"
+      >
         Blog
       </a>
-      <a class="block hover:text-ink" href="/driveway-faq">
+      <a
+        class="block hover:text-ink"
+        href="/driveway-faq"
+        data-ga-event="cta_click"
+        data-ga-label="footer_nav_driveway_faq"
+      >
         Driveway FAQ
       </a>
-      <a class="block hover:text-ink" href="/service-area">
+      <a
+        class="block hover:text-ink"
+        href="/service-area"
+        data-ga-event="cta_click"
+        data-ga-label="footer_nav_service_area"
+      >
         Service Area
       </a>
     </div>
     <div class="space-y-2">
       <p class="font-semibold text-ink">Contact</p>
-      <a class="block hover:text-ink" href={`tel:${business.phoneTel}`}>
+      <a
+        class="block hover:text-ink"
+        href={`tel:${business.phoneTel}`}
+        data-ga-event="cta_click"
+        data-ga-label="footer_contact_call"
+      >
         {business.phone}
       </a>
-      <a class="block hover:text-ink" href={`mailto:${business.email}`}>
+      <a
+        class="block hover:text-ink"
+        href={`mailto:${business.email}`}
+        data-ga-event="cta_click"
+        data-ga-label="footer_contact_email"
+      >
         {business.email}
       </a>
+      <a
+        class="block hover:text-ink"
+        href="/quote"
+        data-ga-event="cta_click"
+        data-ga-label="footer_contact_quote"
+      >
+        Get a free quote
+      </a>
+      {
+        facebookUrl && (
+          <a
+            class="block hover:text-ink"
+            href={facebookUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ga-event="cta_click"
+            data-ga-label="footer_contact_facebook"
+          >
+            Facebook page
+          </a>
+        )
+      }
     </div>
   </div>
 </footer>

@@ -74,25 +74,29 @@ export const services: Service[] = [
   {
     id: "garden-bed-maintenance",
     slug: "garden-bed-maintenance",
-    name: "Garden Bed Refresh and Mulching",
-    shortName: "Garden Beds",
-    description: "Refresh your garden beds with weeding, edging, and fresh mulch for a polished look.",
-    longDescription: "Garden beds are often the first thing people notice about a property. Our refresh service includes thorough weeding, bed edge definition, soil amendment if needed, and fresh mulch application to suppress weeds and retain moisture.",
+    name: "Mulching and Garden Bed Refresh",
+    shortName: "Mulching and Garden Beds",
+    description:
+      "Keep beds clean and weed-resistant with fresh mulch, crisp edges, and targeted bed cleanup.",
+    longDescription:
+      "Fresh mulch and clean bed lines make a big visual difference while reducing weekly upkeep. Our mulching and bed refresh service includes weed removal, edge cleanup, and mulch installation or top-ups to help retain moisture and suppress regrowth through the season.",
     features: [
-      "Thorough weeding and debris removal",
+      "Fresh mulch installation and seasonal top-ups (2-3 inch depth)",
       "Bed edge definition and cleanup",
-      "Quality mulch application (2-3 inch depth)",
-      "Soil amendment recommendations",
-      "Plant health assessment",
+      "Thorough weeding and debris removal",
+      "Soil and planting condition check",
+      "Material recommendations based on look and budget",
     ],
     faqs: [
       {
-        question: "What type of mulch do you use?",
-        answer: "We typically use bark mulch or wood chips, but can accommodate preferences for decorite, river rock, or other materials. Let us know your preference.",
+        question: "What type of mulch do you install?",
+        answer:
+          "We typically install bark mulch or wood chips, and can also source decorite, river rock, or other bed materials based on your preference and budget.",
       },
       {
-        question: "How often should mulch be refreshed?",
-        answer: "Most beds benefit from a fresh layer annually, usually in spring. High-traffic or sunny areas may need a mid-season top-up.",
+        question: "How often should mulch be topped up?",
+        answer:
+          "Most beds benefit from one fresh layer each year, usually in spring. Sunny or higher-traffic areas may need a smaller top-up later in the season.",
       },
     ],
     relatedServices: ["weed-control", "seasonal-cleanups"],
@@ -205,6 +209,242 @@ export const services: Service[] = [
     ],
     relatedServices: ["yard-waste-removal", "seasonal-cleanups"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
+  },
+  {
+    id: "gutter-cleaning-ground-access",
+    slug: "gutter-cleaning-ground-access",
+    name: "Ground-Accessible Gutter Cleaning",
+    shortName: "Gutter Cleaning",
+    description:
+      "Clear leaves and blockages from ground-accessible gutters and downspouts to restore water flow.",
+    longDescription:
+      "Clogged gutters can lead to overflow, staining, and drainage issues around your home. Our ground-accessible gutter cleaning service removes leaf buildup, clears downspout blockages, and checks flow so rainwater moves away from your property as intended.",
+    features: [
+      "Leaf and debris removal from accessible gutters",
+      "Downspout clearing and flow check",
+      "Bag-up and cleanup of removed debris",
+      "Ground-level perimeter check for overflow points",
+      "Service limited to safe, ground-accessible rooflines",
+    ],
+    faqs: [
+      {
+        question: "Do you clean all roof heights?",
+        answer:
+          "We focus on safe, ground-accessible rooflines and straightforward access conditions. If your property needs specialized high-access equipment, we can flag that during quoting.",
+      },
+      {
+        question: "How often should gutters be cleaned?",
+        answer:
+          "Most homes benefit from at least one full clean in fall and another check in winter or spring, especially near mature trees.",
+      },
+    ],
+    relatedServices: ["seasonal-cleanups", "yard-waste-removal", "moss-algae-treatment"],
+    seasonalRelevance: ["fall", "winter", "spring"],
+  },
+  {
+    id: "light-pruning",
+    slug: "light-pruning",
+    name: "Light Pruning and Shape-Ups",
+    shortName: "Light Pruning",
+    description:
+      "Tidy up ornamental shrubs and small plants with light pruning for cleaner shape and healthier growth.",
+    longDescription:
+      "Light pruning keeps shrubs and ornamental plants looking neat without heavy cutbacks. This service focuses on selective trim work, minor shape correction, and seasonal touch-ups to maintain curb appeal and keep growth manageable.",
+    features: [
+      "Selective pruning of shrubs and ornamentals",
+      "Light shape correction and dead growth removal",
+      "Basic clearance around paths and entry points",
+      "Debris collection and disposal included",
+      "Best for maintenance cuts, not major removals",
+    ],
+    faqs: [
+      {
+        question: "How is light pruning different from full hedge trimming?",
+        answer:
+          "Light pruning is detail-focused maintenance for small shape and health improvements. Full hedge trimming is more intensive and designed for larger resets and line control.",
+      },
+      {
+        question: "Can light pruning be added to regular maintenance visits?",
+        answer:
+          "Yes. Many clients bundle light pruning with mowing, mulching, and cleanup visits for a full tidy-up.",
+      },
+    ],
+    relatedServices: ["hedge-trimming", "garden-bed-maintenance", "seasonal-cleanups"],
+    seasonalRelevance: ["spring", "summer", "fall"],
+  },
+  {
+    id: "moss-algae-treatment",
+    slug: "moss-algae-treatment",
+    name: "Surface Moss and Algae Treatment",
+    shortName: "Moss and Algae Treatment",
+    description:
+      "Reduce slippery buildup on hard surfaces with surface-safe moss and algae treatment.",
+    longDescription:
+      "Moss and algae buildup can make pathways, patios, and driveways look dark and become slippery in wet months. Our treatment service targets buildup on exterior surfaces using methods matched to the material, then follows with a clean finish and prevention guidance.",
+    features: [
+      "Treatment for moss and algae on hard surfaces",
+      "Surface-safe approach by material type",
+      "Focus on slip-prone traffic areas",
+      "Optional tie-in with power washing service",
+      "Post-treatment cleanup and next-step guidance",
+    ],
+    faqs: [
+      {
+        question: "Is this the same as power washing?",
+        answer:
+          "Not exactly. Moss and algae treatment targets biological buildup specifically. It can be done on its own or paired with power washing for a full reset.",
+      },
+      {
+        question: "Where do you usually apply this service?",
+        answer:
+          "Most requests are for driveways, walkways, patios, and entry zones where slippery growth tends to return through wet seasons.",
+      },
+    ],
+    relatedServices: ["power-washing", "seasonal-cleanups", "gutter-cleaning-ground-access"],
+    seasonalRelevance: ["spring", "summer", "fall", "winter"],
+  },
+  {
+    id: "fence-work-minor-repairs",
+    slug: "fence-work-minor-repairs",
+    name: "Fence Work and Minor Repairs",
+    shortName: "Fence Work",
+    description:
+      "Improve fence lines with panel resets, minor repairs, cleanup, and curb-appeal-focused refresh work.",
+    longDescription:
+      "Our fence service focuses on practical, small-team-friendly work that improves curb appeal and function without major equipment. We handle minor panel and post resets where feasible, fence-line cleanup, and straightforward repair work to keep your property looking clean and well-kept.",
+    features: [
+      "Fence-line cleanup and vegetation clearing",
+      "Minor panel, rail, and hardware repairs",
+      "Post and section resets where access allows",
+      "Gate alignment and latch tune-up (minor adjustments)",
+      "Site cleanup and walkthrough at completion",
+    ],
+    faqs: [
+      {
+        question: "Do you build or replace full fence systems?",
+        answer:
+          "We focus on minor repairs, section fixes, and practical refresh work. For full new fence builds or major structural replacements, we can review scope and recommend the best next step.",
+      },
+      {
+        question: "Can fence work be bundled with other yard services?",
+        answer:
+          "Yes. Fence work is often paired with mulching, power washing, and rock edging to improve overall curb appeal in one visit.",
+      },
+    ],
+    beforeAfterScenarios: [
+      {
+        before:
+          "Fence line had leaning sections, loose hardware, and overgrowth along the base.",
+        after:
+          "Cleared fence line, reset minor sections, tightened hardware, and cleaned up access edges.",
+        result:
+          "Straighter appearance, better function, and a cleaner property perimeter from the street.",
+      },
+      {
+        before:
+          "Gate closure was inconsistent and one panel line looked uneven near the driveway.",
+        after:
+          "Adjusted latch and hinges, reset alignment where possible, and completed a cleanup pass.",
+        result:
+          "More reliable daily use and a sharper first impression at the front approach.",
+      },
+    ],
+    relatedServices: ["power-washing", "rock-work-walls", "garden-bed-maintenance"],
+    seasonalRelevance: ["spring", "summer", "fall"],
+  },
+  {
+    id: "power-washing",
+    slug: "power-washing",
+    name: "Power Washing for Driveways, Patios, and Exteriors",
+    shortName: "Power Washing",
+    description:
+      "Remove grime, algae, and surface buildup from concrete, pavers, decks, fences, and siding.",
+    longDescription:
+      "Our power washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so your driveway, patio, walkways, and exterior surfaces look refreshed.",
+    features: [
+      "Driveway, patio, and walkway washing",
+      "Deck, fence, and exterior wall cleaning",
+      "Surface-safe pressure adjustment by material",
+      "Pre-wet and rinse-down around nearby plants",
+      "Post-wash cleanup and finish check",
+    ],
+    faqs: [
+      {
+        question: "What surfaces can you power wash?",
+        answer:
+          "We clean concrete, pavers, stone, vinyl siding, many decks, and most fences. We review each surface first and confirm the right method before starting.",
+      },
+      {
+        question: "Do you use high pressure on every surface?",
+        answer:
+          "No. We match pressure to the material and use gentler washing where needed to avoid damage while still removing buildup.",
+      },
+    ],
+    beforeAfterScenarios: [
+      {
+        before:
+          "Front entry and driveway had algae staining, dark streaks, and slippery patches after wet weather.",
+        after:
+          "Washed traffic areas and entry surfaces with pressure set for each material, then rinsed and cleaned the edges.",
+        result:
+          "Brighter curb appeal, safer footing, and a cleaner first impression from the street.",
+      },
+      {
+        before:
+          "Patio and fence lines looked dull with seasonal buildup and embedded dirt.",
+        after:
+          "Completed a full surface wash and detail pass around corners, joints, and transitions.",
+        result:
+          "Outdoor living areas looked reset and ready for regular maintenance.",
+      },
+    ],
+    relatedServices: ["seasonal-cleanups", "driveway-grading", "garden-bed-maintenance"],
+    seasonalRelevance: ["spring", "summer", "fall"],
+  },
+  {
+    id: "rock-work-walls",
+    slug: "rock-work-walls",
+    name: "Rock Work and Garden Wall Builds",
+    shortName: "Rock Work and Walls",
+    description: "Add durable structure and curb appeal with decorative rock work and small wall builds.",
+    longDescription: "Rock features can add both structure and style to your property when they are installed with the right prep. We build decorative rock accents, bed borders, and small garden walls that improve layout, edge definition, and overall curb appeal while fitting the natural look of Vancouver Island properties.",
+    features: [
+      "Decorative rock borders and accent placement",
+      "Small dry-stack or mortared garden wall builds",
+      "Low retaining edges for beds and walkways",
+      "Base prep, leveling, and backfill as needed",
+      "Site cleanup and tie-in with surrounding landscaping",
+    ],
+    faqs: [
+      {
+        question: "Do you build full engineered retaining walls?",
+        answer: "We handle decorative and small functional walls for residential properties. For large engineered retaining walls that require stamped plans, we can review scope and recommend the right specialist.",
+      },
+      {
+        question: "Can you match new rock work to existing landscaping?",
+        answer: "Yes. We can source and install materials that complement your existing hardscape and planting style, then adjust layout and finish details during the quote process.",
+      },
+    ],
+    beforeAfterScenarios: [
+      {
+        before:
+          "Slope edge near the driveway was washing out and looked unfinished from the street.",
+        after:
+          "Installed a low rock wall and reshaped the edge with compacted base and clean transitions.",
+        result:
+          "Stronger edge definition, less washout after rain, and a more finished look at the front of the property.",
+      },
+      {
+        before:
+          "Garden bed borders were uneven and mulch kept spilling into lawn and pathways.",
+        after:
+          "Added rock edging and reset bed lines to create a clear separation between zones.",
+        result:
+          "Cleaner maintenance, better curb appeal, and a layout that holds up through the season.",
+      },
+    ],
+    relatedServices: ["garden-bed-maintenance", "brush-clearing", "gravel-driveway-installation"],
+    seasonalRelevance: ["spring", "summer", "fall"],
   },
   {
     id: "driveway-grading",

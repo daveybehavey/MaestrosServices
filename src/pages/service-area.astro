@@ -10,7 +10,7 @@ import {
 
 const pageTitle = `Landscaping Service Area: Victoria, Langford, Duncan & Cowichan Valley | ${business.name}`;
 const pageDescription =
-  "Professional landscaping services across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Duncan & Cowichan Valley. Lawn care, driveway work, site cleanup, and more.";
+  "Professional landscaping services across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Duncan & Cowichan Valley. Fence work, mulching, power washing, rock work, driveway work, site cleanup, and more.";
 const canonicalUrl = `${business.siteUrl}/service-area`;
 
 const breadcrumbItems = [{ name: "Service Area", href: "/service-area" }];
@@ -20,7 +20,7 @@ const regionCards = regions.map((region) => ({
   description: region.description,
   cities: locations
     .filter((location) => location.region === region.name)
-    .map((location) => location.name),
+    .map((location) => ({ name: location.name, slug: location.slug })),
 }));
 
 const serviceAreaSchema = {
@@ -51,6 +51,9 @@ const serviceAreaSchema = {
     addressRegion: business.address.region,
     addressCountry: business.address.country,
   },
+  ...(business.sameAs.length > 0 && {
+    sameAs: [...business.sameAs],
+  }),
 };
 
 const structuredData = [
@@ -67,17 +70,22 @@ const structuredData = [
   structuredData={structuredData}
   headerVariant="simple"
   headerSubtitle="Service area"
-  quoteHref="/#quote"
+  quoteHref="/quote"
+  analytics={{
+    pageGroup: "area_pages",
+    pageType: "service_area_page",
+    pageTemplate: "service-area",
+  }}
 >
   <section class="section">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
       <div class="mb-10 space-y-4">
         <p class="section-kicker">Lower-mid Vancouver Island</p>
         <h1 class="section-title">Landscaping service area</h1>
-        <p class="max-w-3xl text-base text-ink-soft">
+        <p class="section-copy max-w-3xl">
           Based near Shawnigan Lake and serving residential properties across the lower-mid
-          island. We provide lawn care, garden maintenance, driveway grading, gravel work, and
-          property upkeep throughout Greater Victoria and the Cowichan Valley.
+          island. We provide fence work, mulching, power washing, rock work and wall builds,
+          driveway grading, gravel work, and property upkeep throughout Greater Victoria and the Cowichan Valley.
         </p>
       </div>
 
@@ -91,9 +99,14 @@ const structuredData = [
               <p class="mb-5 text-sm leading-relaxed text-ink-soft">{region.description}</p>
               <div class="flex flex-wrap gap-2">
                 {region.cities.map((city) => (
-                  <span class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft">
-                    {city}
-                  </span>
+                  <a
+                    class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft transition hover:border-ink/30 hover:text-ink"
+                    href={`/areas/${city.slug}`}
+                    data-ga-event="cta_click"
+                    data-ga-label={`service_area_city_${city.slug}`}
+                  >
+                    {city.name}
+                  </a>
                 ))}
               </div>
             </div>
@@ -106,8 +119,9 @@ const structuredData = [
             </h2>
             <p class="mb-5 text-sm leading-relaxed text-ink-soft">
               We handle routine maintenance and larger exterior projects for homeowners across
-              lower-mid Vancouver Island. From mowing and trimming to driveway grading and gravel
-              refreshes, we keep properties functional, clean, and curb-appeal ready.
+              lower-mid Vancouver Island. From fence work and trim details to mulching, power washing,
+              rock walls, driveway grading, and gravel refreshes, we keep properties functional,
+              clean, and curb-appeal ready.
             </p>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="space-y-2">
@@ -129,9 +143,15 @@ const structuredData = [
                 </p>
               </div>
               <div class="space-y-2">
-                <h3 class="text-sm font-semibold text-ink">Property upkeep</h3>
+                <h3 class="text-sm font-semibold text-ink">Rock work and walls</h3>
                 <p class="text-xs leading-relaxed text-ink-soft">
-                  Hedge trimming, pathway clearing, and general yard maintenance.
+                  Decorative rock edging and small wall builds to add structure and curb appeal.
+                </p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-ink">Power washing</h3>
+                <p class="text-xs leading-relaxed text-ink-soft">
+                  Driveway, patio, walkway, deck, and exterior cleaning to remove buildup and brighten surfaces.
                 </p>
               </div>
             </div>
@@ -197,7 +217,7 @@ const structuredData = [
             <p class="section-kicker">Get in touch</p>
             <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">Contact us</h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. We typically reply within one business day.
+              Call or text for the fastest response. We typically reply within 1 hour during work hours.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -214,7 +234,7 @@ const structuredData = [
               </a>
               <a
                 class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
-                href="/#quote"
+                  href="/quote"
               >
                 Get a free quote
               </a>
