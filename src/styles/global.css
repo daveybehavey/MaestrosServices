@@ -199,6 +199,11 @@
     background-image: radial-gradient(transparent 1px, oklch(0.96 0.008 80 / 0.9) 1px);
     background-size: 18px 18px;
   }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 1000px;
+  }
 }
 
 .grid > *,
@@ -248,5 +253,18 @@
   .btn-primary,
   .btn-secondary {
     white-space: normal;
+  }
+
+  body {
+    background-attachment: scroll;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  .animate-rise,
+  .animate-fade {
+    animation-duration: 0.45s;
   }
 }

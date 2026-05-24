@@ -200,19 +200,50 @@ const structuredDataArray = structuredData
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
   href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
-  rel="stylesheet"
+  rel="preload"
+  as="style"
+  onload="this.onload=null;this.rel='stylesheet'"
 />
+<noscript>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+</noscript>
 
 <!-- Google Analytics -->
 {
   gaId && (
     <>
-      <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
       <script is:inline define:vars={{ gaId, analyticsContext }}>
         window.dataLayer = window.dataLayer || [];
-        function gtag() {
+        window.gtag = function gtag() {
           dataLayer.push(arguments);
-        }
+        };
+
+        var gaLoaded = false;
+        var loadAnalytics = function () {
+          if (gaLoaded) return;
+          gaLoaded = true;
+          var script = document.createElement("script");
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+          document.head.appendChild(script);
+        };
+
+        var scheduleAnalytics = function () {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(loadAnalytics, { timeout: 2500 });
+          } else {
+            window.setTimeout(loadAnalytics, 1800);
+          }
+        };
+
+        window.addEventListener("load", scheduleAnalytics, { once: true });
+        ["pointerdown", "keydown", "touchstart", "scroll"].forEach(function (eventName) {
+          window.addEventListener(eventName, loadAnalytics, { once: true, passive: true });
+        });
+
         gtag("js", new Date());
         window.__MS_ANALYTICS_CONTEXT__ = analyticsContext;
         gtag("config", gaId, {
