@@ -1,44 +1,75 @@
 # Review Request Templates
 
-Use these only for real customers.
-Send within 24 hours of job completion.
+Use these only for real customers after the work is complete.
 
-## SMS template
+Primary review handoff page:
+https://maestrosservices.com/review
 
-Hi [Name], thanks again for choosing Maestros Services.  
-If you were happy with the work, would you mind leaving us a quick Google review?  
-It really helps local homeowners find us.
+Direct Google review link:
+https://g.page/r/CUnswEEUWyLuEAE/review
 
-[Paste your Google review link]
+## When To Ask
 
-If you know one neighbor who might need similar work, a quick text intro would really help too.
+- Same day, after the customer has seen the finished work
+- Within 24 hours if the job finished late in the day
+- Once only, then one soft reminder 2-3 days later if appropriate
 
-## Follow-up template (2-3 days later)
+## SMS Template: Same-Day Completion
 
-Hey [Name], quick follow-up from Maestros Services.  
-If you have a minute, a short Google review would help us a lot.
+Hi [Name], thanks again for choosing Maestros Services today.
 
-[Paste your Google review link]
+If you were happy with the work, would you mind leaving us a quick Google review? It really helps local homeowners find us.
+
+https://maestrosservices.com/review
+
+If anything needs attention first, just reply here and I will take a look.
+
+## SMS Template: Direct Google Link
+
+Hi [Name], thanks again for choosing Maestros Services.
+
+If you have 30 seconds, a short Google review would really help:
+
+https://g.page/r/CUnswEEUWyLuEAE/review
+
+Mentioning the service and your area helps a lot. Thanks again.
+
+## Follow-Up Template: 2-3 Days Later
+
+Hey [Name], quick follow-up from Maestros Services.
+
+If you have a minute, a short Google review would mean a lot and helps other local homeowners know what to expect:
+
+https://maestrosservices.com/review
 
 Thanks again.
 
-## Referral ask template
+## Referral Ask Template
 
-Hi [Name], really appreciate you choosing Maestros Services.  
+Hi [Name], really appreciate you choosing Maestros Services.
+
 If you know one neighbor who might need similar work, would you be open to introducing us by text?
 
 That kind of local referral helps a lot.
 
-## What to ask them to mention
+## Issue Recovery Template
 
-- What work was done (example: rock wall, cleanup, driveway grading)
-- What work was done (example: fence repair, rock wall, mulching, power washing)
-- Their area/city
-- What they liked (communication, reliability, result)
+Hi [Name], I wanted to check in after the work.
+
+If anything did not feel right or needs attention, please reply here before leaving a review. I want to understand what happened and make it right where possible.
+
+Thanks again for giving Maestros Services the opportunity.
+
+## What To Ask Them To Mention
+
+- What work was done, such as fence repair, rock work, mulching, power washing, driveway grading, or cleanup
+- Their area or city, if they are comfortable sharing it
+- What they liked, such as communication, reliability, cleanup, timing, or final result
 
 ## Completion Tracking
 
 - [ ] Review request sent within 24 hours
 - [ ] Referral ask sent
+- [ ] Soft reminder sent if appropriate
 - [ ] Review received
 - [ ] Referral received

@@ -13,6 +13,7 @@ export const createLocalBusinessSchema = (location?: Location) => ({
   email: business.email,
   image: `${business.siteUrl}${business.socialImage}`,
   priceRange: business.priceRange,
+  openingHours: business.openingHours,
   geo: {
     "@type": "GeoCoordinates",
     latitude: business.geo.latitude,
@@ -48,6 +49,7 @@ export const createLocationPageSchema = (location: Location) => ({
   telephone: business.phoneTel,
   email: business.email,
   priceRange: business.priceRange,
+  openingHours: business.openingHours,
   areaServed: {
     "@type": "City",
     name: location.name,

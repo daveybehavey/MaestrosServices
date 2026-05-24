@@ -22,8 +22,8 @@ export const services: Service[] = [
     slug: "lawn-mowing",
     name: "Lawn Mowing and Clean Edging",
     shortName: "Lawn Mowing",
-    description: "Professional lawn mowing and crisp edging to keep your yard looking sharp all season long.",
-    longDescription: "Our lawn mowing service delivers consistent, professional results that keep your property looking its best. We use quality equipment to ensure clean cuts at the optimal height for your grass type, paired with precise edging along walkways, driveways, and garden beds for that finished look.",
+    description: "Residential lawn mowing and crisp edging for homeowners who want a clean, well-kept yard all season on Vancouver Island.",
+    longDescription: "Our lawn mowing service is built for homeowners who want dependable upkeep, neat edges, and a clean finish without the hassle. We use quality equipment to cut at the right height for your grass, then edge walkways, driveways, and beds so the property looks cared for from the street. It is a strong fit for recurring curb appeal maintenance and one-off resets before guests, listings, or seasonal changes, especially on properties that need a tidy front yard without a full landscape overhaul.",
     features: [
       "Precision mowing at optimal cutting height",
       "Clean edging along walkways and driveways",
@@ -41,7 +41,7 @@ export const services: Service[] = [
         answer: "We can bag and remove clippings, or mulch them back into the lawn. Mulching returns nutrients to the soil and is often the healthier choice.",
       },
     ],
-    relatedServices: ["weed-control", "seasonal-cleanups"],
+    relatedServices: ["weed-control", "seasonal-cleanups", "garden-bed-maintenance"],
     seasonalRelevance: ["spring", "summer", "fall"],
   },
   {
@@ -49,14 +49,14 @@ export const services: Service[] = [
     slug: "hedge-trimming",
     name: "Hedge, Shrub, and Small Tree Trimming",
     shortName: "Hedge Trimming",
-    description: "Keep hedges, shrubs, and small trees shaped and healthy with professional trimming services.",
-    longDescription: "Overgrown hedges and shrubs can make even a well-maintained property look neglected. Our trimming service restores clean lines and promotes healthy growth, whether you need formal shaping or natural maintenance cuts.",
+    description: "Residential hedge trimming for clean lines, healthier growth, and a sharper first impression on Vancouver Island.",
+    longDescription: "Overgrown hedges and shrubs can make a property look neglected even when the rest of the yard is in good shape. Our trimming service restores clean lines, improves plant health, and keeps entryways, driveways, and bed edges looking intentional. Homeowners use this service when they want a tidy front yard, better light, and a cleaner boundary around the property. It is especially useful for front hedges, fence lines, and privacy screens that need to look sharp from the street.",
     features: [
       "Hedge shaping and maintenance trimming",
       "Shrub pruning and rejuvenation",
       "Small tree trimming (up to 15 feet)",
       "Debris cleanup and removal included",
-      "Seasonal timing recommendations",
+      "Seasonal timing recommendations for Vancouver Island growth cycles",
     ],
     faqs: [
       {
@@ -77,9 +77,9 @@ export const services: Service[] = [
     name: "Mulching and Garden Bed Refresh",
     shortName: "Mulching and Garden Beds",
     description:
-      "Keep beds clean and weed-resistant with fresh mulch, crisp edges, and targeted bed cleanup.",
+      "Mulch installation and garden bed refresh work for cleaner beds, better moisture retention, and less weed pressure.",
     longDescription:
-      "Fresh mulch and clean bed lines make a big visual difference while reducing weekly upkeep. Our mulching and bed refresh service includes weed removal, edge cleanup, and mulch installation or top-ups to help retain moisture and suppress regrowth through the season.",
+      "Fresh mulch and sharp bed edges make an immediate difference in curb appeal while helping reduce weekly maintenance. Our mulching and bed refresh service includes weeding, edge cleanup, and mulch installation or top-ups to help hold moisture and slow regrowth through the season. It is a practical choice for homeowners who want a front-yard refresh without replacing plantings or rebuilding beds.",
     features: [
       "Fresh mulch installation and seasonal top-ups (2-3 inch depth)",
       "Bed edge definition and cleanup",
@@ -107,8 +107,8 @@ export const services: Service[] = [
     slug: "seasonal-cleanups",
     name: "Seasonal Cleanups (Spring and Fall)",
     shortName: "Seasonal Cleanups",
-    description: "Comprehensive spring wake-ups and fall resets to prepare your yard for the changing seasons.",
-    longDescription: "Seasonal transitions are critical times for your yard. Our spring cleanup removes winter debris and prepares beds for the growing season, while fall cleanup clears leaves, cuts back perennials, and protects your landscape through winter.",
+    description: "Spring and fall cleanup service for homeowners who want a reset before weather changes on Vancouver Island.",
+    longDescription: "Seasonal transitions are when a yard can either stay tidy or fall behind fast. Our spring cleanup removes winter debris and prepares beds for the growing season, while fall cleanup clears leaves, cuts back perennials, and gets the property ready for winter. It is one of the best ways to get the whole property back under control without piecing together several separate visits, especially if you want a cleaner yard before guests, photos, or a seasonal changeover.",
     features: [
       "Leaf and debris removal",
       "Perennial cutback and bed preparation",
@@ -134,8 +134,8 @@ export const services: Service[] = [
     slug: "weed-control",
     name: "Weed Control and Tidy-Ups",
     shortName: "Weed Control",
-    description: "Keep weeds under control with regular maintenance and targeted removal throughout the season.",
-    longDescription: "Weeds compete with your plants for water and nutrients, and can quickly take over if left unchecked. Our weed control service includes manual removal, mulch application to suppress regrowth, and regular maintenance visits to keep your property looking its best.",
+    description: "Keep weeds under control with regular maintenance and targeted removal throughout the season on Vancouver Island.",
+    longDescription: "Weeds compete with your plants for water and nutrients, and can quickly take over if left unchecked. Our weed control service includes manual removal, mulch application to suppress regrowth, and regular maintenance visits to keep your property looking its best. It works especially well as part of a larger bed maintenance plan or seasonal refresh, and it helps front beds, pathways, and driveway edges stay cleaner between visits.",
     features: [
       "Manual weed removal (no harsh chemicals)",
       "Pathway and driveway crack weeding",
@@ -161,14 +161,14 @@ export const services: Service[] = [
     slug: "yard-waste-removal",
     name: "Yard Waste Haul-Away",
     shortName: "Yard Waste Removal",
-    description: "We remove and properly dispose of all yard waste, leaving your property clean and clear.",
-    longDescription: "Don't let piles of yard waste clutter your property. We haul away everything from grass clippings and leaves to branches and garden debris. All waste is disposed of responsibly at local green waste facilities.",
+    description: "Residential yard waste haul-away for homeowners who want piles, branches, and green debris gone fast.",
+    longDescription: "Don't let piles of yard waste clutter your property. We haul away everything from grass clippings and leaves to branches and garden debris, then leave the area ready for the next step. It is a practical add-on after cleanups, pruning, hedge work, or any project that creates more debris than the homeowner wants to manage.",
     features: [
       "Green waste and debris removal",
       "Branch and brush hauling",
       "Post-project cleanup",
       "Responsible disposal at certified facilities",
-      "Same-day removal available",
+      "Same-day removal available when routes allow",
     ],
     faqs: [
       {
@@ -180,7 +180,7 @@ export const services: Service[] = [
         answer: "Small amounts from regular maintenance are included. Large cleanups or one-time hauls may have an additional disposal fee based on volume.",
       },
     ],
-    relatedServices: ["seasonal-cleanups", "brush-clearing"],
+    relatedServices: ["seasonal-cleanups", "brush-clearing", "garden-bed-maintenance"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
   },
   {
@@ -188,8 +188,8 @@ export const services: Service[] = [
     slug: "brush-clearing",
     name: "Small Brush Clearing",
     shortName: "Brush Clearing",
-    description: "Clear overgrown areas and small brush to reclaim usable space on your property.",
-    longDescription: "Overgrown corners and neglected areas can harbor pests and look unkempt. Our brush clearing service tackles blackberry, salal, and other invasive growth to restore usable space and improve the overall appearance of your property.",
+    description: "Clear overgrown areas and small brush to reclaim usable space on your property in a residential-friendly way.",
+    longDescription: "Overgrown corners and neglected areas can harbor pests and look unkempt. Our brush clearing service tackles blackberry, salal, and other invasive growth to restore usable space and improve the overall appearance of your property. It is especially helpful for fence lines, side yards, back corners, and access paths that got away from regular maintenance.",
     features: [
       "Blackberry and invasive plant removal",
       "Undergrowth clearing",
@@ -207,7 +207,7 @@ export const services: Service[] = [
         answer: "Not yet. We handle shrubs, hedges, and small trees, but large tree felling requires specialized equipment and certification we don't currently offer.",
       },
     ],
-    relatedServices: ["yard-waste-removal", "seasonal-cleanups"],
+    relatedServices: ["yard-waste-removal", "seasonal-cleanups", "fence-work-minor-repairs"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
   },
   {
@@ -216,9 +216,9 @@ export const services: Service[] = [
     name: "Ground-Accessible Gutter Cleaning",
     shortName: "Gutter Cleaning",
     description:
-      "Clear leaves and blockages from ground-accessible gutters and downspouts to restore water flow.",
+      "Clear leaves and blockages from ground-accessible gutters and downspouts to restore water flow before it turns into a drainage problem.",
     longDescription:
-      "Clogged gutters can lead to overflow, staining, and drainage issues around your home. Our ground-accessible gutter cleaning service removes leaf buildup, clears downspout blockages, and checks flow so rainwater moves away from your property as intended.",
+      "Clogged gutters can lead to overflow, staining, and drainage issues around your home. Our ground-accessible gutter cleaning service removes leaf buildup, clears downspout blockages, and checks flow so rainwater moves away from your property as intended. It is a strong seasonal maintenance choice for homes near trees or properties that see heavy rain and debris.",
     features: [
       "Leaf and debris removal from accessible gutters",
       "Downspout clearing and flow check",
@@ -249,7 +249,7 @@ export const services: Service[] = [
     description:
       "Tidy up ornamental shrubs and small plants with light pruning for cleaner shape and healthier growth.",
     longDescription:
-      "Light pruning keeps shrubs and ornamental plants looking neat without heavy cutbacks. This service focuses on selective trim work, minor shape correction, and seasonal touch-ups to maintain curb appeal and keep growth manageable.",
+      "Light pruning keeps shrubs and ornamental plants looking neat without heavy cutbacks. This service focuses on selective trim work, minor shape correction, and seasonal touch-ups to maintain curb appeal and keep growth manageable. It is a good option when the plant still looks healthy but needs a cleaner outline and a little breathing room.",
     features: [
       "Selective pruning of shrubs and ornamentals",
       "Light shape correction and dead growth removal",
@@ -280,7 +280,7 @@ export const services: Service[] = [
     description:
       "Reduce slippery buildup on hard surfaces with surface-safe moss and algae treatment.",
     longDescription:
-      "Moss and algae buildup can make pathways, patios, and driveways look dark and become slippery in wet months. Our treatment service targets buildup on exterior surfaces using methods matched to the material, then follows with a clean finish and prevention guidance.",
+      "Moss and algae buildup can make pathways, patios, and driveways look dark and become slippery in wet months. Our treatment service targets buildup on exterior surfaces using methods matched to the material, then follows with a clean finish and prevention guidance. It is especially useful for shaded entries, north-facing paths, and damp areas that keep coming back with the same issue.",
     features: [
       "Treatment for moss and algae on hard surfaces",
       "Surface-safe approach by material type",
@@ -309,9 +309,9 @@ export const services: Service[] = [
     name: "Fence Work and Minor Repairs",
     shortName: "Fence Work",
     description:
-      "Improve fence lines with panel resets, minor repairs, cleanup, and curb-appeal-focused refresh work.",
+      "Fence repairs and refresh work for cleaner lines, better function, and a stronger street-facing finish.",
     longDescription:
-      "Our fence service focuses on practical, small-team-friendly work that improves curb appeal and function without major equipment. We handle minor panel and post resets where feasible, fence-line cleanup, and straightforward repair work to keep your property looking clean and well-kept.",
+      "Our fence service focuses on practical residential repair work that improves curb appeal and function without unnecessary complexity. We handle minor panel and post resets where feasible, fence-line cleanup, and straightforward repair work to keep the perimeter looking straight, tidy, and cared for. It is a good fit when the fence is still salvageable but needs a cleaner, safer, more finished look.",
     features: [
       "Fence-line cleanup and vegetation clearing",
       "Minor panel, rail, and hardware repairs",
@@ -358,9 +358,9 @@ export const services: Service[] = [
     name: "Power Washing for Driveways, Patios, and Exteriors",
     shortName: "Power Washing",
     description:
-      "Remove grime, algae, and surface buildup from concrete, pavers, decks, fences, and siding.",
+      "Residential power washing for driveways, patios, and exterior surfaces that need a cleaner, fresher finish.",
     longDescription:
-      "Our power washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so your driveway, patio, walkways, and exterior surfaces look refreshed.",
+      "Our power washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so driveways, patios, walkways, and exterior surfaces look fresh without unnecessary wear. It is a strong choice before photos, listing prep, seasonal resets, or when hard surfaces start to look older than they are.",
     features: [
       "Driveway, patio, and walkway washing",
       "Deck, fence, and exterior wall cleaning",
@@ -406,8 +406,8 @@ export const services: Service[] = [
     slug: "rock-work-walls",
     name: "Rock Work and Garden Wall Builds",
     shortName: "Rock Work and Walls",
-    description: "Add durable structure and curb appeal with decorative rock work and small wall builds.",
-    longDescription: "Rock features can add both structure and style to your property when they are installed with the right prep. We build decorative rock accents, bed borders, and small garden walls that improve layout, edge definition, and overall curb appeal while fitting the natural look of Vancouver Island properties.",
+    description: "Decorative rock work and small garden walls that add structure, edge definition, and curb appeal.",
+    longDescription: "Rock features add structure and style when they are installed with the right prep and finish. We build decorative rock accents, bed borders, and small garden walls that improve layout, edge definition, and overall curb appeal while fitting the natural look of Vancouver Island properties. This is a good option when the goal is a cleaner layout rather than a major hardscape project.",
     features: [
       "Decorative rock borders and accent placement",
       "Small dry-stack or mortared garden wall builds",
@@ -451,8 +451,8 @@ export const services: Service[] = [
     slug: "driveway-grading",
     name: "Driveway Grading and Re-Leveling",
     shortName: "Driveway Grading",
-    description: "Improve drainage and driveway performance with professional grading and re-leveling.",
-    longDescription: "Ruts, pooling water, and washboard surfaces can shorten driveway life and create ongoing maintenance headaches. Our driveway grading service reshapes and compacts gravel and aggregate surfaces for better drainage, smoother access, and a cleaner finish.",
+    description: "Driveway grading and re-leveling for better drainage, fewer ruts, and smoother vehicle access.",
+    longDescription: "Ruts, pooling water, and washboard surfaces can shorten driveway life and create ongoing maintenance headaches. Our driveway grading service reshapes and compacts gravel and aggregate surfaces for better drainage, smoother access, and a cleaner, more reliable finish. It is especially helpful after heavy rain, winter wear, or repeated vehicle tracking has pushed the surface out of shape.",
     features: [
       "Driveway re-leveling and crown correction",
       "Rut and pothole repair with fresh aggregate",
@@ -496,8 +496,8 @@ export const services: Service[] = [
     slug: "gravel-driveway-installation",
     name: "Gravel Driveway Installation and Refresh",
     shortName: "Gravel Driveways",
-    description: "Build or refresh gravel driveways with proper base prep, aggregate placement, and finishing.",
-    longDescription: "Whether you're upgrading an older surface or adding a new gravel section, we provide practical driveway installation and refresh work tailored to your property. We focus on durable base preparation, clean edges, and even aggregate distribution for a strong, professional result.",
+    description: "Gravel driveway installation and refresh work with proper base prep, clean edges, and even aggregate placement.",
+    longDescription: "Whether you're upgrading an older surface or adding a new gravel section, we provide practical driveway installation and refresh work tailored to your property. We focus on durable base preparation, clean edges, and even aggregate distribution for a strong, professional result that holds up better over time. The goal is a driveway that looks finished and stays more usable through changing weather.",
     features: [
       "New gravel driveway installation (small to mid-size projects)",
       "Surface refresh with fresh aggregate top-up",

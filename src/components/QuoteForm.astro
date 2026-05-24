@@ -21,10 +21,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
 ---
 
-<div class="grid gap-10 lg:grid-cols-[1fr_1fr]">
+<div class="grid gap-10 lg:grid-cols-[0.92fr_1.08fr]">
   {
     showInfoBox && (
-      <div class="space-y-4">
+      <div class="surface-card relative overflow-hidden p-6 sm:p-8">
+        <div class="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-sage/25"></div>
+        <div class="relative space-y-4">
         <p class="section-kicker">Get a free quote</p>
         <h2 class="section-title">Request service in under a minute.</h2>
         <p class="text-sm text-ink-soft">
@@ -43,7 +45,15 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         </div>
         <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
           <p class="font-semibold text-ink">Same-day quotes available</p>
-          <p>Call or text {business.phone} for the fastest response.</p>
+          <p>Call {business.phone} or text photos for the fastest response.</p>
+          <a
+            class="mt-2 inline-flex rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink hover:border-ink"
+            href={business.smsHref}
+            data-ga-event="cta_click"
+            data-ga-label="quote_form_info_text_photos"
+          >
+            Text photos for a quote
+          </a>
           <p class="mt-4 font-semibold text-ink">Email quotes</p>
           <p>We aim to reply within 1 hour during work hours.</p>
           <a
@@ -53,13 +63,14 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
             {business.email}
           </a>
         </div>
+        </div>
       </div>
     )
   }
 
   <form
     id="quote-form"
-    class="space-y-4 rounded-2xl border border-border bg-white/90 p-6 shadow-fine"
+    class="surface-card space-y-4 p-6 sm:p-8"
     method="POST"
     action="/api/quote"
   >
@@ -189,6 +200,37 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
       </select>
     </div>
 
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label class="text-sm font-semibold" for="timeline">When would you like this done?</label>
+        <select
+          class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+          id="timeline"
+          name="timeline"
+        >
+          <option value="">Not sure yet</option>
+          <option value="as-soon-as-possible">As soon as possible</option>
+          <option value="this-week">This week</option>
+          <option value="next-1-2-weeks">Next 1-2 weeks</option>
+          <option value="flexible">Flexible timing</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold" for="preferred-contact">Best way to reply</label>
+        <select
+          class="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10"
+          id="preferred-contact"
+          name="preferred_contact"
+        >
+          <option value="text">Text first</option>
+          <option value="call">Call first</option>
+          <option value="email">Email if provided</option>
+          <option value="any">Any method is fine</option>
+        </select>
+      </div>
+    </div>
+
     <div>
       <label class="text-sm font-semibold" for="details">Details (optional)</label>
       <textarea
@@ -219,6 +261,8 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     <input type="hidden" id="msclkid" name="msclkid" value="" />
     <input type="hidden" id="landing-page" name="landing_page" value="" />
     <input type="hidden" id="referrer" name="referrer" value="" />
+    <input type="hidden" id="page-title" name="page_title" value="" />
+    <input type="hidden" id="page-path" name="page_path" value="" />
 
     <div class="hidden" aria-hidden="true">
       <label class="text-sm font-semibold" for="company">Company</label>
@@ -241,14 +285,12 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     <button
       class="btn-primary w-full px-6 py-3"
       type="submit"
-      data-ga-event="form_submit"
-      data-ga-label="quote_form"
     >
       Get my free quote
     </button>
 
     <p class="text-xs text-ink-soft">
-      By submitting, you agree to be contacted by phone or email about your request. No spam.
+      By submitting, you agree to be contacted by phone, text, or email about your request. No spam.
     </p>
   </form>
 </div>
@@ -305,6 +347,16 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     var referrerInput = document.getElementById("referrer");
     if (referrerInput && !referrerInput.value && document.referrer) {
       referrerInput.value = document.referrer.slice(0, 400);
+    }
+
+    var pageTitleInput = document.getElementById("page-title");
+    if (pageTitleInput) {
+      pageTitleInput.value = document.title.slice(0, 180);
+    }
+
+    var pagePathInput = document.getElementById("page-path");
+    if (pagePathInput) {
+      pagePathInput.value = (window.location.pathname + window.location.search).slice(0, 300);
     }
 
     if (startedAtInput) {

@@ -33,8 +33,8 @@ const areaServices = services.map((service) => ({
     : `/services/${service.slug}`,
 }));
 
-const pageTitle = `Landscaping in ${location.name}, BC | ${business.name}`;
-const pageDescription = location.description;
+const pageTitle = `Residential Landscaping in ${location.name}, BC | ${business.name}`;
+const pageDescription = `${location.description} Homeowners in ${location.name} get clear communication, fast quotes, and tidy residential service from start to finish.`;
 const canonicalUrl = `${business.siteUrl}/areas/${location.slug}`;
 
 const breadcrumbItems = [
@@ -71,8 +71,15 @@ const structuredData = [
         <p class="section-kicker">{location.region}</p>
         <h1 class="section-title">Landscaping in {location.name}</h1>
         <p class="section-copy max-w-3xl">
-          {location.description}
+          {location.description} We keep the focus on practical residential work, responsive
+          scheduling, and a clean finish that feels professional from the first call to the last
+          sweep-up.
         </p>
+        <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Local scheduling</span>
+        </div>
       </div>
 
       <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -109,7 +116,7 @@ const structuredData = [
                 class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
                 href="/services-by-area"
               >
-                View all localized services →
+                View all localized services -&gt;
               </a>
             </div>
           </div>

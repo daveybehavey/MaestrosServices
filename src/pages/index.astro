@@ -1,6 +1,7 @@
 ---
 import Layout from "../components/Layout.astro";
 import QuoteForm from "../components/QuoteForm.astro";
+import PropertyResetExamples from "../components/PropertyResetExamples.astro";
 import { business } from "../data/business";
 import {
   homepageFaqs,
@@ -72,27 +73,29 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
     pageTemplate: "home",
   }}
 >
-  <section class="section sm:min-h-screen flex items-start pt-4 pb-4 sm:items-center sm:pt-8 sm:pb-8 lg:pt-10 lg:pb-10">
-    <div class="mx-auto grid max-w-6xl gap-4 px-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center w-full">
-      <div class="space-y-3 sm:space-y-5 animate-rise" style="animation-delay: 50ms">
+  <section class="section flex items-start pt-4 pb-4 sm:min-h-screen sm:items-center sm:pt-8 sm:pb-8 lg:pt-10 lg:pb-10">
+    <div class="hero-shell mx-auto grid w-[calc(100%-2.5rem)] max-w-6xl gap-4 px-5 py-7 sm:w-[calc(100%-3rem)] sm:px-8 sm:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:px-10 lg:py-12">
+      <div class="relative z-10 space-y-3 sm:space-y-5 animate-rise" style="animation-delay: 50ms">
         <div class="mb-3 sm:mb-6 flex items-center gap-3 sm:gap-4">
-          <img src="/logo.png?v=2" alt="Maestros Services lotus logo" class="h-12 w-12 sm:h-16 sm:w-16" width="64" height="64" />
+          <div class="rounded-full border border-ink/10 bg-white/80 p-2 shadow-fine">
+            <img src="/logo.png?v=2" alt="Maestros Services lotus logo" class="h-10 w-10 sm:h-14 sm:w-14" width="64" height="64" />
+          </div>
           <div class="leading-none">
             <p class="text-xl font-display font-semibold text-ink sm:text-3xl">Maestros Services</p>
             <p class="mt-1 text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Landscaping Services</p>
           </div>
         </div>
         <p class="section-kicker">Owner-operated across lower-mid Vancouver Island</p>
-        <h1 class="max-w-2xl text-[1.25rem] leading-tight tracking-tight sm:text-3xl lg:text-5xl">
-          Get reliable fence work, rock work, mulching, and power washing from one local crew.
+        <h1 class="max-w-3xl text-[2.15rem] font-display leading-[0.95] tracking-tight text-balance sm:text-5xl lg:text-7xl">
+          Cleaner yards, sharper edges, and fast residential quotes.
         </h1>
-        <p class="section-copy max-w-xl sm:text-lg">
-          We handle routine maintenance and fast one-time resets for homeowners across the
-          lower-mid island. Call or text first for the fastest quote. We usually reply within
-          1 hour during work hours.
+        <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
+          Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby communities.
+          We handle routine maintenance and fast one-time resets. Call or text first for the fastest quote.
+          We usually reply within 1 hour during work hours.
         </p>
         <div class="mb-6 sm:mb-8 flex flex-col items-start gap-1 sm:gap-2">
-          <p class="text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for the fastest quote</p>
+          <p class="text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for a fast residential quote</p>
           <a
             class="text-xl font-display font-semibold text-ink hover:text-ink/70 sm:text-3xl lg:text-4xl"
             href={`tel:${business.phoneTel}`}
@@ -113,11 +116,19 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           </a>
           <a
             class="btn-secondary w-full px-6 py-3 text-center sm:w-auto sm:px-8 sm:py-4"
+            href={business.smsHref}
+            data-ga-event="cta_click"
+            data-ga-label="hero_text_photos"
+          >
+            Text photos
+          </a>
+          <a
+            class="btn-secondary w-full px-6 py-3 text-center sm:w-auto sm:px-8 sm:py-4"
             href="#quote"
             data-ga-event="cta_click"
             data-ga-label="hero_get_quote"
           >
-            Get my free quote
+            Get a free quote
           </a>
         </div>
         <div class="flex flex-wrap justify-center gap-2 text-[0.68rem] font-medium text-ink-soft sm:justify-start sm:text-xs">
@@ -127,53 +138,46 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
         </div>
         <div id="hero-sentinel" class="h-1"></div>
       </div>
-      <div class="glass relative hidden rounded-2xl border border-border/70 p-5 shadow-soft animate-rise xl:block" style="animation-delay: 150ms">
-        <div class="space-y-5">
-          <p class="section-kicker">Quick service snapshot</p>
-          <h2 class="text-2xl sm:text-3xl">What you can expect</h2>
-          <ul class="space-y-3 text-sm text-ink-soft">
-            <li class="flex gap-3">
-              <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-              Clear communication and on-time arrivals.
-            </li>
-            <li class="flex gap-3">
-              <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-              Reply within 1 hour during work hours.
-            </li>
-            <li class="flex gap-3">
-              <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-              Priority services this week: fences, rock work, mulching, and power washing.
-            </li>
-          </ul>
-          <div class="rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
-            <p class="font-semibold text-ink">What to send for a fast quote</p>
-            <ul class="mt-2 space-y-1">
-              <li>- Your area or neighborhood</li>
-              <li>- The service needed (fence, rock work, mulch, or power wash)</li>
-              <li>- When you want it done</li>
-            </ul>
+      <div class="relative z-10 hidden animate-rise xl:block" style="animation-delay: 150ms">
+        <div class="glass relative overflow-hidden rounded-[2rem] border border-white/60 p-5 shadow-soft">
+          <div class="absolute right-6 top-6 h-24 w-24 rounded-full border border-ink/10 bg-sage/30"></div>
+          <div class="absolute bottom-8 right-16 h-40 w-40 rounded-full border border-ink/10 bg-clay/15"></div>
+          <div class="relative space-y-5">
+            <div class="rounded-2xl border border-border/80 bg-white/88 p-5">
+              <p class="section-kicker">This week</p>
+              <h2 class="mt-2 text-3xl">Fast-turn curb appeal work</h2>
+              <p class="mt-3 text-sm text-ink-soft">
+                Text a few photos, your area, and timing. We will confirm the practical next step.
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-2xl border border-border bg-paper/75 p-4">
+                <p class="text-3xl font-display leading-none">1 hr</p>
+                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Typical reply window</p>
+              </div>
+              <div class="rounded-2xl border border-border bg-paper/75 p-4">
+                <p class="text-3xl font-display leading-none">300</p>
+                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Localized service pages</p>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-border bg-white/88 p-5 text-sm">
+              <p class="font-semibold text-ink">Best-fit jobs right now</p>
+              <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-soft">
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Fence refresh</span>
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Rock work</span>
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Power washing</span>
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Mulch top-up</span>
+              </div>
+            </div>
+            <a
+              class="btn-primary w-full px-6 py-3"
+              href={business.smsHref}
+              data-ga-event="cta_click"
+              data-ga-label="hero_snapshot_text_photos"
+            >
+              Text photos for a quote
+            </a>
           </div>
-          <div class="rounded-xl border border-ink/10 bg-white/80 p-4 text-sm">
-            <p class="font-semibold text-ink">Local trust proof</p>
-            <ul class="mt-2 space-y-1 text-ink-soft">
-              {homepageTrustProof.map((item) => (
-                <li>{item}</li>
-              ))}
-            </ul>
-          </div>
-          <div class="rounded-xl border border-ink/10 bg-white/80 p-4 text-sm">
-            <p class="font-semibold text-ink">Need something specific?</p>
-            <p class="text-ink-soft">Send a quick note and we will tailor the visit to your property.</p>
-          </div>
-          <a
-            class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
-            href="#quote"
-            data-ga-event="cta_click"
-            data-ga-label="snapshot_request_quote"
-          >
-            Request your quote
-            <span aria-hidden="true">-&gt;</span>
-          </a>
         </div>
       </div>
     </div>
@@ -321,9 +325,13 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
         {serviceCatalog.map((service, index) => (
           <a
             href={`/services/${service.slug}`}
-            class="group rounded-2xl border border-border bg-white/90 p-6 shadow-fine transition hover:border-ink/30 hover:shadow-soft animate-rise"
+            class="lift-card group p-6 animate-rise"
             style={`animation-delay: ${index * 60}ms`}
           >
+            <div class="mb-5 flex items-center justify-between gap-4">
+              <span class="service-mark">{String(index + 1).padStart(2, "0")}</span>
+              <span class="h-px flex-1 bg-border"></span>
+            </div>
             <p class="text-base font-semibold">{service.name}</p>
             <p class="mt-2 text-sm text-ink-soft">{service.description}</p>
             <p class="mt-3 text-sm font-semibold text-ink group-hover:text-ink/70">View service -&gt;</p>
@@ -355,21 +363,21 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
 
   <section class="section">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="grid gap-6 rounded-2xl border border-border bg-white/85 p-7 shadow-fine sm:gap-8 sm:p-9 lg:grid-cols-3 lg:p-10">
+      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/85 p-7 shadow-soft sm:gap-8 sm:p-9 lg:grid-cols-3 lg:p-10">
         <div class="space-y-3">
           <p class="section-kicker">How it works</p>
           <h2 class="section-title text-2xl sm:text-3xl">A simple process from start to finish.</h2>
         </div>
         <div class="space-y-4">
-          <div class="rounded-xl border border-border bg-white/90 p-5">
+          <div class="rounded-xl border border-border bg-white/90 p-5 shadow-fine">
             <p class="text-sm font-semibold">1. Reach out</p>
             <p class="text-sm text-ink-soft">Call, text, or send the form with a few details.</p>
           </div>
-          <div class="rounded-xl border border-border bg-white/90 p-5">
+          <div class="rounded-xl border border-border bg-white/90 p-5 shadow-fine">
             <p class="text-sm font-semibold">2. Quick quote</p>
             <p class="text-sm text-ink-soft">We confirm scope, timing, and a clear price.</p>
           </div>
-          <div class="rounded-xl border border-border bg-white/90 p-5">
+          <div class="rounded-xl border border-border bg-white/90 p-5 shadow-fine">
             <p class="text-sm font-semibold">3. We show up</p>
             <p class="text-sm text-ink-soft">You get a tidy, cared-for yard you can relax in.</p>
           </div>
@@ -437,6 +445,13 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       </div>
     </div>
   </section>
+
+  <PropertyResetExamples
+    eyebrow="Privacy-safe proof"
+    heading="Common property reset scopes we can quote without public photos."
+    intro="Photos help, but public galleries are not the only way to build confidence. These scope examples show the kind of problems, work, and outcomes homeowners ask us to handle."
+    limit={2}
+  />
 
   <section id="service-area" class="section">
     <div class="mx-auto grid max-w-6xl gap-8 px-5 sm:gap-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -584,7 +599,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
 
   <section class="section">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="rounded-2xl border border-ink/10 bg-ink px-6 py-8 text-paper shadow-soft sm:px-8 sm:py-10">
+      <div class="spotlight-band overflow-hidden rounded-[2rem] border border-ink/10 px-6 py-8 text-paper shadow-soft sm:px-8 sm:py-10">
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
             <p class="section-kicker text-paper/60">Ready to book</p>

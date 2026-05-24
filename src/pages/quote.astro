@@ -2,17 +2,33 @@
 import Layout from "../components/Layout.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import QuoteForm from "../components/QuoteForm.astro";
+import PropertyResetExamples from "../components/PropertyResetExamples.astro";
 import { business } from "../data/business";
+import { propertyResetExamples, quotePageProofSteps } from "../data/proof";
 import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema";
 
 const pageTitle = `Get a Free Quote | ${business.name}`;
 const pageDescription =
-  "Request a landscaping quote in under a minute. Call or text first for the fastest response across lower-mid Vancouver Island.";
+  "Request a residential landscaping quote in under a minute. Call or text first for the fastest response across lower-mid Vancouver Island.";
 const canonicalUrl = `${business.siteUrl}/quote`;
 
 const breadcrumbItems = [{ name: "Get a quote", href: "/quote" }];
 
-const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(breadcrumbItems)];
+const structuredData = [
+  createOrganizationSchema(),
+  createBreadcrumbSchema(breadcrumbItems),
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Residential landscaping quote examples",
+    itemListElement: propertyResetExamples.map((example, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: example.serviceType,
+      description: example.outcome,
+    })),
+  },
+];
 ---
 
 <Layout
@@ -29,57 +45,76 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
     pageTemplate: "quote",
   }}
 >
-  <section id="quote" class="section">
+  <section class="section pb-6 sm:pb-10">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
       <Breadcrumbs items={breadcrumbItems} />
 
-      <div class="mb-8 max-w-3xl space-y-3">
-        <p class="section-kicker">Fast quote request</p>
-        <h1 class="section-title">Get a free landscaping quote.</h1>
-        <p class="section-copy">
-          Share a few details and we will reply quickly. For the fastest response, call or text
-          {business.phone} first.
-        </p>
-      </div>
+      <div class="hero-shell mt-6 px-5 py-7 sm:px-8 sm:py-10 lg:px-10">
+        <div class="relative z-10 grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div class="space-y-5">
+            <p class="section-kicker">Fast quote request</p>
+            <h1 class="max-w-3xl text-[2.25rem] font-display leading-[0.98] tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              Get a clear residential landscaping quote without the back-and-forth.
+            </h1>
+            <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
+              Share your area, service, timing, and photos if you have them. We will confirm the
+              practical next step quickly for homeowners across Shawnigan Lake, Victoria, Langford,
+              Saanich, Duncan, and nearby communities.
+            </p>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <a
+                class="btn-primary px-7 py-3 text-center"
+                href={business.smsHref}
+                data-ga-event="cta_click"
+                data-ga-label="quote_hero_text_photos"
+              >
+                Text photos for a quote
+              </a>
+              <a
+                class="btn-secondary px-7 py-3 text-center"
+                href="#quote"
+                data-ga-event="cta_click"
+                data-ga-label="quote_hero_form"
+              >
+                Use the quote form
+              </a>
+            </div>
+            <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+              <span class="rounded-full border border-border bg-white/90 px-3 py-1.5">Reply within 1 hour</span>
+              <span class="rounded-full border border-border bg-white/90 px-3 py-1.5">Residential only</span>
+              <span class="rounded-full border border-border bg-white/90 px-3 py-1.5">Photo-friendly quotes</span>
+            </div>
+          </div>
 
-      <div class="mb-8 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-ink-soft">
-        <a
-          class="btn-secondary px-4 py-2 shadow-fine hover:border-ink/30"
-          href={`tel:${business.phoneTel}`}
-          data-ga-event="cta_click"
-          data-ga-label="quote_page_call_primary"
-        >
-          Call or text {business.phone}
-        </a>
-        <span class="rounded-full border border-border bg-white/90 px-4 py-2 shadow-fine">
-          Reply within 1 hour during work hours
-        </span>
-        <span class="rounded-full border border-border bg-white/90 px-4 py-2 shadow-fine">
-          Residential only
-        </span>
-      </div>
-
-      <div class="mb-8 grid gap-4 lg:grid-cols-2">
-        <div class="rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
-          <p class="font-semibold text-ink">Book-now offers this week</p>
-          <ul class="mt-2 space-y-1">
-            <li>- Fence Refresh and Minor Repair</li>
-            <li>- Rock Work Refresh</li>
-            <li>- Power Wash Reset</li>
-            <li>- Mulch Refresh</li>
-          </ul>
+          <div class="surface-card relative z-10 p-5 sm:p-6">
+            <p class="section-kicker">How quoting works</p>
+            <div class="mt-5 space-y-3">
+              {quotePageProofSteps.map((step, index) => (
+                <div class="rounded-2xl border border-border bg-paper/60 p-4">
+                  <p class="text-sm font-semibold text-ink">{index + 1}. {step.title}</p>
+                  <p class="mt-1 text-sm text-ink-soft">{step.detail}</p>
+                </div>
+              ))}
+            </div>
+            <div class="mt-5 rounded-2xl border border-ink/10 bg-white/80 p-4 text-sm text-ink-soft">
+              <p class="font-semibold text-ink">For fastest replies</p>
+              <p class="mt-1">Text photos, your area, and preferred timing to {business.phone}.</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-xl border border-border bg-white/90 p-4 text-sm text-ink-soft">
-          <p class="font-semibold text-ink">What to send for a fast quote</p>
-          <ul class="mt-2 space-y-1">
-            <li>- Area or neighborhood</li>
-            <li>- Service needed (fence, rock work, mulch, or power washing)</li>
-            <li>- When you want the work done</li>
-          </ul>
-        </div>
       </div>
+    </div>
+  </section>
 
+  <section id="quote" class="section pt-6 sm:pt-10">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
       <QuoteForm returnTo="/quote#quote" showInfoBox={false} />
     </div>
   </section>
+
+  <PropertyResetExamples
+    eyebrow="Quote confidence"
+    heading="Examples of the kind of scope we can price and plan."
+    intro="These are privacy-safe examples of common residential quote patterns, designed to show what details help us quote faster."
+  />
 </Layout>

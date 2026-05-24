@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: oklch(0.985 0.006 85);
-  --color-paper-deep: oklch(0.96 0.008 80);
-  --color-ink: oklch(0.18 0.01 60);
-  --color-ink-soft: oklch(0.42 0.012 70);
-  --color-border: oklch(0.87 0.01 75);
+  --color-paper: oklch(0.982 0.011 83);
+  --color-paper-deep: oklch(0.942 0.018 82);
+  --color-ink: oklch(0.18 0.015 69);
+  --color-ink-soft: oklch(0.43 0.019 75);
+  --color-border: oklch(0.84 0.018 78);
+  --color-moss: oklch(0.36 0.055 132);
+  --color-clay: oklch(0.58 0.08 58);
+  --color-sage: oklch(0.78 0.052 126);
 
   --font-display: "Cormorant Garamond", serif;
   --font-body: "Manrope", sans-serif;
@@ -13,8 +16,8 @@
   --radius-xl: 1.25rem;
   --radius-2xl: 1.75rem;
 
-  --shadow-soft: 0 24px 55px oklch(0.25 0.02 60 / 0.12);
-  --shadow-fine: 0 12px 30px oklch(0.3 0.015 65 / 0.09);
+  --shadow-soft: 0 28px 70px oklch(0.22 0.025 65 / 0.16);
+  --shadow-fine: 0 14px 34px oklch(0.26 0.018 68 / 0.1);
 
   --animate-rise: rise 0.7s ease-out both;
   --animate-fade: fade 0.7s ease-out both;
@@ -58,14 +61,30 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
 
   body {
     @apply bg-paper text-ink font-body antialiased leading-relaxed;
+    overflow-x: clip;
     background-image:
-      radial-gradient(70rem 50rem at 85% -15%, oklch(0.95 0.015 85 / 0.5), transparent 65%),
-      radial-gradient(50rem 40rem at 5% 15%, oklch(0.97 0.01 90 / 0.6), transparent 60%),
-      linear-gradient(180deg, oklch(0.99 0.005 85), oklch(0.96 0.01 80));
+      radial-gradient(80rem 52rem at 85% -18%, oklch(0.83 0.06 122 / 0.34), transparent 66%),
+      radial-gradient(56rem 44rem at 0% 10%, oklch(0.85 0.07 58 / 0.28), transparent 62%),
+      linear-gradient(135deg, oklch(0.99 0.008 84), oklch(0.94 0.018 83));
+    background-attachment: fixed;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(90deg, oklch(0.25 0.015 70 / 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, oklch(0.25 0.015 70 / 0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, black, transparent 78%);
   }
 
   h1,
@@ -73,10 +92,12 @@
   h3,
   h4 {
     @apply font-display text-ink tracking-tight;
+    overflow-wrap: anywhere;
   }
 
   p {
     text-wrap: pretty;
+    overflow-wrap: anywhere;
   }
 
   ::selection {
@@ -91,10 +112,67 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-full bg-ink text-sm font-semibold text-paper transition hover:bg-ink/90;
+    max-width: 100%;
+    box-shadow: 0 14px 28px oklch(0.18 0.015 69 / 0.18);
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-full border border-ink/20 bg-white/90 text-sm font-semibold text-ink transition hover:border-ink;
+    max-width: 100%;
+  }
+
+  .hero-shell {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid oklch(0.86 0.018 78 / 0.9);
+    border-radius: 2rem;
+    background:
+      radial-gradient(36rem 28rem at 88% 18%, oklch(0.79 0.055 132 / 0.34), transparent 62%),
+      radial-gradient(28rem 22rem at 12% 90%, oklch(0.74 0.07 58 / 0.22), transparent 65%),
+      linear-gradient(135deg, oklch(0.99 0.01 84 / 0.92), oklch(0.96 0.014 86 / 0.8));
+    box-shadow: var(--shadow-soft);
+  }
+
+  .hero-shell > * {
+    min-width: 0;
+  }
+
+  .hero-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(transparent 1px, oklch(0.99 0.01 84 / 0.72) 1px),
+      linear-gradient(115deg, transparent 0 58%, oklch(0.25 0.03 72 / 0.06) 58% 58.35%, transparent 58.35%);
+    background-size: 18px 18px, 100% 100%;
+    opacity: 0.72;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-border bg-white/90 shadow-fine;
+    min-width: 0;
+  }
+
+  .lift-card {
+    @apply rounded-2xl border border-border bg-white/90 shadow-fine transition;
+  }
+
+  .lift-card:hover {
+    transform: translateY(-3px);
+    border-color: oklch(0.38 0.04 95 / 0.35);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .service-mark {
+    @apply flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-paper text-sm font-semibold text-ink;
+    box-shadow: inset 0 0 0 6px oklch(0.94 0.02 84 / 0.72);
+  }
+
+  .spotlight-band {
+    background:
+      radial-gradient(24rem 18rem at 88% 16%, oklch(0.74 0.065 132 / 0.24), transparent 68%),
+      linear-gradient(135deg, oklch(0.2 0.017 69), oklch(0.26 0.032 94));
   }
 
   .section-title {
@@ -112,7 +190,7 @@
 
 @layer utilities {
   .glass {
-    background: oklch(0.985 0.005 85 / 0.85);
+    background: oklch(0.985 0.008 85 / 0.78);
     box-shadow: var(--shadow-soft);
     backdrop-filter: blur(10px);
   }
@@ -120,5 +198,55 @@
   .grid-dots {
     background-image: radial-gradient(transparent 1px, oklch(0.96 0.008 80 / 0.9) 1px);
     background-size: 18px 18px;
+  }
+}
+
+.grid > *,
+[class*="grid-cols"] > * {
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  h1 {
+    font-size: clamp(2rem, 8.5vw, 2.2rem);
+    line-height: 1.04;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  a,
+  li {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .text-balance {
+    text-wrap: wrap !important;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 8vw, 2.25rem);
+    line-height: 1.08;
+  }
+
+  .section-kicker {
+    letter-spacing: 0.22em;
+  }
+
+  .hero-shell {
+    border-radius: 1.75rem;
+  }
+
+  .hero-shell,
+  .surface-card,
+  .lift-card {
+    max-width: calc(100vw - 1.5rem);
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    white-space: normal;
   }
 }

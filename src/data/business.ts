@@ -2,6 +2,7 @@ export const business = {
   name: "Maestros Services",
   phone: "250-858-1781",
   phoneTel: "+12508581781",
+  smsHref: "sms:+12508581781",
   email: "quotes@maestrosservices.com",
   tagline: "Landscaping Services",
   address: {
@@ -26,7 +27,12 @@ export const business = {
     facebookAdsQuote:
       "https://maestrosservices.com/quote?utm_source=facebook&utm_medium=paid_social&utm_campaign=lead_ads#quote",
   },
+  reviewLinks: {
+    google: "https://g.page/r/CUnswEEUWyLuEAE/review",
+    facebook: "https://www.facebook.com/profile.php?id=61588020354024",
+  },
   priceRange: "$$",
+  openingHours: ["Mo-Fr 08:00-18:00", "Sa 09:00-16:00"],
 } as const;
 
 export type Business = typeof business;

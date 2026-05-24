@@ -5,9 +5,9 @@ import { business } from "../data/business";
 import { serviceLocationPages } from "../data/serviceLocationPages";
 import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema";
 
-const pageTitle = `Landscaping Services by Area | ${business.name}`;
+const pageTitle = `Localized Landscaping Services by Area | ${business.name}`;
 const pageDescription =
-  "Browse localized landscaping service pages for top communities across Greater Victoria and the Cowichan Valley.";
+  "Browse localized landscaping service pages for Victoria, Saanich, Langford, Shawnigan Lake, Mill Bay, Duncan, and nearby Vancouver Island communities. Find the exact service and area combination homeowners are searching for.";
 const canonicalUrl = `${business.siteUrl}/services-by-area`;
 
 const breadcrumbItems = [{ name: "Services by Area", href: "/services-by-area" }];
@@ -86,13 +86,18 @@ const serviceGroups = [...serviceMap.values()].sort((a, b) =>
       <Breadcrumbs items={breadcrumbItems} />
 
       <div class="mb-10 space-y-4">
-        <p class="section-kicker">Programmatic landing pages</p>
+        <p class="section-kicker">Localized landing pages</p>
         <h1 class="section-title">Landscaping services by area</h1>
         <p class="section-copy max-w-3xl">
-          These localized pages combine specific services with specific communities so homeowners
-          can quickly find the right option for their area. We currently publish
-          {` ${serviceLocationPages.length} `}service + location combinations.
+          These localized pages pair each service with the communities we serve so homeowners can
+          quickly find the right option for their area. We currently publish
+          {` ${serviceLocationPages.length} `} service-location combinations.
         </p>
+        <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Search intent match</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Local trust</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+        </div>
       </div>
 
       <div class="space-y-10">
@@ -124,7 +129,7 @@ const serviceGroups = [...serviceMap.values()].sort((a, b) =>
                     {group.entries.map((entry) => (
                       <li>
                         <a class="text-ink-soft hover:text-ink" href={entry.href}>
-                          {entry.service.shortName} in {entry.location.name} →
+                          {entry.service.shortName} in {entry.location.name} ->
                         </a>
                       </li>
                     ))}
@@ -163,14 +168,14 @@ const serviceGroups = [...serviceMap.values()].sort((a, b) =>
                     {group.entries.map((entry) => (
                       <li>
                         <a class="text-ink-soft hover:text-ink" href={entry.href}>
-                          {entry.location.name} →
+                          {entry.location.name} ->
                         </a>
                       </li>
                     ))}
                   </ul>
                 </article>
               ))
-          }
+            }
           </div>
         </div>
       </div>

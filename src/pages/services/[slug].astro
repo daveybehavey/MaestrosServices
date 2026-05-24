@@ -29,8 +29,8 @@ const isDrivewayService =
 
 const localizedServicePages = getServiceLocationPagesForService(service.id);
 
-const pageTitle = `${service.name} | Vancouver Island | ${business.name}`;
-const pageDescription = service.description;
+const pageTitle = `Residential ${service.shortName} on Vancouver Island | ${business.name}`;
+const pageDescription = `${service.description} Residential service across lower-mid Vancouver Island with clear communication, fast quotes, and a clean finish.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}`;
 
 const breadcrumbItems = [
@@ -86,8 +86,14 @@ const serviceFormMap: Record<string, string> = {
         <p class="section-kicker">Our services</p>
         <h1 class="section-title">{service.name}</h1>
         <p class="section-copy max-w-3xl">
-          {service.longDescription}
+          {service.longDescription} Homeowners choose this service when they want reliable
+          scheduling, straightforward pricing, and a clean wrap-up from a residential crew.
         </p>
+        <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy cleanup</span>
+        </div>
       </div>
 
       <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -240,7 +246,7 @@ const serviceFormMap: Record<string, string> = {
                     href="/services-by-area"
                     class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
                   >
-                    See all {localizedServicePages.length} localized pages →
+                    See all {localizedServicePages.length} localized pages -&gt;
                   </a>
                 </>
               ) : (
@@ -316,7 +322,7 @@ const serviceFormMap: Record<string, string> = {
                   class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
                   href="/driveway-faq"
                 >
-                  Open driveway FAQ →
+                  Open driveway FAQ -&gt;
                 </a>
               </div>
             )

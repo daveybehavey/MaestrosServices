@@ -3,14 +3,11 @@ import Layout from "../components/Layout.astro";
 import { business } from "../data/business";
 import { serviceAreaFaqs } from "../data/faqs";
 import { locations, regions } from "../data/locations";
-import {
-  createBreadcrumbSchema,
-  createFAQSchema,
-} from "../lib/schema";
+import { createBreadcrumbSchema, createFAQSchema } from "../lib/schema";
 
-const pageTitle = `Landscaping Service Area: Victoria, Langford, Duncan & Cowichan Valley | ${business.name}`;
+const pageTitle = `Residential Landscaping Service Area | Victoria, Langford, Duncan & Cowichan Valley | ${business.name}`;
 const pageDescription =
-  "Professional landscaping services across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Duncan & Cowichan Valley. Fence work, mulching, power washing, rock work, driveway work, site cleanup, and more.";
+  "Residential landscaping service area across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Duncan, and the Cowichan Valley with fast quotes, tidy cleanup, and clear communication.";
 const canonicalUrl = `${business.siteUrl}/service-area`;
 
 const breadcrumbItems = [{ name: "Service Area", href: "/service-area" }];
@@ -81,12 +78,17 @@ const structuredData = [
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
       <div class="mb-10 space-y-4">
         <p class="section-kicker">Lower-mid Vancouver Island</p>
-        <h1 class="section-title">Landscaping service area</h1>
+        <h1 class="section-title">Residential Landscaping Service Area</h1>
         <p class="section-copy max-w-3xl">
           Based near Shawnigan Lake and serving residential properties across the lower-mid
           island. We provide fence work, mulching, power washing, rock work and wall builds,
           driveway grading, gravel work, and property upkeep throughout Greater Victoria and the Cowichan Valley.
         </p>
+        <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Owner-operated</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
+        </div>
       </div>
 
       <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -161,13 +163,13 @@ const structuredData = [
                   class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
                   href="/#services"
                 >
-                  View all services →
+                  View all services ->
                 </a>
                 <a
                   class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
                   href="/services-by-area"
                 >
-                  Browse services by area →
+                  Browse services by area ->
                 </a>
               </div>
             </div>
@@ -234,7 +236,7 @@ const structuredData = [
               </a>
               <a
                 class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"
-                  href="/quote"
+                href="/quote"
               >
                 Get a free quote
               </a>

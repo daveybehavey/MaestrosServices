@@ -22,6 +22,14 @@ const { quoteHref = "/#quote" } = Astro.props;
   </a>
   <a
     class="btn-secondary pointer-events-auto bg-white/95 px-6 py-3 text-center shadow-fine"
+    href={business.smsHref}
+    data-ga-event="cta_click"
+    data-ga-label="desktop_sticky_text"
+  >
+    Text photos for a quote
+  </a>
+  <a
+    class="btn-secondary pointer-events-auto bg-white/95 px-6 py-3 text-center shadow-fine"
     href={quoteHref}
     data-ga-event="cta_click"
     data-ga-label="desktop_sticky_quote"

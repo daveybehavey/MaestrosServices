@@ -8,6 +8,7 @@ const MAX_PHONE_LENGTH = 30;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_DETAILS_LENGTH = 2000;
 const MAX_TRACKING_VALUE_LENGTH = 400;
+const MAX_SHORT_VALUE_LENGTH = 180;
 
 const recentRequestsByIp = new Map<string, number[]>();
 const recentSubmissions = new Map<string, number>();
@@ -156,6 +157,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
   const email = getValue(formData, "email");
   const area = getValue(formData, "area");
   const service = getValue(formData, "service");
+  const timeline = getValue(formData, "timeline");
+  const preferredContact = getValue(formData, "preferred_contact");
   const details = getValue(formData, "details");
   const utmSource = getValue(formData, "utm_source");
   const utmMedium = getValue(formData, "utm_medium");
@@ -167,6 +170,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
   const msclkid = getValue(formData, "msclkid");
   const landingPage = getValue(formData, "landing_page");
   const referrer = getValue(formData, "referrer");
+  const pageTitle = getValue(formData, "page_title");
+  const pagePath = getValue(formData, "page_path");
 
   const trackingValues = [
     utmSource,
@@ -179,6 +184,7 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     msclkid,
     landingPage,
     referrer,
+    pagePath,
   ];
 
   if (!name || !phone || !area || !service) {
@@ -189,7 +195,10 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     name.length > MAX_NAME_LENGTH ||
     phone.length > MAX_PHONE_LENGTH ||
     email.length > MAX_EMAIL_LENGTH ||
+    timeline.length > MAX_SHORT_VALUE_LENGTH ||
+    preferredContact.length > MAX_SHORT_VALUE_LENGTH ||
     details.length > MAX_DETAILS_LENGTH ||
+    pageTitle.length > MAX_SHORT_VALUE_LENGTH ||
     trackingValues.some((value) => value.length > MAX_TRACKING_VALUE_LENGTH)
   ) {
     return Response.redirect(redirectError, 303);
@@ -262,6 +271,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
   const safeEmail = escapeHtml(email || "Not provided");
   const safeArea = escapeHtml(area);
   const safeService = escapeHtml(service);
+  const safeTimeline = escapeHtml(timeline || "Not provided");
+  const safePreferredContact = escapeHtml(preferredContact || "Not provided");
   const safeDetails = escapeHtml(details || "Not provided");
   const trackingRows: Array<[string, string]> = [
     ["UTM source", utmSource],
@@ -274,6 +285,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     ["msclkid", msclkid],
     ["Landing page", landingPage],
     ["Referrer", referrer],
+    ["Page title", pageTitle],
+    ["Page path", pagePath],
   ];
   const populatedTrackingRows = trackingRows.filter(([, value]) => Boolean(value));
   const hasTrackingData = populatedTrackingRows.length > 0;
@@ -285,6 +298,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     `Email: ${email || "Not provided"}`,
     `Service area: ${area}`,
     `Service: ${service}`,
+    `Timeline: ${timeline || "Not provided"}`,
+    `Preferred contact: ${preferredContact || "Not provided"}`,
     `Details: ${details || "Not provided"}`,
     ...(hasTrackingData
       ? ["", "Attribution:", ...populatedTrackingRows.map(([label, value]) => `${label}: ${value}`)]
@@ -298,6 +313,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     <p><strong>Email:</strong> ${safeEmail}</p>
     <p><strong>Service area:</strong> ${safeArea}</p>
     <p><strong>Service:</strong> ${safeService}</p>
+    <p><strong>Timeline:</strong> ${safeTimeline}</p>
+    <p><strong>Preferred contact:</strong> ${safePreferredContact}</p>
     <p><strong>Details:</strong><br />${safeDetails.replace(/\n/g, "<br />")}</p>
     ${
       hasTrackingData

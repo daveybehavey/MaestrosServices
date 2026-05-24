@@ -5,9 +5,9 @@ import { business } from "../../data/business";
 import { services } from "../../data/services";
 import { createBreadcrumbSchema, createOrganizationSchema } from "../../lib/schema";
 
-const pageTitle = `Landscaping Services | Vancouver Island | ${business.name}`;
+const pageTitle = `Residential Landscaping Services on Vancouver Island | ${business.name}`;
 const pageDescription =
-  "Professional landscaping services on Vancouver Island, including fence work, lawn care, hedge trimming, mulching, power washing, rock work and small walls, driveway grading, gravel driveway refreshes, and property improvement projects. Serving Victoria to Duncan.";
+  "Residential landscaping services on Vancouver Island, including fence work, lawn care, hedge trimming, mulching, power washing, rock work, driveway grading, gravel driveway refreshes, and property improvement projects. Fast quotes, tidy cleanup, and clear communication from Victoria to Duncan.";
 const canonicalUrl = `${business.siteUrl}/services`;
 
 const breadcrumbItems = [{ name: "Services", href: "/services" }];
@@ -33,11 +33,16 @@ const structuredData = [
 
       <div class="mb-10 space-y-4">
         <p class="section-kicker">What we do</p>
-        <h1 class="section-title">Landscaping Services</h1>
+        <h1 class="section-title">Residential Landscaping Services</h1>
         <p class="section-copy max-w-3xl">
           From fence and rock work to mulching, power washing, and driveway improvement
           work, we provide practical, local service across lower-mid Vancouver Island.
         </p>
+        <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy finish</span>
+        </div>
         <div class="grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div class="rounded-xl border border-border bg-paper/70 px-4 py-3 text-sm text-ink">
             Fence Refresh
@@ -56,7 +61,7 @@ const structuredData = [
           class="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
           href="/services-by-area"
         >
-          Browse localized service pages →
+          Browse localized service pages ->
         </a>
       </div>
 
@@ -80,14 +85,13 @@ const structuredData = [
                 ))}
               </div>
               <p class="mt-4 text-sm font-semibold text-ink group-hover:text-ink/70">
-                Learn more →
+                Learn more ->
               </p>
             </a>
           ))
         }
       </div>
 
-      <!-- CTA Section -->
       <div class="mt-12 rounded-2xl border border-ink/10 bg-ink px-6 py-8 text-paper shadow-soft sm:px-8 sm:py-10">
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div>

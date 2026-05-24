@@ -1,0 +1,203 @@
+---
+import Layout from "../components/Layout.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import { business } from "../data/business";
+import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema";
+
+const pageTitle = `Leave a Review | ${business.name}`;
+const pageDescription =
+  "Had a good experience with Maestros Services? Leave a quick review or contact us directly if something needs attention.";
+const canonicalUrl = `${business.siteUrl}/review`;
+const breadcrumbItems = [{ name: "Leave a review", href: "/review" }];
+
+const reviewPrompts = [
+  "What service we helped with, such as mulching, power washing, driveway grading, cleanup, fence work, or rock work.",
+  "Your area or community, if you are comfortable sharing it.",
+  "What stood out, such as communication, timing, cleanup, or the final result.",
+];
+
+const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(breadcrumbItems)];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  headerVariant="simple"
+  headerSubtitle="Leave a review"
+  quoteHref="/quote"
+  analytics={{
+    pageGroup: "review",
+    pageType: "review_request",
+    pageTemplate: "review",
+  }}
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <div class="hero-shell mt-6 px-5 py-7 sm:px-8 sm:py-10 lg:px-10">
+        <div class="relative z-10 grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div class="space-y-5">
+            <p class="section-kicker">Thank you</p>
+            <h1 class="max-w-3xl text-[2.25rem] font-display leading-[0.98] tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              Happy with the work? A quick review helps local homeowners find us.
+            </h1>
+            <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
+              Reviews make a real difference for a local, owner-operated service. If we earned it,
+              a short note about the job and your experience would mean a lot.
+            </p>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <a
+                class="btn-primary px-7 py-3 text-center"
+                href={business.reviewLinks.google}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ga-event="cta_click"
+                data-ga-label="review_google_primary"
+              >
+                Leave a Google review
+              </a>
+              <a
+                class="btn-secondary px-7 py-3 text-center"
+                href={`sms:${business.phoneTel}?body=${encodeURIComponent(
+                  "Hi Maestros Services, I wanted to follow up about my recent service."
+                )}`}
+                data-ga-event="cta_click"
+                data-ga-label="review_issue_text"
+              >
+                Need help first?
+              </a>
+            </div>
+          </div>
+
+          <div class="surface-card relative z-10 p-5 sm:p-6">
+            <p class="section-kicker">What to mention</p>
+            <ul class="mt-5 space-y-3 text-sm text-ink-soft">
+              {
+                reviewPrompts.map((prompt) => (
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                    {prompt}
+                  </li>
+                ))
+              }
+            </ul>
+            <div class="mt-5 rounded-2xl border border-ink/10 bg-white/80 p-4 text-sm text-ink-soft">
+              <p class="font-semibold text-ink">If something was not right</p>
+              <p class="mt-1">
+                Please text or call {business.phone} first so we can understand what happened and
+                make it right where possible.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-5 grid gap-5 rounded-[2rem] border border-border bg-white/90 p-6 shadow-soft lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:p-8">
+        <div class="mx-auto w-full max-w-xs rounded-3xl border border-border bg-white p-5 shadow-fine">
+          <img
+            src="/review-qr.png"
+            alt="QR code for the Maestros Services Google review page"
+            width="260"
+            height="260"
+            class="mx-auto aspect-square w-full rounded-2xl object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div class="space-y-4">
+          <p class="section-kicker">Scan to review</p>
+          <h2 class="section-title text-3xl sm:text-4xl">Use this QR code for cards, invoices, or quick handoffs.</h2>
+          <p class="section-copy max-w-2xl">
+            This QR code points customers to the Google review flow. It is useful after a walkthrough,
+            in a follow-up text, or on printed leave-behind material.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a
+              class="btn-primary px-6 py-3"
+              href={business.reviewLinks.google}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ga-event="cta_click"
+              data-ga-label="review_qr_google"
+            >
+              Test review link
+            </a>
+            <a
+              class="btn-secondary px-6 py-3"
+              href="/review-qr.png"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ga-event="cta_click"
+              data-ga-label="review_qr_open"
+            >
+              Open QR image
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-5 lg:grid-cols-3">
+        <article class="surface-card p-6">
+          <p class="section-kicker">Option 1</p>
+          <h2 class="mt-2 text-2xl font-display">Leave a Google review</h2>
+          <p class="mt-3 text-sm text-ink-soft">
+            This is the most helpful review for local search and Google Business Profile trust.
+          </p>
+          <a
+            class="mt-5 btn-primary px-6 py-3"
+            href={business.reviewLinks.google}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ga-event="cta_click"
+            data-ga-label="review_google_card"
+          >
+            Open Google
+          </a>
+        </article>
+
+        <article class="surface-card p-6">
+          <p class="section-kicker">Option 2</p>
+          <h2 class="mt-2 text-2xl font-display">Recommend us on Facebook</h2>
+          <p class="mt-3 text-sm text-ink-soft">
+            A local Facebook mention or recommendation helps neighbors feel more confident reaching
+            out.
+          </p>
+          <a
+            class="mt-5 btn-secondary px-6 py-3"
+            href={business.reviewLinks.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ga-event="cta_click"
+            data-ga-label="review_facebook_card"
+          >
+            Open Facebook
+          </a>
+        </article>
+
+        <article class="surface-card p-6">
+          <p class="section-kicker">Option 3</p>
+          <h2 class="mt-2 text-2xl font-display">Send a referral</h2>
+          <p class="mt-3 text-sm text-ink-soft">
+            Know a neighbor who needs help with their yard, driveway, fence line, or cleanup? A quick
+            text introduction is hugely appreciated.
+          </p>
+          <a
+            class="mt-5 btn-secondary px-6 py-3"
+            href={business.smsHref}
+            data-ga-event="cta_click"
+            data-ga-label="review_referral_text"
+          >
+            Text Maestros
+          </a>
+        </article>
+      </div>
+    </div>
+  </section>
+</Layout>

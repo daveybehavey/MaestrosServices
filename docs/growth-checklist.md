@@ -16,8 +16,9 @@ Use this as the quick-start checklist for the 30-day lead sprint.
 
 ## 3) Run the weekly post cadence from a fixed calendar
 
-- GBP: 3 posts/week
-- Facebook: 5 local posts/week
+- Use `docs/weekly-growth-routine.md` every Monday.
+- GBP: 1 to 3 posts/week
+- Facebook/local posts: 2 to 5 posts/week
 - Monday: one "open slots this week" post (non-negotiable)
 - Templates: see `docs/content-engine-templates.md`
 - Calendar: see `docs/two-week-post-calendar.md`

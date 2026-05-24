@@ -1,0 +1,98 @@
+---
+const gaId = import.meta.env.PUBLIC_GA_ID;
+---
+
+{
+  gaId && (
+    <script is:inline>
+      (function () {
+        if (!window.gtag) return;
+
+        var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
+        var context = function () {
+          return {
+            page_group: analyticsContext.pageGroup || "site",
+            page_type: analyticsContext.pageType || "default",
+            page_template: analyticsContext.pageTemplate || "default",
+          };
+        };
+
+        var send = function (eventName, params) {
+          window.gtag("event", eventName, Object.assign(context(), params || {}));
+        };
+
+        document.querySelectorAll("[data-ga-event]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            send(el.getAttribute("data-ga-event"), {
+              event_category: "cta",
+              event_label: el.getAttribute("data-ga-label") || "",
+            });
+          });
+        });
+
+        document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
+          el.addEventListener("click", function () {
+            send("phone_click", {
+              event_category: "lead",
+              event_label: el.getAttribute("data-ga-label") || "phone_link",
+            });
+          });
+        });
+
+        document.querySelectorAll('a[href^="sms:"]').forEach(function (el) {
+          el.addEventListener("click", function () {
+            send("sms_click", {
+              event_category: "lead",
+              event_label: el.getAttribute("data-ga-label") || "sms_link",
+            });
+          });
+        });
+
+        document.querySelectorAll('a[href^="mailto:"]').forEach(function (el) {
+          el.addEventListener("click", function () {
+            send("email_click", {
+              event_category: "lead",
+              event_label: el.getAttribute("data-ga-label") || "email_link",
+            });
+          });
+        });
+
+        var quoteForm = document.getElementById("quote-form");
+        if (quoteForm) {
+          var quoteStarted = false;
+          quoteForm.addEventListener(
+            "focusin",
+            function () {
+              if (quoteStarted) return;
+              quoteStarted = true;
+              send("quote_form_start", {
+                event_category: "form",
+                event_label: "quote_form",
+              });
+            },
+            { passive: true }
+          );
+
+          if ("IntersectionObserver" in window) {
+            var formViewKey = "ms_quote_form_view:" + window.location.pathname;
+            var observer = new IntersectionObserver(
+              function (entries) {
+                if (!entries[0] || !entries[0].isIntersecting) return;
+                if (!window.sessionStorage.getItem(formViewKey)) {
+                  send("quote_form_view", {
+                    event_category: "form",
+                    event_label: "quote_form",
+                  });
+                  window.sessionStorage.setItem(formViewKey, "1");
+                }
+                observer.disconnect();
+              },
+              { threshold: 0.35 }
+            );
+            observer.observe(quoteForm);
+          }
+        }
+      })();
+    </script>
+  )
+}

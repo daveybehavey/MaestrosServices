@@ -12,7 +12,7 @@ const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
 
 <header
   class:list={[
-    "border-b border-border/70 bg-paper/80 backdrop-blur",
+    "border-b border-border/70 bg-paper/82 backdrop-blur-xl",
     variant === "default" && "sticky top-0 z-50 animate-fade",
   ]}
 >
@@ -158,11 +158,11 @@ const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
     <div class="flex items-center gap-2 md:hidden">
       <a
         class="btn-primary px-3.5 py-2 text-[0.65rem] uppercase tracking-[0.18em]"
-        href={`tel:${business.phoneTel}`}
+        href={business.smsHref}
         data-ga-event="cta_click"
-        data-ga-label="header_mobile_call"
+        data-ga-label="header_mobile_text"
       >
-        Call
+        Text
       </a>
       <a
         class="btn-secondary px-3 py-2 text-[0.65rem] uppercase tracking-[0.18em]"
@@ -185,6 +185,14 @@ const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
               data-ga-label="header_cta_call_primary"
             >
               Call or text {business.phone}
+            </a>
+            <a
+              class="btn-secondary px-4 py-2"
+              href={business.smsHref}
+              data-ga-event="cta_click"
+              data-ga-label="header_cta_text_secondary"
+            >
+              Text photos
             </a>
             <a
               class="btn-secondary px-4 py-2"

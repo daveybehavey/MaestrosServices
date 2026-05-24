@@ -6,26 +6,33 @@ interface Props {
 }
 
 const { quoteHref = "/#quote" } = Astro.props;
-const gaId = import.meta.env.PUBLIC_GA_ID;
 ---
 
 <div
   id="mobile-cta"
-  class="pointer-events-none fixed inset-x-0 bottom-0 z-20 translate-y-3 border-t border-border/70 bg-paper/95 opacity-0 backdrop-blur transition duration-300 md:hidden"
+  class="pointer-events-none fixed inset-x-0 bottom-0 z-20 translate-y-3 overflow-hidden border-t border-border/70 bg-paper/95 opacity-0 backdrop-blur transition duration-300 md:hidden"
 >
   <div
-    class="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
+    class="mx-auto grid max-w-6xl grid-cols-3 items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
   >
     <a
-      class="btn-primary flex-[1.2] px-5 py-3 text-center text-xs uppercase tracking-[0.25em]"
+      class="btn-primary min-w-0 px-2 py-3 text-center text-[0.64rem] uppercase tracking-[0.12em]"
+      href={business.smsHref}
+      data-ga-event="cta_click"
+      data-ga-label="mobile_sticky_text"
+    >
+      Text
+    </a>
+    <a
+      class="btn-secondary min-w-0 px-2 py-3 text-center text-[0.64rem] uppercase tracking-[0.12em]"
       href={`tel:${business.phoneTel}`}
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_call"
     >
-      Call or text
+      Call
     </a>
     <a
-      class="btn-secondary flex-1 px-4 py-3 text-center text-xs uppercase tracking-[0.25em]"
+      class="btn-secondary min-w-0 px-2 py-3 text-center text-[0.64rem] uppercase tracking-[0.12em]"
       href={quoteHref}
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_quote"
@@ -35,7 +42,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
   </div>
 </div>
 
-<script is:inline define:vars={{ gaId }}>
+<script is:inline>
   (function () {
     var heroSentinel = document.getElementById("hero-sentinel");
     var mobileCta = document.getElementById("mobile-cta");
@@ -57,23 +64,6 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
       setTimeout(function () {
         mobileCta.classList.remove("opacity-0", "pointer-events-none", "translate-y-3");
       }, 500);
-    }
-
-    if (gaId && window.gtag) {
-      var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
-      document.querySelectorAll("[data-ga-event]").forEach(function (el) {
-        el.addEventListener("click", function () {
-          var eventName = el.getAttribute("data-ga-event");
-          var label = el.getAttribute("data-ga-label");
-          window.gtag("event", eventName, {
-            event_category: "cta",
-            event_label: label,
-            page_group: analyticsContext.pageGroup || "site",
-            page_type: analyticsContext.pageType || "default",
-            page_template: analyticsContext.pageTemplate || "default",
-          });
-        });
-      });
     }
   })();
 </script>

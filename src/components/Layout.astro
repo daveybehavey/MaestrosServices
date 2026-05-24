@@ -5,6 +5,7 @@ import Header from "./Header.astro";
 import Footer from "./Footer.astro";
 import MobileCTA from "./MobileCTA.astro";
 import DesktopCTA from "./DesktopCTA.astro";
+import ConversionTracking from "./ConversionTracking.astro";
 
 interface Props {
   title: string;
@@ -79,6 +80,7 @@ const {
       <Footer includeMobilePadding={showMobileCTA} />
       {showMobileCTA && <MobileCTA quoteHref={quoteHref} />}
       {showDesktopCTA && <DesktopCTA quoteHref={quoteHref} />}
+      <ConversionTracking />
     </div>
   </body>
 </html>
