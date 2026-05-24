@@ -120,6 +120,58 @@ Photo idea:
 
 - before/after cleanup, yard waste pile, clean edge, or approved finished area
 
+## Week 3: June 8-14, 2026
+
+### Post 1: When To Power Wash A Driveway
+
+Ready-to-post caption:
+
+Not sure when it is actually worth power washing a driveway? On Vancouver Island, it is usually time when the surface starts looking dark, slippery, or tired after the wetter season, or before summer visitors and listing photos.
+
+We just posted a simple homeowner guide on what signs to watch for and when it makes the biggest difference.
+
+Read it here:
+https://maestrosservices.com/blog/when-should-you-power-wash-your-driveway-vancouver-island/
+
+CTA:
+Send a photo for a fast quote.
+
+Photo idea:
+
+- driveway before/after, darker algae patch, or clean entry transition
+
+### Post 2: Mulch Refresh Timing
+
+Ready-to-post caption:
+
+Fresh mulch can make a front yard look cleaner quickly, but it also helps with moisture retention and weed pressure through the season.
+
+If your beds are looking thin, messy, or faded, this is a good time to refresh them. We can help with edge cleanup, weeding, and mulch top-up so the whole bed looks finished again.
+
+CTA:
+Text photos of your beds for a quick quote.
+
+Photo idea:
+
+- clean bed edge, bark mulch close-up, or tidy front-yard planting bed
+
+### Post 3: Small Fence Problems Before They Grow
+
+Ready-to-post caption:
+
+Loose hardware, a dragging gate, leaning sections, or overgrowth along the fence line can make the whole property feel less cared for.
+
+We handle practical minor fence repairs and cleanup work for homeowners who want a clear answer on whether the job is a quick fix or something bigger.
+
+Send a couple of photos and your area if you want us to take a look.
+
+CTA:
+Ask about a quick fence quote.
+
+Photo idea:
+
+- gate latch, cleaned fence line, repaired panel, or a simple tool/work detail shot
+
 ## Simple Posting Formula
 
 Use this structure when creating new GBP posts:

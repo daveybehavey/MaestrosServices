@@ -22,6 +22,7 @@ tmp-preview*.err.log
 
 # local QA artifacts
 qa-screenshots/
+qa-reports/
 MS-QRReview.png
 tmp-chrome-debug/
 

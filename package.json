@@ -8,7 +8,9 @@
     "build:smoke": "npm run build && npm run smoke",
     "preview": "astro preview",
     "astro": "astro",
-    "smoke": "node scripts/smoke-routes.mjs"
+    "smoke": "node scripts/smoke-routes.mjs",
+    "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile http://127.0.0.1:4325",
+    "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
@@ -21,5 +23,8 @@
   },
   "overrides": {
     "shiki": "4.0.2"
+  },
+  "devDependencies": {
+    "lighthouse": "^13.3.0"
   }
 }
