@@ -380,9 +380,9 @@ export const services: Service[] = [
     name: "Power Washing for Driveways, Patios, and Exteriors",
     shortName: "Power Washing",
     description:
-      "Residential power washing for driveways, patios, and exterior surfaces that need a cleaner, fresher finish.",
+      "Residential power washing and pressure washing for driveways, patios, decks, and exterior surfaces that need a cleaner, fresher finish.",
     longDescription:
-      "Our power washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so driveways, patios, walkways, and exterior surfaces look fresh without unnecessary wear. It is a strong choice before photos, listing prep, seasonal resets, or when hard surfaces start to look older than they are.",
+      "Our power washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so driveways, patios, decks, walkways, fences, and exterior surfaces look fresh without unnecessary wear. It is a strong choice before photos, listing prep, seasonal resets, or when hard surfaces start to look older than they are.",
     features: [
       "Driveway, patio, and walkway washing",
       "Deck, fence, and exterior wall cleaning",
@@ -395,6 +395,11 @@ export const services: Service[] = [
           question: "What surfaces can you power wash?",
           answer:
             "We clean concrete, pavers, stone, vinyl siding, many decks, and most fences. We review each surface first and confirm the right method before starting.",
+        },
+        {
+          question: "Do you offer deck cleaning and patio washing too?",
+          answer:
+            "Yes. Many power washing requests include decks, patios, walkways, and other exterior surfaces alongside the driveway. We check the material first and use the right method for each surface.",
         },
         {
           question: "Do you use high pressure on every surface?",

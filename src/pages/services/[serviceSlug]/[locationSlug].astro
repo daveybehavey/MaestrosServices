@@ -34,6 +34,10 @@ const isDrivewayService =
   service.slug === "driveway-grading" || service.slug === "gravel-driveway-installation";
 
 const locationSeoOverrides: Record<string, { title: string; description: string }> = {
+  "power-washing": {
+    title: `Power Washing and Pressure Washing in ${location.name}, BC | ${business.name}`,
+    description: `Power washing and pressure washing in ${location.name}, BC for driveways, patios, decks, walkways, and exterior surfaces. Fast residential quotes, careful cleaning, and tidy cleanup.`,
+  },
   "driveway-grading": {
     title: `Driveway Grading in ${location.name}, BC | ${business.name}`,
     description: `Driveway grading in ${location.name}, BC for ruts, puddles, washboarding, and uneven gravel surfaces. Homeowners here get fast quotes, clearer runoff, and practical residential service.`,
@@ -84,6 +88,13 @@ if (service.slug === "driveway-grading") {
   pageFaqs.push({
     question: `Can driveway grading fix puddles and washboarding in ${location.name}?`,
     answer: `Often, yes. If the driveway still has enough usable material, grading can restore shape, improve runoff, and reduce repeat low spots without jumping straight to a full rebuild.`,
+  });
+}
+
+if (service.slug === "power-washing") {
+  pageFaqs.push({
+    question: `Do you clean decks, patios, and driveways in ${location.name}?`,
+    answer: `Yes. Power washing requests in ${location.name} often include driveways, patios, walkways, decks, and fences. We review the material first and use the right cleaning approach for each surface.`,
   });
 }
 
