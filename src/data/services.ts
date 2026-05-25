@@ -188,6 +188,10 @@ export const services: Service[] = [
         question: "Is yard waste disposal included in regular service?",
         answer: "Small amounts from regular maintenance are included. Large cleanups or one-time hauls may have an additional disposal fee based on volume.",
       },
+      {
+        question: "Can you do the cleanup work too, or only take away the piles?",
+        answer: "Both can be possible depending on the job. Some clients already have material ready to go, while others need cutting, cleanup, or brush work first. We can usually tell you which route makes more sense from photos.",
+      },
     ],
     relatedServices: ["seasonal-cleanups", "brush-clearing", "garden-bed-maintenance"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
@@ -214,6 +218,10 @@ export const services: Service[] = [
       {
         question: "Do you handle large tree removal?",
         answer: "Not yet. We handle shrubs, hedges, and small trees, but large tree felling requires specialized equipment and certification we don't currently offer.",
+      },
+      {
+        question: "What is the difference between brush clearing and a seasonal cleanup?",
+        answer: "Brush clearing is for thicker overgrowth, invasive plants, and neglected areas that need space reclaimed. Seasonal cleanup is broader reset work like leaves, debris, bed tidying, and seasonal catch-up across the property.",
       },
     ],
     relatedServices: ["yard-waste-removal", "seasonal-cleanups", "fence-work-minor-repairs"],
@@ -442,6 +450,10 @@ export const services: Service[] = [
       {
         question: "Can you match new rock work to existing landscaping?",
         answer: "Yes. We can source and install materials that complement your existing hardscape and planting style, then adjust layout and finish details during the quote process.",
+      },
+      {
+        question: "How do I know if I need rock work, grading, or just cleaner edging?",
+        answer: "That usually comes down to whether the issue is layout, washout, slope, or simple visual definition. Photos help a lot. In some areas, a cleaner edge or grading reset is enough; in others, rock work gives the structure that keeps the finish looking better longer.",
       },
     ],
     beforeAfterScenarios: [

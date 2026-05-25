@@ -3,6 +3,7 @@ import Layout from "../../components/Layout.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import { getCollection, render } from "astro:content";
 import { business } from "../../data/business";
+import { getServiceById } from "../../data/services";
 import { createArticleSchema, createBreadcrumbSchema } from "../../lib/schema";
 
 export async function getStaticPaths() {
@@ -29,6 +30,32 @@ const structuredData = [
   createArticleSchema(post),
   createBreadcrumbSchema(breadcrumbItems),
 ];
+
+const articleTopic = `${post.slug} ${post.data.tags.join(" ")}`.toLowerCase();
+const relatedServiceIds = [
+  ...(articleTopic.includes("power-wash") ? ["power-washing"] : []),
+  ...(articleTopic.includes("fence") ? ["fence-work-minor-repairs"] : []),
+  ...(articleTopic.includes("mulch") || articleTopic.includes("garden")
+    ? ["garden-bed-maintenance"]
+    : []),
+  ...(articleTopic.includes("cleanup") || articleTopic.includes("fall")
+    ? ["seasonal-cleanups", "yard-waste-removal"]
+    : []),
+  ...(articleTopic.includes("brush") ? ["brush-clearing"] : []),
+  ...(articleTopic.includes("driveway") || articleTopic.includes("puddle")
+    ? ["driveway-grading", "gravel-driveway-installation"]
+    : []),
+  ...(articleTopic.includes("gravel") ? ["gravel-driveway-installation"] : []),
+  ...(articleTopic.includes("hedge") ? ["hedge-trimming"] : []),
+  ...(articleTopic.includes("mow") || articleTopic.includes("lawn")
+    ? ["lawn-mowing"]
+    : []),
+].filter((value, index, array) => array.indexOf(value) === index);
+
+const relatedServices = relatedServiceIds
+  .map((id) => getServiceById(id))
+  .filter(Boolean)
+  .slice(0, 3);
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-CA", {
@@ -118,6 +145,32 @@ function formatDate(date: Date): string {
         <Content />
       </div>
 
+      {
+        relatedServices.length > 0 && (
+          <div class="mt-10 rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Related services</p>
+            <h2 class="mb-3 text-2xl font-display font-semibold text-ink">
+              If this guide sounds like your situation, check these next
+            </h2>
+            <p class="mb-5 text-sm text-ink-soft">
+              These pages explain what is a good fit, what is not, and what helps us quote faster.
+            </p>
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedServices.map((service) => (
+                <a
+                  href={`/services/${service!.slug}`}
+                  class="rounded-2xl border border-border bg-paper/60 p-5 transition hover:border-ink/30"
+                >
+                  <p class="text-base font-semibold text-ink">{service!.shortName}</p>
+                  <p class="mt-2 text-sm text-ink-soft">{service!.description}</p>
+                  <p class="mt-3 text-sm font-semibold text-ink">View service -&gt;</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
       <div class="mt-10 rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
         <p class="section-kicker">Keep going</p>
         <h2 class="mb-3 text-2xl font-display font-semibold text-ink">Helpful pages to visit next</h2>
@@ -156,8 +209,8 @@ function formatDate(date: Date): string {
           Get a free quote today
         </h2>
         <p class="mb-4 text-sm text-ink-soft">
-          Let us handle the hard work. Call or text for a same-day quote on lawn care and
-          landscaping services across Vancouver Island.
+          If you already know the job, send your area, timing, and a couple of photos. We usually
+          reply within 1 hour during work hours.
         </p>
         <div class="flex flex-wrap gap-3">
           <a
@@ -165,6 +218,12 @@ function formatDate(date: Date): string {
             href={`tel:${business.phoneTel}`}
           >
             Call {business.phone}
+          </a>
+          <a
+            class="rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:border-ink"
+            href={business.smsHref}
+          >
+            Text photos
           </a>
           <a
             class="rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:border-ink"
