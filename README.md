@@ -54,6 +54,23 @@ For a full production validation:
 npm run build:smoke
 ```
 
+## Google Reporting
+
+If `.env.local` contains the Google OAuth values and GA4 property ID, you can pull reporting data locally:
+
+```sh
+npm run reporting:summary
+```
+
+Other options:
+
+```sh
+npm run reporting:ga4
+npm run reporting:gsc
+```
+
+Reports are written to `qa-reports/` as JSON for later review.
+
 ## Content Model
 
 Most site content is generated from the files below:

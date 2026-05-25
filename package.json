@@ -9,6 +9,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "smoke": "node scripts/smoke-routes.mjs",
+    "reporting:summary": "node scripts/google-reporting.mjs summary",
+    "reporting:ga4": "node scripts/google-reporting.mjs ga4",
+    "reporting:gsc": "node scripts/google-reporting.mjs gsc",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile http://127.0.0.1:4325",
     "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325"
   },
