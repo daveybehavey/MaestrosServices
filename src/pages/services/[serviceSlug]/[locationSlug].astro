@@ -236,6 +236,12 @@ const serviceFormMap: Record<string, string> = {
   "driveway-grading": "driveway",
   "gravel-driveway-installation": "gravel",
 };
+
+const localTrustPoints = [
+  `You are reaching the owner directly for ${service.shortName.toLowerCase()} in ${location.name}.`,
+  "If a smaller fix, different service, or another trade makes more sense, we would rather tell you that early.",
+  "You can read reviews first, check the review page, and then decide if you want to contact us.",
+] as const;
 ---
 
 <Layout
@@ -492,6 +498,41 @@ const serviceFormMap: Record<string, string> = {
                 data-ga-label={`service_location_${service.slug}_${location.slug}_quote`}
               >
                 Get a free quote
+              </a>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Check trust first</p>
+            <h2 class="mb-3 text-xl font-display font-semibold text-ink sm:text-2xl">
+              A low-pressure way to vet us
+            </h2>
+            <ul class="space-y-3 text-sm text-ink-soft">
+              {localTrustPoints.map((point) => (
+                <li class="flex gap-3">
+                  <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <a
+                class="rounded-full bg-ink px-5 py-3 text-center text-sm font-semibold text-paper hover:bg-ink/90"
+                href={business.reviewLinks.google}
+                target="_blank"
+                rel="noreferrer"
+                data-ga-event="cta_click"
+                data-ga-label={`service_location_${service.slug}_${location.slug}_google_reviews`}
+              >
+                Read Google reviews
+              </a>
+              <a
+                class="rounded-full border border-ink/20 px-5 py-3 text-center text-sm font-semibold hover:border-ink"
+                href="/review"
+                data-ga-event="cta_click"
+                data-ga-label={`service_location_${service.slug}_${location.slug}_review_page`}
+              >
+                See our review page
               </a>
             </div>
           </div>

@@ -360,6 +360,12 @@ const serviceFormMap: Record<string, string> = {
   "driveway-grading": "driveway",
   "gravel-driveway-installation": "gravel",
 };
+
+const contactTrustPoints = [
+  "You reach the owner directly, not a sales desk.",
+  "If a smaller fix or different service makes more sense, we say that early.",
+  "Reviews, the review page, and direct contact options are easy to check before booking.",
+] as const;
 ---
 
 <Layout
@@ -613,6 +619,41 @@ const serviceFormMap: Record<string, string> = {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Sanity-check us first</p>
+            <h2 class="mb-3 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Easy to verify before you reach out
+            </h2>
+            <ul class="space-y-3 text-sm text-ink-soft">
+              {contactTrustPoints.map((point) => (
+                <li class="flex gap-3">
+                  <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <a
+                class="rounded-full bg-ink px-5 py-3 text-center text-sm font-semibold text-paper hover:bg-ink/90"
+                href={business.reviewLinks.google}
+                target="_blank"
+                rel="noreferrer"
+                data-ga-event="cta_click"
+                data-ga-label={`service_${service.slug}_google_reviews`}
+              >
+                Read Google reviews
+              </a>
+              <a
+                class="rounded-full border border-ink/20 px-5 py-3 text-center text-sm font-semibold hover:border-ink"
+                href="/review"
+                data-ga-event="cta_click"
+                data-ga-label={`service_${service.slug}_review_page`}
+              >
+                See our review page
+              </a>
+            </div>
           </div>
 
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
