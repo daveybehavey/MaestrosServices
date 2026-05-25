@@ -21,40 +21,38 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
           window.gtag("event", eventName, Object.assign(context(), params || {}));
         };
 
-        document.querySelectorAll("[data-ga-event]").forEach(function (el) {
-          el.addEventListener("click", function () {
-            send(el.getAttribute("data-ga-event"), {
-              event_category: "cta",
-              event_label: el.getAttribute("data-ga-label") || "",
-            });
-          });
-        });
+        document.addEventListener("click", function (event) {
+          var target = event.target;
+          if (!(target instanceof Element)) return;
 
-        document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
-          el.addEventListener("click", function () {
+          var tracked = target.closest("[data-ga-event]");
+          if (tracked) {
+            send(tracked.getAttribute("data-ga-event"), {
+              event_category: "cta",
+              event_label: tracked.getAttribute("data-ga-label") || "",
+            });
+          }
+
+          var link = target.closest("a[href]");
+          if (!link) return;
+
+          var href = link.getAttribute("href") || "";
+          if (href.indexOf("tel:") === 0) {
             send("phone_click", {
               event_category: "lead",
-              event_label: el.getAttribute("data-ga-label") || "phone_link",
+              event_label: link.getAttribute("data-ga-label") || "phone_link",
             });
-          });
-        });
-
-        document.querySelectorAll('a[href^="sms:"]').forEach(function (el) {
-          el.addEventListener("click", function () {
+          } else if (href.indexOf("sms:") === 0) {
             send("sms_click", {
               event_category: "lead",
-              event_label: el.getAttribute("data-ga-label") || "sms_link",
+              event_label: link.getAttribute("data-ga-label") || "sms_link",
             });
-          });
-        });
-
-        document.querySelectorAll('a[href^="mailto:"]').forEach(function (el) {
-          el.addEventListener("click", function () {
+          } else if (href.indexOf("mailto:") === 0) {
             send("email_click", {
               event_category: "lead",
-              event_label: el.getAttribute("data-ga-label") || "email_link",
+              event_label: link.getAttribute("data-ga-label") || "email_link",
             });
-          });
+          }
         });
 
         var quoteForm = document.getElementById("quote-form");

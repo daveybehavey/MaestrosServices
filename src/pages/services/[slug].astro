@@ -172,7 +172,7 @@ const serviceFormMap: Record<string, string> = {
       <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
         <div class="space-y-8">
           <!-- Features -->
-          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8 content-auto">
             <p class="section-kicker">What's included</p>
             <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
               {service.shortName} features
@@ -212,7 +212,7 @@ const serviceFormMap: Record<string, string> = {
 
           {
             service.beforeAfterScenarios && service.beforeAfterScenarios.length > 0 && (
-              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8 content-auto">
                 <p class="section-kicker">Before and after</p>
                 <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
                   Typical {service.shortName.toLowerCase()} outcomes
@@ -246,7 +246,7 @@ const serviceFormMap: Record<string, string> = {
           }
 
           <!-- FAQs -->
-          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8 content-auto">
             <p class="section-kicker">Common questions</p>
             <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
               {service.shortName} FAQs
@@ -266,7 +266,7 @@ const serviceFormMap: Record<string, string> = {
           <!-- Related Services -->
           {
             relatedServices.length > 0 && (
-              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8 content-auto">
                 <p class="section-kicker">You might also need</p>
                 <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
                   Related services
