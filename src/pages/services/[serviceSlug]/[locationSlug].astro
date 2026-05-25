@@ -48,10 +48,27 @@ const locationSeoOverrides: Record<string, { title: string; description: string 
   },
 };
 
+const locationServiceSeoOverrides: Record<string, { title: string; description: string }> = {
+  "gravel-driveway-installation:chemainus": {
+    title: `Gravel Driveway Preparation in Chemainus, BC | Refresh and Base Prep`,
+    description:
+      "Gravel driveway preparation in Chemainus, BC for soft spots, puddles, edge breakdown, and patchy gravel surfaces. Practical base prep, refresh work, and fast residential quotes.",
+  },
+  "driveway-grading:chemainus": {
+    title: `Driveway Grading in Chemainus, BC | Fix Puddles, Ruts, and Washboarding`,
+    description:
+      "Driveway grading in Chemainus, BC for puddles, ruts, washboarding, and uneven gravel surfaces. Better runoff, smoother access, and practical residential service.",
+  },
+};
+
+const seoKey = `${service.slug}:${location.slug}`;
+
 const pageTitle =
+  locationServiceSeoOverrides[seoKey]?.title ??
   locationSeoOverrides[service.slug]?.title ??
   `${service.shortName} in ${location.name}, BC | ${business.name}`;
 const pageDescription =
+  locationServiceSeoOverrides[seoKey]?.description ??
   locationSeoOverrides[service.slug]?.description ??
   `${service.name} in ${location.name}, BC. ${service.description} Homeowners here get fast quotes, clear communication, and tidy cleanup from start to finish.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}/${location.slug}`;
@@ -82,6 +99,14 @@ if (service.slug === "gravel-driveway-installation") {
     question: `What does gravel driveway preparation usually include in ${location.name}?`,
     answer: `Most gravel driveway prep in ${location.name} starts with checking the base, correcting soft or thin areas, improving the surface shape for runoff, and getting the driveway ready for fresh aggregate where needed.`,
   });
+
+  if (location.slug === "chemainus") {
+    pageFaqs.push({
+      question: "Can you refresh only the entrance or worst section of a gravel driveway in Chemainus?",
+      answer:
+        "Often, yes. Some Chemainus driveways mainly need the entrance, parking area, or another high-wear section brought back up. We can review photos and tell you whether a partial refresh will hold up well or whether a broader pass makes more sense.",
+    });
+  }
 }
 
 if (service.slug === "driveway-grading") {
@@ -89,6 +114,14 @@ if (service.slug === "driveway-grading") {
     question: `Can driveway grading fix puddles and washboarding in ${location.name}?`,
     answer: `Often, yes. If the driveway still has enough usable material, grading can restore shape, improve runoff, and reduce repeat low spots without jumping straight to a full rebuild.`,
   });
+
+  if (location.slug === "chemainus") {
+    pageFaqs.push({
+      question: "Do repeat puddles on a Chemainus gravel driveway usually mean I need more gravel?",
+      answer:
+        "Not always. In Chemainus, repeat puddles often mean the surface shape, crown, or runoff path needs correction first. If the material is still usable overall, grading can be the better first step before adding more gravel.",
+    });
+  }
 }
 
 if (service.slug === "power-washing") {
@@ -159,6 +192,15 @@ const relatedServiceSummary = relatedServicePages
   .map((entry) => entry.name.toLowerCase())
   .join(" and ");
 const serviceGoal = serviceGoalById[service.id];
+const isChemainusDrivewayCluster =
+  location.slug === "chemainus" &&
+  (service.slug === "driveway-grading" || service.slug === "gravel-driveway-installation");
+
+const localizedHeroNote = isChemainusDrivewayCluster
+  ? service.slug === "gravel-driveway-installation"
+    ? "This page is built for Chemainus homeowners comparing driveway preparation, fresh gravel, and partial refresh work when the surface feels thin, soft, or patchy."
+    : "This page is built for Chemainus homeowners dealing with puddles, ruts, washboarding, and uneven gravel surfaces who want to know if grading is enough before paying for a bigger refresh."
+  : null;
 
 const localProofItems = [
   {
@@ -221,6 +263,13 @@ const serviceFormMap: Record<string, string> = {
           {service.longDescription} Homeowners in {location.name} trust us for consistent, friendly
           service and clear communication from quote to cleanup.
         </p>
+        {
+          localizedHeroNote && (
+            <div class="max-w-3xl rounded-2xl border border-border bg-paper/65 px-4 py-3 text-sm text-ink-soft">
+              {localizedHeroNote}
+            </div>
+          )
+        }
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>

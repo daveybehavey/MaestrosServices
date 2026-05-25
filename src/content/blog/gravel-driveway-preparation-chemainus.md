@@ -1,6 +1,6 @@
 ---
-title: "Gravel Driveway Preparation in Chemainus: What to Check Before You Add More Gravel"
-description: "If a gravel driveway in Chemainus is getting soft spots, puddles, or edge breakdown, preparation usually matters more than simply ordering another load of gravel."
+title: "Gravel Driveway Preparation in Chemainus, BC: What to Check Before You Add More Gravel"
+description: "If a gravel driveway in Chemainus, BC is getting soft spots, puddles, or edge breakdown, preparation and grading often matter more than simply ordering another load of gravel."
 pubDate: 2026-05-25
 tags: ["gravel driveway", "driveway preparation", "Chemainus", "driveway grading"]
 relatedServices: ["gravel-driveway-installation", "driveway-grading"]
