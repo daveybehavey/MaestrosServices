@@ -34,8 +34,11 @@ const serviceSpecifics: Record<
   {
     bestFitTitle: string;
     bestFitPoints: string[];
+    notFitTitle: string;
+    notFitPoints: string[];
     quoteChecklist: string[];
     reassurance: string;
+    trustPoints: string[];
   }
 > = {
   "power-washing": {
@@ -45,6 +48,12 @@ const serviceSpecifics: Record<
       "You want a fast curb-appeal reset before summer, guests, or listing photos.",
       "You want the surface cleaned carefully without using the same pressure everywhere.",
     ],
+    notFitTitle: "Usually not the best fit when the issue is structural, not just surface-level.",
+    notFitPoints: [
+      "The concrete, pavers, decking, or siding already has damage that needs repair first.",
+      "You need a stain, seal, repaint, or full restoration rather than cleaning alone.",
+      "The goal is only to remove a permanent mark that may not fully lift with washing.",
+    ],
     quoteChecklist: [
       "1 to 3 photos of the surface and any slippery or stained areas",
       "Your location and whether it is driveway, patio, walkway, fence, or siding",
@@ -52,6 +61,11 @@ const serviceSpecifics: Record<
     ],
     reassurance:
       "We check the material first, adjust pressure to the surface, and leave the area tidy when we are done.",
+    trustPoints: [
+      "We do not treat every surface the same way just to move faster.",
+      "We will tell you plainly if a gentler wash, treatment, or different service makes more sense.",
+      "Nearby plants, edges, and transitions get a rinse-down and cleanup pass as part of the job.",
+    ],
   },
   "fence-work-minor-repairs": {
     bestFitTitle: "Best fit for practical fence fixes that improve function and first impression.",
@@ -60,6 +74,12 @@ const serviceSpecifics: Record<
       "The fence line feels messy because of overgrowth, leaning sections, or wear.",
       "You want a clear answer on whether the issue is a quick repair or a larger rebuild.",
     ],
+    notFitTitle: "Usually not the best fit for full replacement or major structural rebuild work.",
+    notFitPoints: [
+      "Large portions of the fence are failing or the whole run needs replacement.",
+      "The job needs engineered plans, permits, or a full new-build scope.",
+      "Access conditions or hidden rot mean the practical answer is a bigger rebuild.",
+    ],
     quoteChecklist: [
       "Photos of the problem section, gate, hinges, latch, or fence line",
       "Your location and roughly how many sections are affected",
@@ -67,6 +87,11 @@ const serviceSpecifics: Record<
     ],
     reassurance:
       "If the job falls outside minor repair scope, we will say so clearly and point you toward the right next step.",
+    trustPoints: [
+      "We focus on practical, homeowner-friendly repair scope instead of overselling a full rebuild.",
+      "If a simple adjustment will solve the issue, we would rather tell you that than pad the job.",
+      "Fence-line cleanup and better access often make the finished result feel much more complete.",
+    ],
   },
   "garden-bed-maintenance": {
     bestFitTitle: "Best fit when beds need a visible refresh without a full landscape rebuild.",
@@ -75,6 +100,12 @@ const serviceSpecifics: Record<
       "You want the front yard to look cleaner fast with less weekly upkeep.",
       "You want a practical bed refresh that works with the plants already there.",
     ],
+    notFitTitle: "Usually not the best fit when the real need is redesign, replanting, or irrigation work.",
+    notFitPoints: [
+      "You want a full landscape redesign with new layout, plant selection, and installation.",
+      "Drainage, irrigation, or dead plant replacement is the main issue.",
+      "The bed needs construction-level changes rather than cleanup, edging, and mulch refresh.",
+    ],
     quoteChecklist: [
       "Photos of the beds, edges, and any problem areas",
       "Your location and whether you want bark mulch, wood chips, decorite, or are open to recommendations",
@@ -82,6 +113,11 @@ const serviceSpecifics: Record<
     ],
     reassurance:
       "We can recommend a practical material option based on the look you want, your budget, and how much upkeep you want later.",
+    trustPoints: [
+      "We can explain the tradeoff between cleaner look, lower upkeep, and material cost.",
+      "If the existing bed only needs a tidy-up and top-up, we are happy to keep it simple.",
+      "The goal is a finished look that still makes sense for how much maintenance you want later.",
+    ],
   },
 };
 
@@ -93,6 +129,12 @@ const serviceSpecific =
       "You want a practical next step based on the actual condition of the property.",
       "You prefer owner-operated residential service over a drawn-out sales process.",
     ],
+    notFitTitle: "Not every property issue needs the most complicated service.",
+    notFitPoints: [
+      "If there is a simpler or more appropriate next step, we will point you there.",
+      "If your scope is outside residential-friendly service, we will say so clearly.",
+      "If another trade or specialty is a better fit, we would rather be direct about that.",
+    ],
     quoteChecklist: [
       "Your location and the service you need",
       "A few photos if you have them",
@@ -100,6 +142,11 @@ const serviceSpecific =
     ],
     reassurance:
       "If there is a better or simpler next step than the one you first asked about, we will tell you plainly.",
+    trustPoints: [
+      "Clear scope before work starts.",
+      "Straightforward communication about what makes sense and what does not.",
+      "Owner-operated service with a tidy finish and respectful cleanup.",
+    ],
   };
 
 const pageTitle = `Residential ${service.shortName} on Vancouver Island | ${business.name}`;
@@ -352,6 +399,36 @@ const serviceFormMap: Record<string, string> = {
             </h2>
             <ul class="space-y-3 text-sm text-ink-soft">
               {serviceSpecific.bestFitPoints.map((point) => (
+                <li class="flex gap-3">
+                  <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Honest fit check</p>
+            <h2 class="mb-3 text-xl font-display font-semibold text-ink sm:text-2xl">
+              {serviceSpecific.notFitTitle}
+            </h2>
+            <ul class="space-y-3 text-sm text-ink-soft">
+              {serviceSpecific.notFitPoints.map((point) => (
+                <li class="flex gap-3">
+                  <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Why homeowners use us</p>
+            <h2 class="mb-3 text-xl font-display font-semibold text-ink sm:text-2xl">
+              Practical, owner-operated service
+            </h2>
+            <ul class="space-y-3 text-sm text-ink-soft">
+              {serviceSpecific.trustPoints.map((point) => (
                 <li class="flex gap-3">
                   <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
                   {point}

@@ -87,18 +87,23 @@ export const services: Service[] = [
       "Soil and planting condition check",
       "Material recommendations based on look and budget",
     ],
-    faqs: [
-      {
-        question: "What type of mulch do you install?",
-        answer:
-          "We typically install bark mulch or wood chips, and can also source decorite, river rock, or other bed materials based on your preference and budget.",
-      },
-      {
-        question: "How often should mulch be topped up?",
-        answer:
-          "Most beds benefit from one fresh layer each year, usually in spring. Sunny or higher-traffic areas may need a smaller top-up later in the season.",
-      },
-    ],
+      faqs: [
+        {
+          question: "What type of mulch do you install?",
+          answer:
+            "We typically install bark mulch or wood chips, and can also source decorite, river rock, or other bed materials based on your preference and budget.",
+        },
+        {
+          question: "How often should mulch be topped up?",
+          answer:
+            "Most beds benefit from one fresh layer each year, usually in spring. Sunny or higher-traffic areas may need a smaller top-up later in the season.",
+        },
+        {
+          question: "Can you help me choose between bark mulch, wood chips, or decorite?",
+          answer:
+            "Yes. We can walk through the look, upkeep, and budget tradeoffs. Bark mulch is a common curb-appeal choice, wood chips can be practical in some areas, and decorite or other stone options may make sense where lower seasonal top-up is the priority.",
+        },
+      ],
     relatedServices: ["weed-control", "seasonal-cleanups"],
     seasonalRelevance: ["spring", "summer", "fall"],
   },
@@ -319,18 +324,23 @@ export const services: Service[] = [
       "Gate alignment and latch tune-up (minor adjustments)",
       "Site cleanup and walkthrough at completion",
     ],
-    faqs: [
-      {
-        question: "Do you build or replace full fence systems?",
-        answer:
-          "We focus on minor repairs, section fixes, and practical refresh work. For full new fence builds or major structural replacements, we can review scope and recommend the best next step.",
-      },
-      {
-        question: "Can fence work be bundled with other yard services?",
-        answer:
-          "Yes. Fence work is often paired with mulching, power washing, and rock edging to improve overall curb appeal in one visit.",
-      },
-    ],
+      faqs: [
+        {
+          question: "Do you build or replace full fence systems?",
+          answer:
+            "We focus on minor repairs, section fixes, and practical refresh work. For full new fence builds or major structural replacements, we can review scope and recommend the best next step.",
+        },
+        {
+          question: "Can fence work be bundled with other yard services?",
+          answer:
+            "Yes. Fence work is often paired with mulching, power washing, and rock edging to improve overall curb appeal in one visit.",
+        },
+        {
+          question: "How do I know if my fence is a repair or replacement situation?",
+          answer:
+            "Photos usually tell us a lot. If the issue is isolated to a few sections, loose hardware, gate alignment, or light leaning, repair may make sense. If failure is widespread or posts are badly compromised, we will tell you early that replacement is the more practical route.",
+        },
+      ],
     beforeAfterScenarios: [
       {
         before:
@@ -368,18 +378,23 @@ export const services: Service[] = [
       "Pre-wet and rinse-down around nearby plants",
       "Post-wash cleanup and finish check",
     ],
-    faqs: [
-      {
-        question: "What surfaces can you power wash?",
-        answer:
-          "We clean concrete, pavers, stone, vinyl siding, many decks, and most fences. We review each surface first and confirm the right method before starting.",
-      },
-      {
-        question: "Do you use high pressure on every surface?",
-        answer:
-          "No. We match pressure to the material and use gentler washing where needed to avoid damage while still removing buildup.",
-      },
-    ],
+      faqs: [
+        {
+          question: "What surfaces can you power wash?",
+          answer:
+            "We clean concrete, pavers, stone, vinyl siding, many decks, and most fences. We review each surface first and confirm the right method before starting.",
+        },
+        {
+          question: "Do you use high pressure on every surface?",
+          answer:
+            "No. We match pressure to the material and use gentler washing where needed to avoid damage while still removing buildup.",
+        },
+        {
+          question: "Will power washing remove every stain completely?",
+          answer:
+            "Not always. Organic buildup, grime, and surface dirt usually improve well, but some older staining, rust marks, or deeply set discoloration may only improve partially. We would rather set that expectation clearly than overpromise.",
+        },
+      ],
     beforeAfterScenarios: [
       {
         before:
