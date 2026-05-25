@@ -348,6 +348,7 @@ const showErrorState = error === "1";
     var quoteForm = document.getElementById("quote-form");
     var successPanel = document.getElementById("quote-success");
     var startedAtInput = document.getElementById("form-started-at");
+    var submitButton = quoteForm ? quoteForm.querySelector('button[type="submit"]') : null;
     var localStorageKey = "ms_attribution_v1";
 
     var readStoredAttribution = function () {
@@ -419,12 +420,13 @@ const showErrorState = error === "1";
       var leadEventId = urlParams.get("lead_event_id");
       var successEventKey = "ms_quote_success:" + (leadEventId || (window.location.pathname + window.location.search));
       var errorEventKey = "ms_quote_error:" + window.location.pathname + window.location.search;
-
-      if (submittedStatus === "1" && !window.sessionStorage.getItem(successEventKey)) {
+      var sendLeadSuccess = function (eventId) {
+        var eventKey = "ms_quote_success:" + (eventId || (window.location.pathname + window.location.search));
+        if (window.sessionStorage.getItem(eventKey)) return;
         window.gtag("event", "generate_lead", {
           event_category: "form",
           event_label: "quote_form_success",
-          lead_event_id: leadEventId || "(not set)",
+          lead_event_id: eventId || "(not set)",
           page_group: analyticsContext.pageGroup || "site",
           page_type: analyticsContext.pageType || "default",
           page_template: analyticsContext.pageTemplate || "default",
@@ -432,7 +434,11 @@ const showErrorState = error === "1";
           utm_medium: attribution.utm_medium || "(not set)",
           utm_campaign: attribution.utm_campaign || "(not set)",
         });
-        window.sessionStorage.setItem(successEventKey, "1");
+        window.sessionStorage.setItem(eventKey, "1");
+      };
+
+      if (submittedStatus === "1" && !window.sessionStorage.getItem(successEventKey)) {
+        sendLeadSuccess(leadEventId);
       }
 
       if (submittedStatus === "1" && successPanel) {
@@ -454,7 +460,24 @@ const showErrorState = error === "1";
       }
 
       if (quoteForm) {
-        quoteForm.addEventListener("submit", function () {
+        quoteForm.addEventListener("submit", function (event) {
+          if (!window.fetch || !window.FormData) return;
+
+          event.preventDefault();
+
+          if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = true;
+            submitButton.textContent = "Sending...";
+          }
+
+          var restoreButton = function () {
+            if (!(submitButton instanceof HTMLButtonElement)) return;
+            submitButton.disabled = false;
+            submitButton.textContent = "Get my free quote";
+          };
+
+          var formData = new FormData(quoteForm);
+
           window.gtag("event", "form_submit", {
             event_category: "form",
             event_label: "quote_form",
@@ -462,6 +485,41 @@ const showErrorState = error === "1";
             page_type: analyticsContext.pageType || "default",
             page_template: analyticsContext.pageTemplate || "default",
           });
+
+          fetch(quoteForm.action, {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin",
+            redirect: "follow",
+          })
+            .then(function (response) {
+              var nextUrl = response.url || quoteForm.action;
+              var nextParams = new URL(nextUrl, window.location.origin).searchParams;
+              if (nextParams.get("submitted") === "1") {
+                sendLeadSuccess(nextParams.get("lead_event_id"));
+              } else if (
+                nextParams.get("error") === "1" &&
+                !window.sessionStorage.getItem(errorEventKey)
+              ) {
+                window.gtag("event", "form_submit_error", {
+                  event_category: "form",
+                  event_label: "quote_form_error",
+                  page_group: analyticsContext.pageGroup || "site",
+                  page_type: analyticsContext.pageType || "default",
+                  page_template: analyticsContext.pageTemplate || "default",
+                });
+                window.sessionStorage.setItem(errorEventKey, "1");
+              }
+              window.location.assign(nextUrl);
+            })
+            .catch(function () {
+              restoreButton();
+              quoteForm.submit();
+            });
+        });
+
+        quoteForm.addEventListener("submit", function () {
+          // Native submit fallback when JS interception is unavailable.
         });
       }
     }
