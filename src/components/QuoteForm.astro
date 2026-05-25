@@ -416,13 +416,15 @@ const showErrorState = error === "1";
       var urlParams = new URLSearchParams(window.location.search);
       var submittedStatus = urlParams.get("submitted");
       var errorStatus = urlParams.get("error");
-      var successEventKey = "ms_quote_success:" + window.location.pathname + window.location.search;
+      var leadEventId = urlParams.get("lead_event_id");
+      var successEventKey = "ms_quote_success:" + (leadEventId || (window.location.pathname + window.location.search));
       var errorEventKey = "ms_quote_error:" + window.location.pathname + window.location.search;
 
       if (submittedStatus === "1" && !window.sessionStorage.getItem(successEventKey)) {
         window.gtag("event", "generate_lead", {
           event_category: "form",
           event_label: "quote_form_success",
+          lead_event_id: leadEventId || "(not set)",
           page_group: analyticsContext.pageGroup || "site",
           page_type: analyticsContext.pageType || "default",
           page_template: analyticsContext.pageTemplate || "default",

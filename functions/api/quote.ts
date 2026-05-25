@@ -77,7 +77,12 @@ const isLikelyLinkSpam = (value: string) => {
 const isTruthyFlag = (value: string | undefined) =>
   /^(1|true|yes|on)$/i.test((value ?? "").trim());
 
-const buildRedirectUrl = (requestUrl: string, returnTo: string, statusKey: "submitted" | "error") => {
+const buildRedirectUrl = (
+  requestUrl: string,
+  returnTo: string,
+  statusKey: "submitted" | "error",
+  eventId?: string
+) => {
   const fallbackPath = "/#quote";
   const fallback = new URL(fallbackPath, requestUrl);
 
@@ -96,7 +101,11 @@ const buildRedirectUrl = (requestUrl: string, returnTo: string, statusKey: "subm
 
   target.searchParams.delete("submitted");
   target.searchParams.delete("error");
+  target.searchParams.delete("lead_event_id");
   target.searchParams.set(statusKey, "1");
+  if (statusKey === "submitted" && eventId) {
+    target.searchParams.set("lead_event_id", eventId);
+  }
   if (!target.hash) {
     target.hash = "#quote";
   }
@@ -134,7 +143,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
   }
 
   const returnTo = getValue(formData, "return_to");
-  redirectOk = buildRedirectUrl(request.url, returnTo, "submitted");
+  const leadEventId = `lead_${now.toString(36)}`;
+  redirectOk = buildRedirectUrl(request.url, returnTo, "submitted", leadEventId);
   redirectError = buildRedirectUrl(request.url, returnTo, "error");
 
   const honeypot = getValue(formData, "company");
