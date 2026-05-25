@@ -531,12 +531,12 @@ export const services: Service[] = [
     slug: "gravel-driveway-installation",
     name: "Gravel Driveway Installation and Refresh",
     shortName: "Gravel Driveways",
-    description: "Gravel driveway installation and refresh work with proper base prep, clean edges, and even aggregate placement.",
-    longDescription: "Whether you're upgrading an older surface or adding a new gravel section, we provide practical driveway installation and refresh work tailored to your property. We focus on durable base preparation, clean edges, and even aggregate distribution for a strong, professional result that holds up better over time. The goal is a driveway that looks finished and stays more usable through changing weather.",
+    description: "Gravel driveway preparation, installation, and refresh work with proper base prep, clean edges, and even aggregate placement.",
+    longDescription: "Whether you're upgrading an older surface or adding a new gravel section, we provide practical gravel driveway preparation, installation, and refresh work tailored to your property. We focus on durable base preparation, clean edges, and even aggregate distribution for a strong, professional result that holds up better over time. The goal is a driveway that looks finished, drains better, and stays more usable through changing weather.",
     features: [
       "New gravel driveway installation (small to mid-size projects)",
       "Surface refresh with fresh aggregate top-up",
-      "Base prep and leveling before placement",
+      "Base preparation, grading, and leveling before placement",
       "Edge cleanup and driveway border definition",
       "Final grading for runoff and access",
     ],
@@ -548,6 +548,10 @@ export const services: Service[] = [
         {
           question: "What gravel type do you recommend?",
           answer: "We typically recommend locally available crushed aggregate suited to your traffic and drainage needs, then adjust based on your budget and finish preference.",
+        },
+        {
+          question: "What does gravel driveway preparation usually include?",
+          answer: "Preparation usually means checking base condition, correcting low or soft spots, improving the surface shape for runoff, and getting the area ready for fresh aggregate. Some driveways only need a lighter prep and top-up, while others need more reshaping first.",
         },
         {
           question: "Can you refresh part of a driveway instead of rebuilding the whole thing?",

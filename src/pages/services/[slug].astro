@@ -305,8 +305,25 @@ const serviceSpecific =
     ],
   };
 
-const pageTitle = `Residential ${service.shortName} on Vancouver Island | ${business.name}`;
-const pageDescription = `${service.description} Residential service across lower-mid Vancouver Island with clear communication, fast quotes, and a clean finish.`;
+const seoOverrides: Record<string, { title: string; description: string }> = {
+  "driveway-grading": {
+    title: `Driveway Grading and Gravel Driveway Repair | ${business.name}`,
+    description:
+      "Driveway grading, gravel reshaping, and puddle correction across lower-mid Vancouver Island. Better drainage, fewer ruts, and practical residential service with fast quotes.",
+  },
+  "gravel-driveway-installation": {
+    title: `Gravel Driveway Preparation, Refresh, and Installation | ${business.name}`,
+    description:
+      "Gravel driveway preparation, fresh aggregate installation, and driveway refresh work across lower-mid Vancouver Island. Clean edges, better runoff, and practical residential quotes.",
+  },
+};
+
+const pageTitle =
+  seoOverrides[service.slug]?.title ??
+  `Residential ${service.shortName} on Vancouver Island | ${business.name}`;
+const pageDescription =
+  seoOverrides[service.slug]?.description ??
+  `${service.description} Residential service across lower-mid Vancouver Island with clear communication, fast quotes, and a clean finish.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}`;
 
 const breadcrumbItems = [

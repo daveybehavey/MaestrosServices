@@ -33,8 +33,23 @@ const { service, location } = Astro.props as {
 const isDrivewayService =
   service.slug === "driveway-grading" || service.slug === "gravel-driveway-installation";
 
-const pageTitle = `${service.shortName} in ${location.name}, BC | ${business.name}`;
-const pageDescription = `${service.name} in ${location.name}, BC. ${service.description} Homeowners here get fast quotes, clear communication, and tidy cleanup from start to finish.`;
+const locationSeoOverrides: Record<string, { title: string; description: string }> = {
+  "driveway-grading": {
+    title: `Driveway Grading in ${location.name}, BC | ${business.name}`,
+    description: `Driveway grading in ${location.name}, BC for ruts, puddles, washboarding, and uneven gravel surfaces. Homeowners here get fast quotes, clearer runoff, and practical residential service.`,
+  },
+  "gravel-driveway-installation": {
+    title: `Gravel Driveway Preparation and Refresh in ${location.name}, BC | ${business.name}`,
+    description: `Gravel driveway preparation, fresh aggregate, and driveway refresh work in ${location.name}, BC. Clean edges, better drainage, and practical residential quotes for worn or patchy gravel surfaces.`,
+  },
+};
+
+const pageTitle =
+  locationSeoOverrides[service.slug]?.title ??
+  `${service.shortName} in ${location.name}, BC | ${business.name}`;
+const pageDescription =
+  locationSeoOverrides[service.slug]?.description ??
+  `${service.name} in ${location.name}, BC. ${service.description} Homeowners here get fast quotes, clear communication, and tidy cleanup from start to finish.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}/${location.slug}`;
 
 const breadcrumbItems = [
@@ -57,6 +72,20 @@ const pageFaqs = [
     answer: `Absolutely. Many homeowners bundle this service with recurring maintenance, garden bed care, and seasonal cleanup visits.`,
   },
 ];
+
+if (service.slug === "gravel-driveway-installation") {
+  pageFaqs.push({
+    question: `What does gravel driveway preparation usually include in ${location.name}?`,
+    answer: `Most gravel driveway prep in ${location.name} starts with checking the base, correcting soft or thin areas, improving the surface shape for runoff, and getting the driveway ready for fresh aggregate where needed.`,
+  });
+}
+
+if (service.slug === "driveway-grading") {
+  pageFaqs.push({
+    question: `Can driveway grading fix puddles and washboarding in ${location.name}?`,
+    answer: `Often, yes. If the driveway still has enough usable material, grading can restore shape, improve runoff, and reduce repeat low spots without jumping straight to a full rebuild.`,
+  });
+}
 
 const structuredData = [
   createServiceLocationSchema(service, location),

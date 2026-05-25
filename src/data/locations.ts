@@ -170,7 +170,7 @@ export const locations: Location[] = [
     name: "Cobble Hill",
     region: "Cowichan Valley",
     description: "Lawn care and landscaping in Cobble Hill for residential properties that need professional mowing, trimming, and garden services with a clean finish. The page is aimed at homeowners who want tidy recurring maintenance without having to manage every detail themselves.",
-    nearbyAreas: ["shawnigan-lake", "mill-bay", "cowichan-bay"],
+    nearbyAreas: ["shawnigan-lake", "mill-bay", "cowichan-bay", "chemainus"],
     localLandmarks: ["Cobble Hill Village", "Local wineries"],
   },
   {
@@ -179,8 +179,18 @@ export const locations: Location[] = [
     name: "Cowichan Bay",
     region: "Cowichan Valley",
     description: "Residential landscaping in Cowichan Bay, with lawn care, garden maintenance, and seasonal cleanups for waterfront homes and surrounding properties. It works well for homeowners who want a local crew that understands seasonal buildup and property presentation near the village and waterfront.",
-    nearbyAreas: ["cobble-hill", "duncan"],
+    nearbyAreas: ["cobble-hill", "duncan", "chemainus"],
     localLandmarks: ["Cowichan Bay Village", "Maritime Centre"],
+  },
+  {
+    id: "chemainus",
+    slug: "chemainus",
+    name: "Chemainus",
+    region: "Cowichan Valley",
+    description: "Residential landscaping in Chemainus for homeowners who need reliable property upkeep, gravel driveway work, seasonal cleanups, and tidy curb-appeal improvements. It is a strong fit for homes that need practical exterior maintenance, faster quote response, and a crew that can handle both routine yard work and heavier reset jobs.",
+    neighborhoods: ["Old Town", "Westholme", "Saltair", "Chemainus Bench"],
+    nearbyAreas: ["duncan", "cowichan-bay", "cobble-hill"],
+    localLandmarks: ["Chemainus murals", "Waterwheel Park", "Chemainus Theatre"],
   },
   {
     id: "maple-bay",
@@ -207,7 +217,7 @@ export const locations: Location[] = [
     region: "Cowichan Valley",
     description: "Professional lawn care and landscaping in Duncan, the City of Totems, for residential properties that need mowing, garden maintenance, seasonal cleanups, and ongoing property care from a local residential crew. It is designed for homeowners who want straightforward service and reliable follow-through.",
     neighborhoods: ["Downtown", "Gibbins Road", "Trunk Road", "Beverly Street"],
-    nearbyAreas: ["cowichan-bay", "maple-bay", "lake-cowichan", "cobble-hill"],
+    nearbyAreas: ["cowichan-bay", "maple-bay", "lake-cowichan", "cobble-hill", "chemainus"],
     localLandmarks: ["Downtown Totem Poles", "Cowichan Valley Trail"],
   },
 ];
