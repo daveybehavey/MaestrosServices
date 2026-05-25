@@ -4,6 +4,8 @@ import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import { getCollection, render } from "astro:content";
 import { business } from "../../data/business";
 import { getServiceById } from "../../data/services";
+import { getLocationById } from "../../data/locations";
+import { hasServiceLocationPage } from "../../data/serviceLocationPages";
 import { createArticleSchema, createBreadcrumbSchema } from "../../lib/schema";
 
 export async function getStaticPaths() {
@@ -55,6 +57,26 @@ const relatedServiceIds = [
 const relatedServices = relatedServiceIds
   .map((id) => getServiceById(id))
   .filter(Boolean)
+  .slice(0, 3);
+
+const primaryRelatedServiceId =
+  post.data.relatedServices?.[0] ?? relatedServices[0]?.id;
+const relatedLocationCards = (post.data.relatedLocations ?? [])
+  .map((id) => getLocationById(id))
+  .filter(Boolean)
+  .map((location) => {
+    const localizedHref =
+      primaryRelatedServiceId && hasServiceLocationPage(primaryRelatedServiceId, location!.id)
+        ? `/services/${getServiceById(primaryRelatedServiceId)!.slug}/${location!.slug}`
+        : `/areas/${location!.slug}`;
+
+    return {
+      name: location!.name,
+      region: location!.region,
+      description: location!.description,
+      href: localizedHref,
+    };
+  })
   .slice(0, 3);
 
 function formatDate(date: Date): string {
@@ -164,6 +186,33 @@ function formatDate(date: Date): string {
                   <p class="text-base font-semibold text-ink">{service!.shortName}</p>
                   <p class="mt-2 text-sm text-ink-soft">{service!.description}</p>
                   <p class="mt-3 text-sm font-semibold text-ink">View service -&gt;</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      {
+        relatedLocationCards.length > 0 && (
+          <div class="mt-10 rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            <p class="section-kicker">Local pages</p>
+            <h2 class="mb-3 text-2xl font-display font-semibold text-ink">
+              Helpful local pages tied to this topic
+            </h2>
+            <p class="mb-5 text-sm text-ink-soft">
+              If you want a page closer to your area, these are the best next local stops.
+            </p>
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedLocationCards.map((location) => (
+                <a
+                  href={location.href}
+                  class="rounded-2xl border border-border bg-paper/60 p-5 transition hover:border-ink/30"
+                >
+                  <p class="text-xs uppercase tracking-[0.2em] text-ink-soft">{location.region}</p>
+                  <p class="mt-2 text-base font-semibold text-ink">{location.name}</p>
+                  <p class="mt-2 text-sm text-ink-soft">{location.description}</p>
+                  <p class="mt-3 text-sm font-semibold text-ink">Open local page -&gt;</p>
                 </a>
               ))}
             </div>
