@@ -29,6 +29,24 @@ const structuredData = [
     })),
   },
 ];
+
+const quoteTrustPoints = [
+  {
+    title: "Owner replies directly",
+    detail:
+      "You are not going into a generic office inbox. The person replying is the one reviewing the job and the next step.",
+  },
+  {
+    title: "No pressure if it is not a fit",
+    detail:
+      "If another service, a smaller fix, or a different trade makes more sense, we would rather tell you that early.",
+  },
+  {
+    title: "You do not need a perfect description",
+    detail:
+      "Area, timing, and a couple of photos are usually enough to start moving the quote in the right direction.",
+  },
+] as const;
 ---
 
 <Layout
@@ -109,6 +127,19 @@ const structuredData = [
   <section id="quote" class="section pt-6 sm:pt-10">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
       <QuoteForm returnTo="/quote#quote" showInfoBox={false} />
+    </div>
+  </section>
+
+  <section class="section pt-4 sm:pt-6">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="grid gap-4 md:grid-cols-3">
+        {quoteTrustPoints.map((item) => (
+          <article class="rounded-2xl border border-border bg-white/90 p-5 shadow-fine">
+            <p class="text-base font-semibold text-ink">{item.title}</p>
+            <p class="mt-2 text-sm text-ink-soft">{item.detail}</p>
+          </article>
+        ))}
+      </div>
     </div>
   </section>
 

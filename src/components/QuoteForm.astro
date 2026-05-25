@@ -70,6 +70,15 @@ const showErrorState = error === "1";
             {business.email}
           </a>
         </div>
+        <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
+          <p class="font-semibold text-ink">Why homeowners feel okay reaching out</p>
+          <ul class="mt-2 space-y-1">
+            <li>- You are contacting the owner directly, not a sales team</li>
+            <li>- If the job is not a fit, we will say that early</li>
+            <li>- We do not need perfect details to start the conversation</li>
+            <li>- A few photos and your area are usually enough for a practical next step</li>
+          </ul>
+        </div>
         </div>
       </div>
     )
@@ -297,6 +306,21 @@ const showErrorState = error === "1";
       </ul>
     </div>
 
+    <div class="grid gap-3 sm:grid-cols-3">
+      <div class="rounded-xl border border-border bg-white/90 p-4 text-sm text-ink-soft">
+        <p class="font-semibold text-ink">Low pressure</p>
+        <p class="mt-1">If we think a smaller fix or different service makes more sense, we will tell you.</p>
+      </div>
+      <div class="rounded-xl border border-border bg-white/90 p-4 text-sm text-ink-soft">
+        <p class="font-semibold text-ink">Fast clarity</p>
+        <p class="mt-1">Most quote requests only need the basics plus photos if the area is hard to describe.</p>
+      </div>
+      <div class="rounded-xl border border-border bg-white/90 p-4 text-sm text-ink-soft">
+        <p class="font-semibold text-ink">Real person</p>
+        <p class="mt-1">The person replying is the one handling the work and the scope decisions.</p>
+      </div>
+    </div>
+
     <!-- Honeypot -->
     <input type="hidden" name="return_to" value={returnTo} />
     <input type="hidden" id="utm-source" name="utm_source" value="" />
@@ -337,9 +361,10 @@ const showErrorState = error === "1";
       Get my free quote
     </button>
 
-    <p class="text-xs text-ink-soft">
-      By submitting, you agree to be contacted by phone, text, or email about your request. No spam.
-    </p>
+    <div class="space-y-1 text-xs text-ink-soft">
+      <p>By submitting, you agree to be contacted by phone, text, or email about your request. No spam.</p>
+      <p>We use your details only to reply about this quote and related scheduling.</p>
+    </div>
   </form>
 </div>
 
