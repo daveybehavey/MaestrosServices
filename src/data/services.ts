@@ -121,16 +121,20 @@ export const services: Service[] = [
       "Gutter clearing (ground-accessible)",
       "Complete property walkthrough",
     ],
-    faqs: [
-      {
-        question: "What's included in a seasonal cleanup?",
-        answer: "Standard cleanups include debris removal, leaf clearing, bed tidying, and a general property walkthrough. We can add services like dethatching or gutter clearing as needed.",
-      },
-      {
-        question: "When should I schedule spring/fall cleanup?",
-        answer: "Spring cleanup is best in March-April as growth begins. Fall cleanup works best in October-November after most leaves have dropped.",
-      },
-    ],
+      faqs: [
+        {
+          question: "What's included in a seasonal cleanup?",
+          answer: "Standard cleanups include debris removal, leaf clearing, bed tidying, and a general property walkthrough. We can add services like dethatching or gutter clearing as needed.",
+        },
+        {
+          question: "When should I schedule spring/fall cleanup?",
+          answer: "Spring cleanup is best in March-April as growth begins. Fall cleanup works best in October-November after most leaves have dropped.",
+        },
+        {
+          question: "How do I know if I need a full cleanup or just a few smaller services?",
+          answer: "If several areas of the property feel behind at once, a cleanup is usually the simpler route. If the issue is only one bed, one hedge, or one isolated task, we can tell you that too and recommend the leaner option.",
+        },
+      ],
     relatedServices: ["lawn-mowing", "garden-bed-maintenance", "yard-waste-removal"],
     seasonalRelevance: ["spring", "fall"],
   },
@@ -475,16 +479,20 @@ export const services: Service[] = [
       "Compaction for longer-lasting surface stability",
       "Optional tie-in with nearby pathway grading",
     ],
-    faqs: [
-      {
-        question: "Do you grade existing gravel driveways?",
-        answer: "Yes. We re-grade existing driveways to correct ruts, improve runoff, and restore a smoother driving surface.",
-      },
-      {
-        question: "Can you help with recurring puddles and soft spots?",
-        answer: "Absolutely. We adjust surface slope and can add aggregate in problem areas to reduce pooling and improve stability.",
-      },
-    ],
+      faqs: [
+        {
+          question: "Do you grade existing gravel driveways?",
+          answer: "Yes. We re-grade existing driveways to correct ruts, improve runoff, and restore a smoother driving surface.",
+        },
+        {
+          question: "Can you help with recurring puddles and soft spots?",
+          answer: "Absolutely. We adjust surface slope and can add aggregate in problem areas to reduce pooling and improve stability.",
+        },
+        {
+          question: "When is grading enough and when do I probably need fresh gravel too?",
+          answer: "If the driveway still has enough usable material and the main issue is shape, crown, or ruts, grading may be enough. If the surface is thin, patchy, or breaking down badly, fresh gravel or a larger refresh may be the better answer.",
+        },
+      ],
     beforeAfterScenarios: [
       {
         before:
@@ -520,16 +528,20 @@ export const services: Service[] = [
       "Edge cleanup and driveway border definition",
       "Final grading for runoff and access",
     ],
-    faqs: [
-      {
-        question: "Do you handle complete driveway rebuilds?",
-        answer: "We handle many small to mid-size rebuild and refresh projects. For larger engineered installations, we can assess and confirm scope during quoting.",
-      },
-      {
-        question: "What gravel type do you recommend?",
-        answer: "We typically recommend locally available crushed aggregate suited to your traffic and drainage needs, then adjust based on your budget and finish preference.",
-      },
-    ],
+      faqs: [
+        {
+          question: "Do you handle complete driveway rebuilds?",
+          answer: "We handle many small to mid-size rebuild and refresh projects. For larger engineered installations, we can assess and confirm scope during quoting.",
+        },
+        {
+          question: "What gravel type do you recommend?",
+          answer: "We typically recommend locally available crushed aggregate suited to your traffic and drainage needs, then adjust based on your budget and finish preference.",
+        },
+        {
+          question: "Can you refresh part of a driveway instead of rebuilding the whole thing?",
+          answer: "Often, yes. Some properties only need the entrance, turn area, parking section, or another high-wear area brought back up. We can look at the overall condition and recommend whether a partial refresh makes sense or whether a fuller pass will hold up better.",
+        },
+      ],
     beforeAfterScenarios: [
       {
         before:
