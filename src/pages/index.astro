@@ -9,6 +9,7 @@ import {
   homepagePackages,
   homepageServiceAreas,
   homepageServiceHighlights,
+  homepageTrustMoments,
   homepageTrustProof,
   homepageTrustSignals,
 } from "../data/homepage";
@@ -244,6 +245,89 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           Request your quote
           <span aria-hidden="true">-&gt;</span>
         </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-2 sm:pt-0 content-auto">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/92 p-6 shadow-soft sm:p-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <div class="space-y-3">
+          <p class="section-kicker">Why homeowners feel comfortable reaching out</p>
+          <h2 class="text-2xl font-display sm:text-3xl">Clear communication, practical scope, and real proof.</h2>
+          <p class="text-sm leading-7 text-ink-soft">
+            We do not rely on flashy promises. The goal is to make it easy to understand what fits,
+            what happens next, and why the finished result should feel worth it.
+          </p>
+          <div class="flex flex-wrap gap-2 text-xs text-ink-soft">
+            {homepageTrustProof.map((item) => (
+              <span class="rounded-full border border-border bg-paper px-3 py-1.5">{item}</span>
+            ))}
+          </div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-3">
+          {homepageTrustMoments.map((item) => (
+            <article class="rounded-2xl border border-border bg-paper/55 p-5">
+              <p class="text-base font-semibold text-ink">{item.title}</p>
+              <p class="mt-2 text-sm text-ink-soft">{item.detail}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-2 sm:pt-0 content-auto">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/90 p-6 shadow-fine sm:p-8 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+        <div class="space-y-3">
+          <p class="section-kicker">Reviews and reputation</p>
+          <h2 class="text-2xl font-display sm:text-3xl">Want to sanity-check us first?</h2>
+          <p class="text-sm leading-7 text-ink-soft">
+            That is completely fair. You can read reviews, see the way we ask for feedback, and get a
+            feel for how we handle homeowner communication before you ever request a quote.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a
+              class="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper hover:bg-ink/90"
+              href={business.reviewLinks.google}
+              target="_blank"
+              rel="noreferrer"
+              data-ga-event="cta_click"
+              data-ga-label="homepage_reviews_google"
+            >
+              Read Google reviews
+            </a>
+            <a
+              class="rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:border-ink"
+              href="/review"
+              data-ga-event="cta_click"
+              data-ga-label="homepage_review_page"
+            >
+              See how feedback works
+            </a>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-ink/10 bg-paper/70 p-5 sm:p-6">
+          <p class="text-xs uppercase tracking-[0.24em] text-ink-soft">What homeowners usually care about</p>
+          <ul class="mt-4 space-y-3 text-sm text-ink-soft">
+            <li class="flex gap-3">
+              <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+              Will the job feel straightforward from quote to cleanup?
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+              Will the property be treated carefully and left tidy?
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+              Will someone be honest if a simpler fix makes more sense?
+            </li>
+          </ul>
+          <p class="mt-4 text-sm font-semibold text-ink">
+            Those are exactly the trust points we try to make obvious early.
+          </p>
+        </div>
       </div>
     </div>
   </section>

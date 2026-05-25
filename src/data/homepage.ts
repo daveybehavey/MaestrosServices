@@ -35,6 +35,24 @@ export const homepageTrustProof = [
   "Serving homeowners across Shawnigan, Cowichan, and Greater Victoria.",
 ] as const;
 
+export const homepageTrustMoments = [
+  {
+    title: "Straight answer on fit",
+    detail:
+      "If a smaller fix, different service, or another trade makes more sense, we say that early instead of padding the job.",
+  },
+  {
+    title: "Fast quote path",
+    detail:
+      "Texting photos, your area, and timing is usually enough for us to confirm the practical next step quickly.",
+  },
+  {
+    title: "Proof without oversharing",
+    detail:
+      "We only publish approved photos and use privacy-safe scope examples when homeowners prefer not to share property images publicly.",
+  },
+] as const;
+
 export const homepageTrustSignals = [
   {
     title: "Clear scope before work starts",
