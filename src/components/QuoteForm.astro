@@ -30,12 +30,13 @@ const showErrorState = error === "1";
         <div class="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-sage/25"></div>
         <div class="relative space-y-4">
         <p class="section-kicker">Get a free quote</p>
-        <h2 class="section-title">Request service in under a minute.</h2>
+        <h2 class="section-title">Tell us the job, area, and timing.</h2>
         <p class="text-sm text-ink-soft">
-          Fill out the form and we usually reply within 1 hour during work hours. For the
-          fastest quote, call or text {business.phone} first.
+          Fill out the form and we usually reply within 1 hour during work hours. If it is a fit,
+          we will confirm the practical next step, timing, and quote approach. For the fastest
+          quote, call or text {business.phone} first.
         </p>
-        <p class="text-xs uppercase tracking-[0.25em] text-ink-soft">Takes about 30 seconds</p>
+        <p class="text-xs uppercase tracking-[0.25em] text-ink-soft">No obligation. Takes about 30 seconds.</p>
         <div class="rounded-2xl border border-border bg-paper/70 p-6 text-sm text-ink-soft">
           <p class="font-semibold text-ink">Book-now offers this week</p>
           <ul class="mt-2 space-y-1">
@@ -46,18 +47,22 @@ const showErrorState = error === "1";
           </ul>
         </div>
         <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
-          <p class="font-semibold text-ink">Same-day quotes available</p>
-          <p>Call {business.phone} or text photos for the fastest response.</p>
+          <p class="font-semibold text-ink">What happens after you submit</p>
+          <ul class="mt-2 space-y-1">
+            <li>- We review the job details and area</li>
+            <li>- We reply by your preferred contact method</li>
+            <li>- We let you know if photos or a quick call will speed things up</li>
+          </ul>
           <a
-            class="mt-2 inline-flex rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink hover:border-ink"
+            class="mt-3 inline-flex rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink hover:border-ink"
             href={business.smsHref}
             data-ga-event="cta_click"
             data-ga-label="quote_form_info_text_photos"
           >
             Text photos for a quote
           </a>
-          <p class="mt-4 font-semibold text-ink">Email quotes</p>
-          <p>We aim to reply within 1 hour during work hours.</p>
+          <p class="mt-4 font-semibold text-ink">Prefer email?</p>
+          <p>We can reply there too, but text or call is usually faster for same-day movement.</p>
           <a
             class="mt-1 inline-block underline decoration-ink/30"
             href={`mailto:${business.email}`}
@@ -286,8 +291,9 @@ const showErrorState = error === "1";
       <p class="font-semibold text-ink">What to send for a fast quote</p>
       <ul class="mt-2 space-y-1">
         <li>- Your area or neighborhood</li>
-        <li>- Service needed (fence, rock work, mulch, power wash, or other)</li>
+        <li>- Service needed (fence, rock work, mulch, power wash, cleanup, or other)</li>
         <li>- Preferred timing (this week, next week, or flexible)</li>
+        <li>- Photos if the area is hard to describe</li>
       </ul>
     </div>
 

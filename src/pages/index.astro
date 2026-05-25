@@ -54,6 +54,13 @@ const galleryItems = [
   },
 ];
 
+const heroServiceLinks = [
+  { label: "Power washing", href: "/services/power-washing" },
+  { label: "Mulch refresh", href: "/services/garden-bed-maintenance" },
+  { label: "Fence work", href: "/services/fence-work-minor-repairs" },
+  { label: "Driveway grading", href: "/services/driveway-grading-repair" },
+];
+
 const featuredAreaLinks = locations.slice(0, 12).map((location) => ({
     name: location.name,
     href: `/areas/${location.slug}`,
@@ -87,13 +94,23 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
         </div>
         <p class="section-kicker">Owner-operated across lower-mid Vancouver Island</p>
         <h1 class="max-w-3xl text-[2.15rem] font-display leading-[0.95] tracking-tight text-balance sm:text-5xl lg:text-7xl">
-          Cleaner yards, sharper edges, and fast residential quotes.
+          Owner-operated landscaping for cleaner yards, sharper edges, and faster quotes.
         </h1>
         <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
           Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby communities.
-          We handle routine maintenance and fast one-time resets. Call or text first for the fastest quote.
-          We usually reply within 1 hour during work hours.
+          We help homeowners with power washing, mulch refreshes, fence work, cleanups, and driveway resets.
+          Call or text first for the fastest quote. We usually reply within 1 hour during work hours.
         </p>
+        <div class="flex flex-wrap gap-2 text-[0.72rem] font-medium text-ink-soft sm:text-xs">
+          {heroServiceLinks.map((item) => (
+            <a
+              href={item.href}
+              class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none transition hover:border-ink/25 hover:text-ink"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
         <div class="mb-6 sm:mb-8 flex flex-col items-start gap-1 sm:gap-2">
           <p class="text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for a fast residential quote</p>
           <a
@@ -156,8 +173,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
                 <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Typical reply window</p>
               </div>
               <div class="rounded-2xl border border-border bg-paper/75 p-4">
-                <p class="text-3xl font-display leading-none">300</p>
-                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Localized service pages</p>
+                <p class="text-3xl font-display leading-none">Local</p>
+                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Owner-operated and residential</p>
               </div>
             </div>
             <div class="rounded-2xl border border-border bg-white/88 p-5 text-sm">
@@ -191,7 +208,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
         <ul class="mt-4 space-y-2 text-sm text-ink-soft">
           <li class="flex gap-3">
             <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-            Clear communication and on-time arrivals.
+            Clear communication, on-time arrivals, and a tidy finish.
           </li>
           <li class="flex gap-3">
             <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
@@ -206,7 +223,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           <p class="font-semibold text-ink">What to send for a fast quote</p>
           <ul class="mt-2 space-y-1">
             <li>- Your area or neighborhood</li>
-            <li>- The service needed (fence, rock work, mulch, or power wash)</li>
+            <li>- The service needed and a couple of photos if you have them</li>
             <li>- When you want it done</li>
           </ul>
         </div>
@@ -257,6 +274,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
                 decoding="async"
+                sizes="(min-width: 1024px) 31vw, (min-width: 640px) 48vw, 100vw"
               />
             </div>
             <div class="p-5">
@@ -496,6 +514,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
                 height="256"
                 class="mx-auto h-56 w-auto max-w-full rounded-xl object-contain sm:h-64"
                 loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1024px) 26rem, 100vw"
               />
             </picture>
           </div>

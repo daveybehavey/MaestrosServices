@@ -172,6 +172,111 @@ Photo idea:
 
 - gate latch, cleaned fence line, repaired panel, or a simple tool/work detail shot
 
+## Week 4: June 15-21, 2026
+
+### Post 1: Summer Cleanup Openings
+
+Ready-to-post caption:
+
+We are booking a few residential cleanup and curb-appeal jobs this week across Shawnigan Lake, Mill Bay, Duncan, Langford, Saanich, and nearby areas.
+
+Best-fit work right now includes overgrown edges, mulch top-ups, power washing, small fence fixes, and general property resets before summer gets busy.
+
+If you want a fast quote, send your area, the service needed, your ideal timing, and a couple of photos if you have them.
+
+CTA:
+Call or text for a quick quote.
+
+Photo idea:
+
+- clean front-yard finish, edge detail, truck setup, or approved before/after
+
+### Post 2: Mulch Refresh Before Summer Heat
+
+Ready-to-post caption:
+
+If your garden beds are looking thin, faded, or messy, a mulch refresh can make the whole front yard feel cleaner fast.
+
+Fresh mulch helps the beds look finished, slows weed pressure, and helps hold moisture through warmer weather. We can also tidy the edges and clean up the bed first so the result looks intentional instead of just topped up.
+
+CTA:
+Text photos of your beds for a quick quote.
+
+Photo idea:
+
+- bark mulch close-up, fresh edge line, or tidy planting bed
+
+### Post 3: Reviews Help Small Local Businesses
+
+Ready-to-post caption:
+
+If we have helped with your yard, cleanup, driveway, fence, mulch, or power washing, a quick review really helps.
+
+It helps other local homeowners feel more confident reaching out, and it makes a real difference for a small owner-operated business.
+
+You can leave a review here:
+https://maestrosservices.com/review
+
+CTA:
+Leave a quick review.
+
+Photo idea:
+
+- review QR image, business card, truck detail, or clean finished job photo
+
+## Week 5: June 22-28, 2026
+
+### Post 1: Driveway Trouble Signs
+
+Ready-to-post caption:
+
+If your gravel driveway has ruts, soft spots, puddles, or rough washboarding, it may be time for grading, fresh gravel, or a practical reset.
+
+We look at the surface and condition first so we can recommend the next step that makes sense instead of guessing.
+
+CTA:
+Send a photo and your area for a quick quote.
+
+Photo idea:
+
+- rutted gravel, smoother reset section, or driveway edge detail
+
+### Post 2: Fence Problems That Start Small
+
+Ready-to-post caption:
+
+Dragging gates, loose hardware, leaning sections, and fence-line overgrowth can all make a property feel less cared for than it really is.
+
+We handle practical residential fence fixes and cleanup work, and we can usually tell pretty quickly whether the job looks like a simple repair or something bigger.
+
+CTA:
+Text photos for a quick fence quote.
+
+Photo idea:
+
+- repaired gate, cleaned fence line, latch close-up, or post detail
+
+### Post 3: What To Send For A Fast Quote
+
+Ready-to-post caption:
+
+Want the fastest response from us?
+
+The easiest way is to send:
+- your area
+- the service you need
+- when you want it done
+- a couple of photos if the job is easier to show than explain
+
+That gives us enough to point you in the right direction quickly.
+
+CTA:
+Text photos for a quote.
+
+Photo idea:
+
+- phone screenshot mockup, truck/tools detail, or simple branded service photo
+
 ## Simple Posting Formula
 
 Use this structure when creating new GBP posts:

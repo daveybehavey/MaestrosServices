@@ -107,6 +107,8 @@ function formatDate(date: Date): string {
               alt={post.data.imageAlt || post.data.title}
               class="w-full object-cover"
               loading="eager"
+              decoding="async"
+              sizes="(min-width: 768px) 48rem, 100vw"
             />
           </div>
         )
