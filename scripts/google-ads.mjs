@@ -5,6 +5,11 @@ const rootDir = process.cwd();
 const envPath = path.join(rootDir, ".env.local");
 const command = process.argv[2] ?? "smoke";
 const todayStamp = new Date().toISOString().slice(0, 10);
+const plusDaysStamp = (days) => {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
 
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) return;
@@ -695,6 +700,49 @@ const addTrustAssetsToCampaign = async (accessToken, campaignId) => {
   return attached;
 };
 
+const updateCampaignBudgetAndWindow = async (accessToken, campaignId, dailyBudgetCad, endDate) => {
+  const campaignRow = await firstResult(
+    accessToken,
+    [
+      "SELECT campaign.resource_name, campaign.id, campaign_budget.resource_name, campaign_budget.amount_micros",
+      "FROM campaign",
+      `WHERE campaign.id = ${campaignId}`,
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  const campaignResourceName = campaignRow?.campaign?.resourceName;
+  const budgetResourceName = campaignRow?.campaignBudget?.resourceName;
+  if (!campaignResourceName || !budgetResourceName) {
+    throw new Error(`Could not find campaign or campaign budget for campaign ${campaignId}.`);
+  }
+
+  const amountMicros = String(Math.round(dailyBudgetCad * 1_000_000));
+  const formattedEndDate = endDate.replace(/-/g, "");
+
+  return mutate(accessToken, [
+    {
+      campaignBudgetOperation: {
+        update: {
+          resourceName: budgetResourceName,
+          amountMicros,
+        },
+        updateMask: "amount_micros",
+      },
+    },
+    {
+      campaignOperation: {
+        update: {
+          resourceName: campaignResourceName,
+          endDate: formattedEndDate,
+          status: "ENABLED",
+        },
+        updateMask: "end_date,status",
+      },
+    },
+  ]);
+};
+
 const listConversionActions = async (accessToken) => {
   const rows = await runSearch(
     accessToken,
@@ -868,6 +916,28 @@ const main = async () => {
     }
     const result = await addTrustAssetsToCampaign(accessToken, campaignId);
     console.log(`Attached ${result.length} trust assets to campaign ${campaignId}`);
+    return;
+  }
+
+  if (command === "launch-weekly-test") {
+    const campaignId = process.argv[3];
+    const budgetArg = process.argv[4] ?? "5";
+    if (!campaignId) {
+      throw new Error(
+        "Provide a campaign ID, e.g. npm run ads:launch-weekly-test -- 23882682845 5"
+      );
+    }
+    const dailyBudgetCad = Number(budgetArg);
+    if (!Number.isFinite(dailyBudgetCad) || dailyBudgetCad <= 0) {
+      throw new Error("Daily budget must be a positive number in CAD.");
+    }
+    const endDate = plusDaysStamp(7);
+    await updateCampaignBudgetAndWindow(accessToken, campaignId, dailyBudgetCad, endDate);
+    console.log(
+      `Campaign ${campaignId} enabled with CAD $${dailyBudgetCad.toFixed(
+        2
+      )}/day and end date ${endDate}.`
+    );
     return;
   }
 
