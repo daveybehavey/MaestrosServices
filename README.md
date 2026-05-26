@@ -93,6 +93,7 @@ Other options:
 ```sh
 npm run ads:customers
 npm run ads:campaigns
+npm run ads:create:power-washing
 ```
 
 Expected environment values:

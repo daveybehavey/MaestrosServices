@@ -4,6 +4,7 @@ import path from "node:path";
 const rootDir = process.cwd();
 const envPath = path.join(rootDir, ".env.local");
 const command = process.argv[2] ?? "smoke";
+const todayStamp = new Date().toISOString().slice(0, 10);
 
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) return;
@@ -92,6 +93,21 @@ const googleAdsApi = async (endpoint, accessToken, options = {}) => {
   return response.json();
 };
 
+const mutate = async (accessToken, operations) => {
+  if (!customerId) {
+    throw new Error("GOOGLE_ADS_CUSTOMER_ID is required for mutate operations.");
+  }
+
+  return googleAdsApi(`v22/customers/${customerId}/googleAds:mutate`, accessToken, {
+    method: "POST",
+    body: {
+      mutateOperations: operations,
+      partialFailure: false,
+      validateOnly: false,
+    },
+  });
+};
+
 const listAccessibleCustomers = async (accessToken) => {
   const result = await googleAdsApi("v22/customers:listAccessibleCustomers", accessToken, {
     method: "GET",
@@ -113,6 +129,269 @@ const runSearch = async (accessToken, query) => {
 };
 
 const formatCustomerResource = (resourceName) => resourceName.split("/").pop() ?? resourceName;
+
+const firstResult = async (accessToken, query) => {
+  const rows = await runSearch(accessToken, query);
+  return rows[0] ?? null;
+};
+
+const createPowerWashingSearchCampaign = async (accessToken) => {
+  if (!customerId) {
+    throw new Error("GOOGLE_ADS_CUSTOMER_ID is required to create a campaign.");
+  }
+
+  const campaignLabel = `Search | Power Washing | Core | ${todayStamp}`;
+  const existingCampaign = await firstResult(
+    accessToken,
+    [
+      "SELECT campaign.resource_name, campaign.id, campaign.name",
+      "FROM campaign",
+      `WHERE campaign.name = '${campaignLabel}'`,
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  let budgetResourceName = null;
+  let campaignResourceName = existingCampaign?.campaign?.resourceName ?? null;
+
+  if (!campaignResourceName) {
+    const budgetResult = await mutate(accessToken, [
+      {
+        campaignBudgetOperation: {
+          create: {
+            name: `${campaignLabel} | Budget`,
+            amountMicros: "20000000",
+            deliveryMethod: "STANDARD",
+            explicitlyShared: false,
+          },
+        },
+      },
+    ]);
+
+    budgetResourceName =
+      budgetResult.mutateOperationResponses?.[0]?.campaignBudgetResult?.resourceName ?? null;
+    if (!budgetResourceName) {
+      throw new Error("Failed to create campaign budget.");
+    }
+
+    const campaignResult = await mutate(accessToken, [
+      {
+        campaignOperation: {
+          create: {
+            name: campaignLabel,
+            status: "PAUSED",
+            advertisingChannelType: "SEARCH",
+            containsEuPoliticalAdvertising: "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+            campaignBudget: budgetResourceName,
+            manualCpc: {},
+            networkSettings: {
+              targetGoogleSearch: true,
+              targetSearchNetwork: false,
+              targetContentNetwork: false,
+              targetPartnerSearchNetwork: false,
+            },
+            geoTargetTypeSetting: {
+              positiveGeoTargetType: "PRESENCE",
+              negativeGeoTargetType: "PRESENCE",
+            },
+            startDate: todayStamp.replace(/-/g, ""),
+          },
+        },
+      },
+    ]);
+
+    campaignResourceName =
+      campaignResult.mutateOperationResponses?.[0]?.campaignResult?.resourceName ?? null;
+    if (!campaignResourceName) {
+      throw new Error("Failed to create campaign.");
+    }
+  }
+
+  const geoTargets = [
+    "geoTargetConstants/1001973", // Victoria, BC
+    "geoTargetConstants/9105154", // Saanich, BC
+    "geoTargetConstants/1001955", // Shawnigan Lake, BC
+    "geoTargetConstants/1001925", // Mill Bay, BC
+    "geoTargetConstants/1001893", // Duncan, BC
+    "geoTargetConstants/9219967", // Chemainus, BC
+  ];
+
+  if (!existingCampaign) {
+    await mutate(
+      accessToken,
+      geoTargets.map((geoTargetConstant) => ({
+        campaignCriterionOperation: {
+          create: {
+            campaign: campaignResourceName,
+            location: { geoTargetConstant },
+          },
+        },
+      }))
+    );
+  }
+
+  const negativeKeywords = [
+    "jobs",
+    "job",
+    "career",
+    "careers",
+    "salary",
+    "washer",
+    "pressure washer",
+    "power washer",
+    "rent",
+    "rental",
+    "home depot",
+    "lowes",
+    "equipment",
+    "parts",
+    "how to",
+    "diy",
+  ];
+
+  if (!existingCampaign) {
+    await mutate(
+      accessToken,
+      negativeKeywords.map((text) => ({
+        campaignCriterionOperation: {
+          create: {
+            campaign: campaignResourceName,
+            negative: true,
+            keyword: {
+              text,
+              matchType: "BROAD",
+            },
+          },
+        },
+      }))
+    );
+  }
+
+  const adGroupLabel = `${campaignLabel} | Main`;
+  const existingAdGroup = await firstResult(
+    accessToken,
+    [
+      "SELECT ad_group.resource_name, ad_group.id, ad_group.name",
+      "FROM ad_group",
+      `WHERE ad_group.name = '${adGroupLabel}'`,
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  let adGroupResourceName = existingAdGroup?.adGroup?.resourceName ?? null;
+  if (!adGroupResourceName) {
+    const adGroupResult = await mutate(accessToken, [
+      {
+        adGroupOperation: {
+          create: {
+            campaign: campaignResourceName,
+            name: adGroupLabel,
+            status: "ENABLED",
+            type: "SEARCH_STANDARD",
+            cpcBidMicros: "2500000",
+          },
+        },
+      },
+    ]);
+
+    adGroupResourceName =
+      adGroupResult.mutateOperationResponses?.[0]?.adGroupResult?.resourceName ?? null;
+    if (!adGroupResourceName) {
+      throw new Error("Failed to create ad group.");
+    }
+  }
+
+  const keywords = [
+    { text: "power washing", matchType: "PHRASE" },
+    { text: "pressure washing", matchType: "PHRASE" },
+    { text: "power washing near me", matchType: "PHRASE" },
+    { text: "pressure washing near me", matchType: "PHRASE" },
+    { text: "deck cleaning service", matchType: "PHRASE" },
+    { text: "patio cleaning service", matchType: "PHRASE" },
+    { text: "driveway cleaning service", matchType: "PHRASE" },
+    { text: "power washing victoria", matchType: "EXACT" },
+    { text: "pressure washing saanich", matchType: "EXACT" },
+    { text: "deck cleaning victoria", matchType: "EXACT" },
+    { text: "power washing", matchType: "EXACT" },
+    { text: "pressure washing", matchType: "EXACT" },
+  ];
+
+  if (!existingAdGroup) {
+    await mutate(
+      accessToken,
+      keywords.map(({ text, matchType }) => ({
+        adGroupCriterionOperation: {
+          create: {
+            adGroup: adGroupResourceName,
+            status: "ENABLED",
+            keyword: { text, matchType },
+          },
+        },
+      }))
+    );
+  }
+
+  const headlines = [
+    "Power Washing Near You",
+    "Driveways, Decks and Patios",
+    "Fast, Honest Local Quotes",
+    "Pressure Washing in Victoria",
+    "Deck and Patio Cleaning",
+    "Owner Replies Directly",
+    "Low-Pressure Quote Process",
+    "Cleaner Exterior Surfaces",
+    "Book Local Power Washing",
+    "Driveway Cleaning Quotes",
+  ];
+
+  const descriptions = [
+    "Owner replies directly with low-pressure quotes for driveways, patios and decks.",
+    "Send details or photos for clear next steps on power washing and deck cleaning.",
+    "Local residential power washing with honest quoting and tidy finished results.",
+    "Book driveway, patio or deck cleaning with a straightforward local team.",
+  ];
+
+  const existingAd = await firstResult(
+    accessToken,
+    [
+      "SELECT ad_group_ad.ad.id, ad_group_ad.resource_name",
+      "FROM ad_group_ad",
+      `WHERE ad_group.id = ${adGroupResourceName.split("/").pop()}`,
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  let adResourceName = existingAd?.adGroupAd?.resourceName ?? null;
+  if (!adResourceName) {
+    const adResult = await mutate(accessToken, [
+      {
+        adGroupAdOperation: {
+          create: {
+            adGroup: adGroupResourceName,
+            status: "PAUSED",
+            ad: {
+              finalUrls: ["https://maestrosservices.com/services/power-washing/"],
+              responsiveSearchAd: {
+                headlines: headlines.map((text) => ({ text })),
+                descriptions: descriptions.map((text) => ({ text })),
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    adResourceName =
+      adResult.mutateOperationResponses?.[0]?.adGroupAdResult?.resourceName ?? null;
+  }
+
+  return {
+    budgetResourceName,
+    campaignResourceName,
+    adGroupResourceName,
+    adResourceName,
+  };
+};
 
 const main = async () => {
   const accessToken = await getAccessToken();
@@ -147,6 +426,13 @@ const main = async () => {
         `- ${row.campaign?.id}: ${row.campaign?.name} [${row.campaign?.status}] (${row.campaign?.advertisingChannelType})`
       );
     }
+    return;
+  }
+
+  if (command === "create-power-washing-search") {
+    const result = await createPowerWashingSearchCampaign(accessToken);
+    console.log("Created paused power washing Search campaign:");
+    console.log(JSON.stringify(result, null, 2));
     return;
   }
 
