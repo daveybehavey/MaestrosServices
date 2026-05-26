@@ -489,6 +489,119 @@ const addSitelinksToCampaign = async (accessToken, campaignId) => {
   return createdAssets;
 };
 
+const listConversionActions = async (accessToken) => {
+  const rows = await runSearch(
+    accessToken,
+    [
+      "SELECT",
+      "  conversion_action.id,",
+      "  conversion_action.name,",
+      "  conversion_action.status,",
+      "  conversion_action.type,",
+      "  conversion_action.category,",
+      "  conversion_action.primary_for_goal,",
+      "  conversion_action.resource_name",
+      "FROM conversion_action",
+      "ORDER BY conversion_action.id DESC",
+      "LIMIT 50",
+    ].join("\n")
+  );
+
+  return rows.map((row) => row.conversionAction).filter(Boolean);
+};
+
+const findConversionActionByName = async (accessToken, name) =>
+  firstResult(
+    accessToken,
+    [
+      "SELECT",
+      "  conversion_action.id,",
+      "  conversion_action.name,",
+      "  conversion_action.status,",
+      "  conversion_action.type,",
+      "  conversion_action.category,",
+      "  conversion_action.primary_for_goal,",
+      "  conversion_action.resource_name",
+      "FROM conversion_action",
+      `WHERE conversion_action.name = '${name.replace(/'/g, "\\'")}'`,
+      "LIMIT 1",
+    ].join("\n")
+  ).then((row) => row?.conversionAction ?? null);
+
+const createWebsiteConversions = async (accessToken) => {
+  const desiredActions = [
+    {
+      name: "Website Quote Submit",
+      category: "SUBMIT_LEAD_FORM",
+      primaryForGoal: true,
+      valueSettings: {
+        defaultValue: 1,
+        alwaysUseDefaultValue: true,
+      },
+    },
+    {
+      name: "Website Phone Click",
+      category: "CONTACT",
+      primaryForGoal: false,
+      valueSettings: {
+        defaultValue: 0.5,
+        alwaysUseDefaultValue: true,
+      },
+    },
+    {
+      name: "Website SMS Click",
+      category: "CONTACT",
+      primaryForGoal: false,
+      valueSettings: {
+        defaultValue: 0.5,
+        alwaysUseDefaultValue: true,
+      },
+    },
+  ];
+
+  const createdOrExisting = [];
+
+  for (const desiredAction of desiredActions) {
+    const existing = await findConversionActionByName(accessToken, desiredAction.name);
+    if (existing) {
+      createdOrExisting.push(existing);
+      continue;
+    }
+
+    const result = await mutate(accessToken, [
+      {
+        conversionActionOperation: {
+          create: {
+            name: desiredAction.name,
+            status: "ENABLED",
+            type: "WEBPAGE",
+            category: desiredAction.category,
+            primaryForGoal: desiredAction.primaryForGoal,
+            countingType: "ONE_PER_CLICK",
+            clickThroughLookbackWindowDays: 30,
+            valueSettings: desiredAction.valueSettings,
+          },
+        },
+      },
+    ]);
+
+    const resourceName =
+      result.mutateOperationResponses?.[0]?.conversionActionResult?.resourceName ?? null;
+
+    if (!resourceName) {
+      throw new Error(`Failed to create conversion action ${desiredAction.name}.`);
+    }
+
+    const created = await findConversionActionByName(accessToken, desiredAction.name);
+    if (!created) {
+      throw new Error(`Created conversion action ${desiredAction.name}, but could not re-query it.`);
+    }
+    createdOrExisting.push(created);
+  }
+
+  return createdOrExisting;
+};
+
 const main = async () => {
   const accessToken = await getAccessToken();
 
@@ -539,6 +652,28 @@ const main = async () => {
     }
     const result = await addSitelinksToCampaign(accessToken, campaignId);
     console.log(`Attached ${result.length} sitelink assets to campaign ${campaignId}`);
+    return;
+  }
+
+  if (command === "conversions") {
+    const conversions = await listConversionActions(accessToken);
+    console.log(`Conversion actions for customer ${customerId}:`);
+    for (const conversion of conversions) {
+      console.log(
+        `- ${conversion.id}: ${conversion.name} [${conversion.status}] (${conversion.type}/${conversion.category}) primary=${conversion.primaryForGoal}`
+      );
+    }
+    return;
+  }
+
+  if (command === "create-website-conversions") {
+    const conversions = await createWebsiteConversions(accessToken);
+    console.log("Ensured website conversion actions exist:");
+    for (const conversion of conversions) {
+      console.log(
+        `- ${conversion.id}: ${conversion.name} [${conversion.status}] (${conversion.type}/${conversion.category}) primary=${conversion.primaryForGoal}`
+      );
+    }
     return;
   }
 
