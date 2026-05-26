@@ -71,6 +71,38 @@ npm run reporting:gsc
 
 Reports are written to `qa-reports/` as JSON for later review.
 
+## Google Business Profile API
+
+If `.env.local` contains a Google Business Profile refresh token with the GBP scope, you can inspect accounts and publish posts locally:
+
+```sh
+npm run gbp:accounts
+```
+
+Other options:
+
+```sh
+npm run gbp:locations
+npm run gbp:create-post -- "Post summary" "https://maestrosservices.com/quote" "https://example.com/image.png"
+```
+
+Expected environment values:
+
+- `GOOGLE_GBP_OAUTH_REFRESH_TOKEN`
+- `GOOGLE_GBP_ACCOUNT_NAME`
+- `GOOGLE_GBP_LOCATION_NAME`
+
+Optional overrides:
+
+- `GOOGLE_GBP_OAUTH_CLIENT_ID`
+- `GOOGLE_GBP_OAUTH_CLIENT_SECRET`
+
+If you reuse the general Google OAuth app, the GBP script will fall back to `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`, but the refresh token still needs the Google Business Profile scope:
+
+```text
+https://www.googleapis.com/auth/business.manage
+```
+
 ## Google Tags
 
 The site supports both GA4 and Google Ads tags through environment variables:
