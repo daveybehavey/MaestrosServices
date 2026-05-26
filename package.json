@@ -16,6 +16,7 @@
     "ads:customers": "node scripts/google-ads.mjs customers",
     "ads:campaigns": "node scripts/google-ads.mjs campaigns",
     "ads:create:power-washing": "node scripts/google-ads.mjs create-power-washing-search",
+    "ads:add:sitelinks": "node scripts/google-ads.mjs add-sitelinks",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile http://127.0.0.1:4325",
     "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325"
   },

@@ -393,6 +393,102 @@ const createPowerWashingSearchCampaign = async (accessToken) => {
   };
 };
 
+const addSitelinksToCampaign = async (accessToken, campaignId) => {
+  const campaignResourceName = `customers/${customerId}/campaigns/${campaignId}`;
+  const sitelinks = [
+    {
+      linkText: "Get a Quote",
+      finalUrls: ["https://maestrosservices.com/quote/"],
+      description1: "Send details or photos",
+      description2: "Owner replies directly",
+    },
+    {
+      linkText: "Power Washing",
+      finalUrls: ["https://maestrosservices.com/services/power-washing/"],
+      description1: "Driveways patios decks",
+      description2: "Practical local quotes",
+    },
+    {
+      linkText: "Gravel Driveways",
+      finalUrls: ["https://maestrosservices.com/services/gravel-driveway-installation/"],
+      description1: "Repairs grading refreshes",
+      description2: "Help for ruts and puddles",
+    },
+    {
+      linkText: "Read Reviews",
+      finalUrls: ["https://maestrosservices.com/review/"],
+      description1: "Check Google reviews first",
+      description2: "Low-pressure local service",
+    },
+  ];
+
+  const createdAssets = [];
+  for (const sitelink of sitelinks) {
+    const existingAsset = await firstResult(
+      accessToken,
+      [
+        "SELECT asset.resource_name, asset.id, asset.sitelink_asset.link_text",
+        "FROM asset",
+        `WHERE asset.sitelink_asset.link_text = '${sitelink.linkText}'`,
+        "LIMIT 1",
+      ].join("\n")
+    );
+
+    let assetResourceName = existingAsset?.asset?.resourceName ?? null;
+    if (!assetResourceName) {
+      const assetResult = await mutate(accessToken, [
+        {
+          assetOperation: {
+            create: {
+              finalUrls: sitelink.finalUrls,
+              sitelinkAsset: {
+                linkText: sitelink.linkText,
+                description1: sitelink.description1,
+                description2: sitelink.description2,
+              },
+            },
+          },
+        },
+      ]);
+
+      assetResourceName = assetResult.mutateOperationResponses?.[0]?.assetResult?.resourceName ?? null;
+    }
+
+    if (!assetResourceName) {
+      throw new Error(`Failed to create or locate sitelink asset: ${sitelink.linkText}`);
+    }
+
+    const existingCampaignAsset = await firstResult(
+      accessToken,
+      [
+        "SELECT campaign_asset.asset, campaign_asset.field_type, campaign_asset.resource_name",
+        "FROM campaign_asset",
+        `WHERE campaign_asset.campaign = '${campaignResourceName}'`,
+        `AND campaign_asset.asset = '${assetResourceName}'`,
+        "LIMIT 1",
+      ].join("\n")
+    );
+
+    if (!existingCampaignAsset) {
+      await mutate(accessToken, [
+        {
+          campaignAssetOperation: {
+            create: {
+              campaign: campaignResourceName,
+              asset: assetResourceName,
+              fieldType: "SITELINK",
+            },
+          },
+        },
+      ]);
+    }
+
+    createdAssets.push(assetResourceName);
+  }
+
+  return createdAssets;
+};
+
 const main = async () => {
   const accessToken = await getAccessToken();
 
@@ -433,6 +529,16 @@ const main = async () => {
     const result = await createPowerWashingSearchCampaign(accessToken);
     console.log("Created paused power washing Search campaign:");
     console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (command === "add-sitelinks") {
+    const campaignId = process.argv[3];
+    if (!campaignId) {
+      throw new Error("Provide a campaign ID, e.g. npm run ads:add:sitelinks -- 23882682845");
+    }
+    const result = await addSitelinksToCampaign(accessToken, campaignId);
+    console.log(`Attached ${result.length} sitelink assets to campaign ${campaignId}`);
     return;
   }
 
