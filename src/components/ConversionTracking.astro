@@ -9,6 +9,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
         if (!window.gtag) return;
 
         var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
+        var adsConversions = window.__MS_GOOGLE_ADS_CONVERSIONS__ || {};
         var context = function () {
           return {
             page_group: analyticsContext.pageGroup || "site",
@@ -19,6 +20,13 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
 
         var send = function (eventName, params) {
           window.gtag("event", eventName, Object.assign(context(), params || {}));
+        };
+
+        var sendAdsConversion = function (label) {
+          if (!label) return;
+          window.gtag("event", "conversion", {
+            send_to: label,
+          });
         };
 
         document.addEventListener("click", function (event) {
@@ -42,11 +50,13 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
               event_category: "lead",
               event_label: link.getAttribute("data-ga-label") || "phone_link",
             });
+            sendAdsConversion(adsConversions.phone);
           } else if (href.indexOf("sms:") === 0) {
             send("sms_click", {
               event_category: "lead",
               event_label: link.getAttribute("data-ga-label") || "sms_link",
             });
+            sendAdsConversion(adsConversions.sms);
           } else if (href.indexOf("mailto:") === 0) {
             send("email_click", {
               event_category: "lead",

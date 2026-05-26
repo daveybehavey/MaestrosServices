@@ -77,6 +77,9 @@ The site supports both GA4 and Google Ads tags through environment variables:
 
 - `PUBLIC_GA_ID`
 - `PUBLIC_GOOGLE_ADS_ID`
+- `PUBLIC_GOOGLE_ADS_QUOTE_LABEL`
+- `PUBLIC_GOOGLE_ADS_PHONE_LABEL`
+- `PUBLIC_GOOGLE_ADS_SMS_LABEL`
 
 If both are present, the shared `gtag.js` loader is injected once and configured for both properties.
 

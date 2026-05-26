@@ -459,6 +459,12 @@ const showErrorState = error === "1";
           utm_medium: attribution.utm_medium || "(not set)",
           utm_campaign: attribution.utm_campaign || "(not set)",
         });
+        var adsConversions = window.__MS_GOOGLE_ADS_CONVERSIONS__ || {};
+        if (adsConversions.quote) {
+          window.gtag("event", "conversion", {
+            send_to: adsConversions.quote,
+          });
+        }
         window.sessionStorage.setItem(eventKey, "1");
       };
 
