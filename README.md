@@ -99,6 +99,7 @@ npm run ads:campaigns
 npm run ads:conversions
 npm run ads:create:website-conversions
 npm run ads:create:power-washing
+npm run ads:add:trust-assets -- 23882682845
 ```
 
 Expected environment values:

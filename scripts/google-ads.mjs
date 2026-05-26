@@ -385,6 +385,77 @@ const createPowerWashingSearchCampaign = async (accessToken) => {
       adResult.mutateOperationResponses?.[0]?.adGroupAdResult?.resourceName ?? null;
   }
 
+  const trustVariantQuery = await firstResult(
+    accessToken,
+    [
+      "SELECT ad_group_ad.resource_name, ad_group_ad.ad.id",
+      "FROM ad_group_ad",
+      `WHERE ad_group.id = ${adGroupResourceName.split("/").pop()}`,
+      "AND ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD",
+      "ORDER BY ad_group_ad.ad.id DESC",
+      "LIMIT 2",
+    ].join("\n")
+  );
+
+  if (trustVariantQuery && existingAd) {
+    const adRows = await runSearch(
+      accessToken,
+      [
+        "SELECT ad_group_ad.resource_name, ad_group_ad.ad.id",
+        "FROM ad_group_ad",
+        `WHERE ad_group.id = ${adGroupResourceName.split("/").pop()}`,
+        "AND ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD",
+      ].join("\n")
+    );
+
+    if (adRows.length < 2) {
+      const trustHeadlines = [
+        "Power Washing Quotes Fast",
+        "Owner Replies Directly",
+        "Text Photos for a Quote",
+        "Driveway and Patio Cleaning",
+        "Pressure Washing Near You",
+        "Low-Pressure Local Service",
+        "Deck Cleaning in Victoria",
+        "Patio Cleaning in Saanich",
+        "Cleaner Exteriors, Less Hassle",
+        "Book Local Power Washing",
+      ];
+
+      const trustDescriptions = [
+        "Send details or photos for a clear next step from the owner, not a call center.",
+        "Low-pressure residential power washing for driveways, decks, patios and more.",
+        "If the job is not the right fit, we will say so early and point you the right way.",
+        "Fast local quotes for power washing and deck cleaning across lower-mid Vancouver Island.",
+      ];
+
+      const trustAdResult = await mutate(accessToken, [
+        {
+          adGroupAdOperation: {
+            create: {
+              adGroup: adGroupResourceName,
+              status: "PAUSED",
+              ad: {
+                finalUrls: ["https://maestrosservices.com/services/power-washing/"],
+                responsiveSearchAd: {
+                  headlines: trustHeadlines.map((text) => ({ text })),
+                  descriptions: trustDescriptions.map((text) => ({ text })),
+                },
+              },
+            },
+          },
+        },
+      ]);
+
+      const trustAdResourceName =
+        trustAdResult.mutateOperationResponses?.[0]?.adGroupAdResult?.resourceName ?? null;
+
+      if (trustAdResourceName) {
+        adResourceName = `${adResourceName},${trustAdResourceName}`;
+      }
+    }
+  }
+
   return {
     budgetResourceName,
     campaignResourceName,
@@ -487,6 +558,141 @@ const addSitelinksToCampaign = async (accessToken, campaignId) => {
   }
 
   return createdAssets;
+};
+
+const ensureCallAssetForBusiness = async (accessToken) => {
+  const existingCallAsset = await firstResult(
+    accessToken,
+    [
+      "SELECT asset.resource_name, asset.id, asset.type, asset.call_asset.country_code, asset.call_asset.phone_number",
+      "FROM asset",
+      "WHERE asset.type = CALL",
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  if (existingCallAsset?.asset?.resourceName) {
+    return existingCallAsset.asset.resourceName;
+  }
+
+  const result = await mutate(accessToken, [
+    {
+      assetOperation: {
+        create: {
+          callAsset: {
+            countryCode: "CA",
+            phoneNumber: "(250) 858-1781",
+            callConversionAction: `customers/${customerId}/conversionActions/7625124937`,
+          },
+        },
+      },
+    },
+  ]);
+
+  const resourceName = result.mutateOperationResponses?.[0]?.assetResult?.resourceName ?? null;
+  if (!resourceName) {
+    throw new Error("Failed to create call asset.");
+  }
+  return resourceName;
+};
+
+const ensureCalloutAsset = async (accessToken, calloutText) => {
+  const existingAsset = await firstResult(
+    accessToken,
+    [
+      "SELECT asset.resource_name, asset.id, asset.type, asset.callout_asset.callout_text",
+      "FROM asset",
+      `WHERE asset.callout_asset.callout_text = '${calloutText.replace(/'/g, "\\'")}'`,
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  if (existingAsset?.asset?.resourceName) {
+    return existingAsset.asset.resourceName;
+  }
+
+  const result = await mutate(accessToken, [
+    {
+      assetOperation: {
+        create: {
+          calloutAsset: {
+            calloutText,
+          },
+        },
+      },
+    },
+  ]);
+
+  const resourceName = result.mutateOperationResponses?.[0]?.assetResult?.resourceName ?? null;
+  if (!resourceName) {
+    throw new Error(`Failed to create callout asset: ${calloutText}`);
+  }
+  return resourceName;
+};
+
+const ensureCampaignAsset = async (accessToken, campaignResourceName, assetResourceName, fieldType) => {
+  const existingCampaignAsset = await firstResult(
+    accessToken,
+    [
+      "SELECT campaign.id, campaign_asset.asset, campaign_asset.field_type, campaign_asset.resource_name",
+      "FROM campaign_asset",
+      `WHERE campaign_asset.campaign = '${campaignResourceName}'`,
+      `AND campaign_asset.asset = '${assetResourceName}'`,
+      `AND campaign_asset.field_type = ${fieldType}`,
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  if (existingCampaignAsset) {
+    return existingCampaignAsset.campaignAsset.resourceName;
+  }
+
+  const result = await mutate(accessToken, [
+    {
+      campaignAssetOperation: {
+        create: {
+          campaign: campaignResourceName,
+          asset: assetResourceName,
+          fieldType,
+        },
+      },
+    },
+  ]);
+
+  return result.mutateOperationResponses?.[0]?.campaignAssetResult?.resourceName ?? null;
+};
+
+const addTrustAssetsToCampaign = async (accessToken, campaignId) => {
+  const campaignResourceName = `customers/${customerId}/campaigns/${campaignId}`;
+  const callAssetResourceName = await ensureCallAssetForBusiness(accessToken);
+  const calloutTexts = [
+    "Owner Replies Directly",
+    "Low-Pressure Quotes",
+    "Text Photos for a Quote",
+    "Vancouver Island Local",
+  ];
+
+  const attached = [];
+  const callAssetAttachment = await ensureCampaignAsset(
+    accessToken,
+    campaignResourceName,
+    callAssetResourceName,
+    "CALL"
+  );
+  if (callAssetAttachment) attached.push(callAssetAttachment);
+
+  for (const calloutText of calloutTexts) {
+    const assetResourceName = await ensureCalloutAsset(accessToken, calloutText);
+    const attachment = await ensureCampaignAsset(
+      accessToken,
+      campaignResourceName,
+      assetResourceName,
+      "CALLOUT"
+    );
+    if (attachment) attached.push(attachment);
+  }
+
+  return attached;
 };
 
 const listConversionActions = async (accessToken) => {
@@ -652,6 +858,16 @@ const main = async () => {
     }
     const result = await addSitelinksToCampaign(accessToken, campaignId);
     console.log(`Attached ${result.length} sitelink assets to campaign ${campaignId}`);
+    return;
+  }
+
+  if (command === "add-trust-assets") {
+    const campaignId = process.argv[3];
+    if (!campaignId) {
+      throw new Error("Provide a campaign ID, e.g. npm run ads:add:trust-assets -- 23882682845");
+    }
+    const result = await addTrustAssetsToCampaign(accessToken, campaignId);
+    console.log(`Attached ${result.length} trust assets to campaign ${campaignId}`);
     return;
   }
 

@@ -19,6 +19,7 @@
     "ads:create:website-conversions": "node scripts/google-ads.mjs create-website-conversions",
     "ads:create:power-washing": "node scripts/google-ads.mjs create-power-washing-search",
     "ads:add:sitelinks": "node scripts/google-ads.mjs add-sitelinks",
+    "ads:add:trust-assets": "node scripts/google-ads.mjs add-trust-assets",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile http://127.0.0.1:4325",
     "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325"
   },
