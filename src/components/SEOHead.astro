@@ -36,6 +36,8 @@ const {
 
 const fullOgImage = ogImage.startsWith("http") ? ogImage : `${business.siteUrl}${ogImage}`;
 const gaId = import.meta.env.PUBLIC_GA_ID;
+const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID;
+const primaryGoogleTagId = gaId || googleAdsId;
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
 
@@ -213,9 +215,9 @@ const structuredDataArray = structuredData
 
 <!-- Google Analytics -->
 {
-  gaId && (
+  primaryGoogleTagId && (
     <>
-      <script is:inline define:vars={{ gaId, analyticsContext }}>
+      <script is:inline define:vars={{ gaId, googleAdsId, primaryGoogleTagId, analyticsContext }}>
         window.dataLayer = window.dataLayer || [];
         window.gtag = function gtag() {
           dataLayer.push(arguments);
@@ -227,7 +229,7 @@ const structuredDataArray = structuredData
           gaLoaded = true;
           var script = document.createElement("script");
           script.async = true;
-          script.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=" + primaryGoogleTagId;
           document.head.appendChild(script);
         };
 
@@ -246,10 +248,15 @@ const structuredDataArray = structuredData
 
         gtag("js", new Date());
         window.__MS_ANALYTICS_CONTEXT__ = analyticsContext;
-        gtag("config", gaId, {
-          anonymize_ip: true,
-          send_page_view: false,
-        });
+        if (gaId) {
+          gtag("config", gaId, {
+            anonymize_ip: true,
+            send_page_view: false,
+          });
+        }
+        if (googleAdsId) {
+          gtag("config", googleAdsId);
+        }
         gtag("event", "page_view", {
           page_title: document.title,
           page_location: window.location.href,

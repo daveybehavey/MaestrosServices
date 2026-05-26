@@ -12,6 +12,9 @@
     "reporting:summary": "node scripts/google-reporting.mjs summary",
     "reporting:ga4": "node scripts/google-reporting.mjs ga4",
     "reporting:gsc": "node scripts/google-reporting.mjs gsc",
+    "ads:smoke": "node scripts/google-ads.mjs smoke",
+    "ads:customers": "node scripts/google-ads.mjs customers",
+    "ads:campaigns": "node scripts/google-ads.mjs campaigns",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile http://127.0.0.1:4325",
     "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325"
   },

@@ -71,6 +71,41 @@ npm run reporting:gsc
 
 Reports are written to `qa-reports/` as JSON for later review.
 
+## Google Tags
+
+The site supports both GA4 and Google Ads tags through environment variables:
+
+- `PUBLIC_GA_ID`
+- `PUBLIC_GOOGLE_ADS_ID`
+
+If both are present, the shared `gtag.js` loader is injected once and configured for both properties.
+
+## Google Ads API
+
+If `.env.local` contains the Google Ads API values, you can verify account access locally:
+
+```sh
+npm run ads:smoke
+```
+
+Other options:
+
+```sh
+npm run ads:customers
+npm run ads:campaigns
+```
+
+Expected environment values:
+
+- `GOOGLE_ADS_DEVELOPER_TOKEN`
+- `GOOGLE_ADS_CUSTOMER_ID`
+- `GOOGLE_ADS_LOGIN_CUSTOMER_ID`
+- `GOOGLE_ADS_OAUTH_CLIENT_ID`
+- `GOOGLE_ADS_OAUTH_CLIENT_SECRET`
+- `GOOGLE_ADS_OAUTH_REFRESH_TOKEN`
+
+If you reuse the general Google OAuth app, the ads script will fall back to `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and `GOOGLE_OAUTH_REFRESH_TOKEN`, but the refresh token still needs the Google Ads scope: `https://www.googleapis.com/auth/adwords`.
+
 ## Content Model
 
 Most site content is generated from the files below:
