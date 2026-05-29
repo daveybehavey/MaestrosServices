@@ -28,16 +28,13 @@ const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
       <div
         class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90 sm:h-12 sm:w-12"
       >
-        <picture>
-          <source srcset="/logo.png?v=2" type="image/png" />
-          <img
-            src="/logo.png?v=2"
-            alt={`${business.name} logo`}
-            class="h-7 w-7 sm:h-8 sm:w-8"
-            width="32"
-            height="32"
-          />
-        </picture>
+        <img
+          src="/logo.webp?v=2"
+          alt={`${business.name} logo`}
+          class="h-7 w-7 sm:h-8 sm:w-8"
+          width="32"
+          height="32"
+        />
       </div>
       <div class="min-w-0 leading-none">
         <p class="truncate text-base font-display sm:text-lg">{business.name}</p>

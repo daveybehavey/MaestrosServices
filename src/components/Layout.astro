@@ -31,6 +31,14 @@ interface Props {
     pageType?: string;
     pageTemplate?: string;
   };
+  preloadImages?: Array<{
+    href: string;
+    as?: "image" | "style" | "script" | "font";
+    type?: string;
+    media?: string;
+    imagesrcset?: string;
+    imagesizes?: string;
+  }>;
 }
 
 const {
@@ -48,6 +56,7 @@ const {
   headerSubtitle,
   quoteHref = "/#quote",
   analytics,
+  preloadImages,
 } = Astro.props;
 ---
 
@@ -63,6 +72,7 @@ const {
       noindex={noindex}
       structuredData={structuredData}
       analytics={analytics}
+      preloadImages={preloadImages}
     />
   </head>
   <body>
