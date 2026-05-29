@@ -5,6 +5,11 @@ interface Props {
   title: string;
   description: string;
   canonicalUrl?: string;
+  preloadImages?: Array<{
+    href: string;
+    type?: string;
+    media?: string;
+  }>;
   ogImage?: string;
   ogType?: "website" | "article";
   article?: {
@@ -26,6 +31,7 @@ const {
   title,
   description,
   canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`,
+  preloadImages = [],
   ogImage = business.socialImage,
   ogType = "website",
   article,
@@ -152,6 +158,12 @@ const structuredDataArray = structuredData
     : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
 />
 <link rel="canonical" href={canonicalUrl} />
+
+{
+  preloadImages.map((image) => (
+    <link rel="preload" as="image" href={image.href} type={image.type} media={image.media} />
+  ))
+}
 
 <!-- Open Graph -->
 <meta property="og:title" content={title} />

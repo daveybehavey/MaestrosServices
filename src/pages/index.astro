@@ -1,20 +1,15 @@
 ---
 import Layout from "../components/Layout.astro";
 import QuoteForm from "../components/QuoteForm.astro";
-import PropertyResetExamples from "../components/PropertyResetExamples.astro";
 import { business } from "../data/business";
 import {
   homepageFaqs,
-  homepageOutcomeHighlights,
-  homepagePackages,
   homepageServiceAreas,
   homepageServiceHighlights,
   homepageTrustMoments,
   homepageTrustProof,
-  homepageTrustSignals,
 } from "../data/homepage";
 import { locations } from "../data/locations";
-import { projectProfiles } from "../data/projects";
 import { services as serviceCatalog } from "../data/services";
 import {
   createFAQSchema,
@@ -24,9 +19,9 @@ import {
   createWebsiteSchema,
 } from "../lib/schema";
 
-const pageTitle = "Maestros Services | Landscaping Services on Vancouver Island";
+const pageTitle = "Maestros Services | Landscaping & Exterior Cleanup on Vancouver Island";
 const metaDescription =
-  "Maestros Services provides reliable landscaping services across lower-mid Vancouver Island, including fence work, rock work, mulching, power washing, driveway grading, gravel driveway work, and property improvement projects.";
+  "Owner-operated landscaping, power washing, driveway work, fence repairs, and cleanups across lower-mid Vancouver Island. Direct replies and low-pressure quotes.";
 const canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`;
 
 const structuredData = [
@@ -37,35 +32,55 @@ const structuredData = [
   ...serviceCatalog.map((service) => createServiceSchema(service)),
 ];
 
+const heroImage = "/garden.webp";
+
+const featuredServiceSlugs = [
+  "power-washing",
+  "garden-bed-maintenance",
+  "fence-work-minor-repairs",
+  "driveway-grading",
+] as const;
+
+const featuredServices = featuredServiceSlugs.flatMap((slug) =>
+  serviceCatalog.filter((service) => service.slug === slug),
+);
+
 const galleryItems = [
   {
-    label: "Fresh edging and mowing",
-    image: "/lawn.webp",
-    alt: "Freshly edged lawn with clean borders",
-  },
-  {
-    label: "Seasonal cleanup complete",
-    image: "/cleanup.webp",
-    alt: "Yard after seasonal cleanup",
-  },
-  {
+    kind: "image",
     label: "Garden bed refresh",
     image: "/garden.webp",
-    alt: "Garden bed with fresh mulch and plants",
+    alt: "Well-kept front garden with clean edges and mulch",
+    detail: "Sharper bed lines and a cleaner front-yard finish.",
   },
-];
-
-const heroServiceLinks = [
-  { label: "Power washing", href: "/services/power-washing" },
-  { label: "Mulch refresh", href: "/services/garden-bed-maintenance" },
-  { label: "Fence work", href: "/services/fence-work-minor-repairs" },
-  { label: "Driveway grading", href: "/services/driveway-grading-repair" },
-];
+  {
+    kind: "image",
+    label: "Seasonal cleanup",
+    image: "/cleanup.webp",
+    alt: "Leaf cleanup with a rake and tidy lawn",
+    detail: "A practical reset before weather changes or guests arrive.",
+  },
+  {
+    kind: "image",
+    label: "Clean lawn detail",
+    image: "/lawn.webp",
+    alt: "Clean lawn edge with mulched planting area",
+    detail: "A tidy edge and a finish that reads well from the street.",
+  },
+  {
+    kind: "cta",
+    label: "Need a quick quote?",
+    detail:
+      "Send a couple of photos, your area, and timing. We will reply with the practical next step.",
+    ctaHref: "#quote",
+  },
+] as const;
 
 const featuredAreaLinks = locations.slice(0, 12).map((location) => ({
-    name: location.name,
-    href: `/areas/${location.slug}`,
-  }));
+  name: location.name,
+  href: `/areas/${location.slug}`,
+}));
+
 const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0);
 ---
 
@@ -75,217 +90,212 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
   canonicalUrl={canonicalUrl}
   structuredData={structuredData}
   quoteHref="#quote"
+  headerVariant="simple"
+  showMobileCTA={false}
+  showDesktopCTA={false}
+  preloadImages={[
+    {
+      href: heroImage,
+      type: "image/webp",
+    },
+  ]}
   analytics={{
     pageGroup: "homepage",
     pageType: "home",
     pageTemplate: "home",
   }}
 >
-  <section class="section flex items-start pt-4 pb-4 sm:min-h-screen sm:items-center sm:pt-8 sm:pb-8 lg:pt-10 lg:pb-10">
-    <div class="hero-shell mx-auto grid w-[calc(100%-2.5rem)] max-w-6xl gap-4 px-5 py-7 sm:w-[calc(100%-3rem)] sm:px-8 sm:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:px-10 lg:py-12">
-      <div class="relative z-10 space-y-3 sm:space-y-5 animate-rise" style="animation-delay: 50ms">
-        <div class="mb-3 sm:mb-6 flex items-center gap-3 sm:gap-4">
-          <div class="rounded-full border border-ink/10 bg-white/80 p-2 shadow-fine">
-            <img src="/logo.png?v=2" alt="Maestros Services lotus logo" class="h-10 w-10 sm:h-14 sm:w-14" width="64" height="64" />
+  <section class="relative isolate min-h-[100svh] overflow-hidden">
+    <div class="absolute inset-0">
+      <img
+        src={heroImage}
+        alt="Clean front yard with fresh landscaping and neat garden beds"
+        class="h-full w-full object-cover object-[center_34%] lg:object-center"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <div class="absolute inset-0 bg-gradient-to-br from-ink/70 via-ink/35 to-ink/10"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1),transparent_38%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.08),transparent_36%),linear-gradient(180deg,transparent,rgba(0,0,0,0.18))]"></div>
+    </div>
+
+    <div class="relative mx-auto flex min-h-[100svh] max-w-6xl items-end px-4 pb-5 pt-24 sm:px-6 sm:pb-10 lg:items-center lg:px-8 lg:py-10">
+      <div class="max-w-2xl animate-rise">
+        <div class="rounded-[2rem] border border-white/25 bg-white/82 p-6 shadow-soft backdrop-blur-xl sm:p-8 lg:p-10">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="rounded-full border border-ink/10 bg-white/90 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.3em] text-ink-soft">
+              Owner-operated across lower-mid Vancouver Island
+            </div>
+            <div class="rounded-full border border-ink/10 bg-white/90 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.3em] text-ink-soft">
+              Residential only
+            </div>
           </div>
-          <div class="leading-none">
-            <p class="text-xl font-display font-semibold text-ink sm:text-3xl">Maestros Services</p>
-            <p class="mt-1 text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Landscaping Services</p>
+          <p class="mt-4 text-[0.68rem] font-medium uppercase tracking-[0.28em] text-ink-soft">
+            Call or text for the fastest response
+          </p>
+          <h1 class="mt-4 max-w-xl text-[2.3rem] font-display leading-[0.95] tracking-tight text-ink text-balance sm:text-5xl lg:text-6xl">
+            Landscaping and exterior cleanup that makes your property feel cared for.
+          </h1>
+          <p class="mt-4 max-w-xl text-base leading-7 text-ink-soft sm:text-lg">
+            Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby communities.
+            Send a photo, your area, and timing, and we will reply with the practical next step.
+          </p>
+          <div class="mt-5 flex flex-wrap gap-2 text-[0.72rem] font-medium text-ink-soft sm:text-xs">
+            {homepageTrustProof.map((item) => (
+              <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none shadow-[0_1px_0_rgba(0,0,0,0.03)]">
+                {item}
+              </span>
+            ))}
           </div>
-        </div>
-        <p class="section-kicker">Owner-operated across lower-mid Vancouver Island</p>
-        <h1 class="max-w-3xl text-[2.15rem] font-display leading-[0.95] tracking-tight text-balance sm:text-5xl lg:text-7xl">
-          Owner-operated landscaping for cleaner yards, sharper edges, and faster quotes.
-        </h1>
-        <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
-          Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby communities.
-          We help homeowners with power washing, mulch refreshes, fence work, cleanups, and driveway resets.
-          Call or text first for the fastest quote. We usually reply within 1 hour during work hours.
-        </p>
-        <div class="flex flex-wrap gap-2 text-[0.72rem] font-medium text-ink-soft sm:text-xs">
-          {heroServiceLinks.map((item) => (
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
-              href={item.href}
-              class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none transition hover:border-ink/25 hover:text-ink"
+              class="btn-primary w-full px-6 py-3 text-center shadow-fine sm:w-auto sm:px-8 sm:py-4"
+              href={`tel:${business.phoneTel}`}
+              data-ga-event="cta_click"
+              data-ga-label="hero_call_text"
             >
-              {item.label}
+              Call or text now
             </a>
-          ))}
-        </div>
-        <div class="mb-6 sm:mb-8 flex flex-col items-start gap-1 sm:gap-2">
-          <p class="text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for a fast residential quote</p>
-          <a
-            class="text-xl font-display font-semibold text-ink hover:text-ink/70 sm:text-3xl lg:text-4xl"
-            href={`tel:${business.phoneTel}`}
-            data-ga-event="cta_click"
-            data-ga-label="hero_phone_primary"
-          >
-            {business.phone}
-          </a>
-        </div>
-        <div class="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">
-          <a
-            class="btn-primary w-full px-6 py-3 text-center shadow-fine sm:w-auto sm:px-8 sm:py-4"
-            href={`tel:${business.phoneTel}`}
-            data-ga-event="cta_click"
-            data-ga-label="hero_call_text"
-          >
-            Call or text now
-          </a>
-          <a
-            class="btn-secondary w-full px-6 py-3 text-center sm:w-auto sm:px-8 sm:py-4"
-            href={business.smsHref}
-            data-ga-event="cta_click"
-            data-ga-label="hero_text_photos"
-          >
-            Text photos
-          </a>
-          <a
-            class="btn-secondary w-full px-6 py-3 text-center sm:w-auto sm:px-8 sm:py-4"
-            href="#quote"
-            data-ga-event="cta_click"
-            data-ga-label="hero_get_quote"
-          >
-            Get a free quote
-          </a>
-        </div>
-        <div class="flex flex-wrap justify-center gap-2 text-[0.68rem] font-medium text-ink-soft sm:justify-start sm:text-xs">
-          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">Owner-operated</span>
-          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">Reply within 1 hour</span>
-          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">Residential only</span>
-        </div>
-        <div id="hero-sentinel" class="h-1"></div>
-      </div>
-      <div class="relative z-10 hidden animate-rise xl:block" style="animation-delay: 150ms">
-        <div class="glass relative overflow-hidden rounded-[2rem] border border-white/60 p-5 shadow-soft">
-          <div class="absolute right-6 top-6 h-24 w-24 rounded-full border border-ink/10 bg-sage/30"></div>
-          <div class="absolute bottom-8 right-16 h-40 w-40 rounded-full border border-ink/10 bg-clay/15"></div>
-          <div class="relative space-y-5">
-            <div class="rounded-2xl border border-border/80 bg-white/88 p-5">
-              <p class="section-kicker">This week</p>
-              <h2 class="mt-2 text-3xl">Fast-turn curb appeal work</h2>
-              <p class="mt-3 text-sm text-ink-soft">
-                Text a few photos, your area, and timing. We will confirm the practical next step.
-              </p>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="rounded-2xl border border-border bg-paper/75 p-4">
-                <p class="text-3xl font-display leading-none">1 hr</p>
-                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Typical reply window</p>
-              </div>
-              <div class="rounded-2xl border border-border bg-paper/75 p-4">
-                <p class="text-3xl font-display leading-none">Local</p>
-                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Owner-operated and residential</p>
-              </div>
-            </div>
-            <div class="rounded-2xl border border-border bg-white/88 p-5 text-sm">
-              <p class="font-semibold text-ink">Best-fit jobs right now</p>
-              <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-soft">
-                <span class="rounded-full border border-border bg-paper px-3 py-1">Fence refresh</span>
-                <span class="rounded-full border border-border bg-paper px-3 py-1">Rock work</span>
-                <span class="rounded-full border border-border bg-paper px-3 py-1">Power washing</span>
-                <span class="rounded-full border border-border bg-paper px-3 py-1">Mulch top-up</span>
-              </div>
-            </div>
             <a
-              class="btn-primary w-full px-6 py-3"
+              class="btn-secondary w-full px-6 py-3 text-center sm:w-auto sm:px-8 sm:py-4"
               href={business.smsHref}
               data-ga-event="cta_click"
-              data-ga-label="hero_snapshot_text_photos"
+              data-ga-label="hero_text_photos"
             >
-              Text photos for a quote
+              Text photos
+            </a>
+            <a
+              class="btn-secondary w-full px-6 py-3 text-center sm:w-auto sm:px-8 sm:py-4"
+              href="#quote"
+              data-ga-event="cta_click"
+              data-ga-label="hero_get_quote"
+            >
+              Get a quote
             </a>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section pt-2 sm:pt-0 lg:hidden">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
-        <p class="section-kicker">Quick service snapshot</p>
-        <h2 class="text-2xl">What you can expect</h2>
-        <ul class="mt-4 space-y-2 text-sm text-ink-soft">
-          <li class="flex gap-3">
-            <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-            Clear communication, on-time arrivals, and a tidy finish.
-          </li>
-          <li class="flex gap-3">
-            <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-            Reply within 1 hour during work hours.
-          </li>
-          <li class="flex gap-3">
-            <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-            Priority services this week: fences, rock work, mulching, and power washing.
-          </li>
-        </ul>
-        <div class="mt-4 rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
-          <p class="font-semibold text-ink">What to send for a fast quote</p>
-          <ul class="mt-2 space-y-1">
-            <li>- Your area or neighborhood</li>
-            <li>- The service needed and a couple of photos if you have them</li>
-            <li>- When you want it done</li>
-          </ul>
-        </div>
-        <div class="mt-4 rounded-xl border border-ink/10 bg-white/80 p-4 text-sm">
-          <p class="font-semibold text-ink">Local trust proof</p>
-          <ul class="mt-2 space-y-1 text-ink-soft">
-            {homepageTrustProof.map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
-        </div>
-        <a
-          class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
-          href="#quote"
-          data-ga-event="cta_click"
-          data-ga-label="snapshot_mobile_request_quote"
-        >
-          Request your quote
-          <span aria-hidden="true">-&gt;</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section class="section pt-2 sm:pt-0 content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/92 p-6 shadow-soft sm:p-8 lg:grid-cols-[0.9fr_1.1fr]">
-        <div class="space-y-3">
-          <p class="section-kicker">Why homeowners feel comfortable reaching out</p>
-          <h2 class="text-2xl font-display sm:text-3xl">Clear communication, practical scope, and real proof.</h2>
-          <p class="text-sm leading-7 text-ink-soft">
-            We do not rely on flashy promises. The goal is to make it easy to understand what fits,
-            what happens next, and why the finished result should feel worth it.
-          </p>
-          <div class="flex flex-wrap gap-2 text-xs text-ink-soft">
-            {homepageTrustProof.map((item) => (
-              <span class="rounded-full border border-border bg-paper px-3 py-1.5">{item}</span>
-            ))}
+          <div class="mt-5 flex flex-wrap gap-2 text-xs text-ink-soft">
+            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Power washing</span>
+            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Gravel driveways</span>
+            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Cleanup and mulch</span>
+            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fence work</span>
           </div>
         </div>
-        <div class="grid gap-4 sm:grid-cols-3">
-          {homepageTrustMoments.map((item) => (
-            <article class="rounded-2xl border border-border bg-paper/55 p-5">
-              <p class="text-base font-semibold text-ink">{item.title}</p>
-              <p class="mt-2 text-sm text-ink-soft">{item.detail}</p>
-            </article>
-          ))}
-        </div>
       </div>
     </div>
   </section>
 
-  <section class="section pt-2 sm:pt-0 content-auto">
+  <section class="section pt-6 sm:pt-10 content-auto">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/90 p-6 shadow-fine sm:p-8 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+      <div class="grid gap-4 md:grid-cols-3">
+        {homepageTrustMoments.map((item, index) => (
+          <article
+            class="rounded-[1.75rem] border border-border bg-white/92 p-6 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 70}ms`}
+          >
+            <p class="section-kicker">{item.title}</p>
+            <p class="mt-3 text-sm leading-7 text-ink-soft">{item.detail}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="services" class="section content-auto">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-8">
+        <div class="space-y-3">
+          <p class="section-kicker">Featured services</p>
+          <h2 class="section-title">The fastest-turn services we want more of.</h2>
+        </div>
+        <p class="section-copy max-w-md">
+          Tight, high-intent services that are easier to quote quickly and easier for homeowners to say yes to.
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {featuredServices.map((service, index) => (
+          <a
+            href={`/services/${service.slug}`}
+            class="lift-card group p-6 animate-rise"
+            style={`animation-delay: ${index * 60}ms`}
+          >
+            <div class="mb-5 flex items-center justify-between gap-4">
+              <span class="service-mark">{String(index + 1).padStart(2, "0")}</span>
+              <span class="h-px flex-1 bg-border"></span>
+            </div>
+            <p class="text-base font-semibold">{service.name}</p>
+            <p class="mt-2 text-sm leading-7 text-ink-soft">{service.description}</p>
+            <p class="mt-4 text-sm font-semibold text-ink group-hover:text-ink/70">View service -&gt;</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery" class="section content-auto">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-8">
+        <div class="space-y-3">
+          <p class="section-kicker">Recent work</p>
+          <h2 class="section-title">Swipe through a few examples of the finished look we aim for.</h2>
+        </div>
+        <p class="section-copy max-w-md">
+          Clean, simple, and permission-friendly. The point is proof, not noise.
+        </p>
+      </div>
+      <div class="gallery-rail -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+        {galleryItems.map((item, index) => (
+          <article
+            class="gallery-card group min-w-[82vw] snap-start overflow-hidden rounded-[1.75rem] border border-border bg-white/92 shadow-fine sm:min-w-[24rem] lg:min-w-[22rem] animate-rise"
+            style={`animation-delay: ${index * 70}ms`}
+          >
+            {"image" in item ? (
+              <>
+                <div class="relative aspect-[4/3] overflow-hidden bg-paper/80">
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="p-5">
+                  <p class="text-sm font-semibold text-ink">{item.label}</p>
+                  <p class="mt-2 text-sm leading-7 text-ink-soft">{item.detail}</p>
+                </div>
+              </>
+            ) : (
+              <div class="flex h-full min-h-[24rem] flex-col justify-between p-6 sm:p-7">
+                <div>
+                  <p class="section-kicker">Need a quick quote?</p>
+                  <h3 class="mt-3 text-2xl font-display text-ink">{item.label}</h3>
+                  <p class="mt-4 text-sm leading-7 text-ink-soft">{item.detail}</p>
+                </div>
+                <a
+                  class="btn-primary mt-6 w-full px-5 py-3 text-center sm:w-auto"
+                  href={item.ctaHref}
+                  data-ga-event="cta_click"
+                  data-ga-label="gallery_quote_prompt"
+                >
+                  Get a quote
+                </a>
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section content-auto">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/92 p-6 shadow-soft sm:p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <div class="space-y-3">
           <p class="section-kicker">Reviews and reputation</p>
           <h2 class="text-2xl font-display sm:text-3xl">Want to sanity-check us first?</h2>
           <p class="text-sm leading-7 text-ink-soft">
-            That is completely fair. You can read reviews, see the way we ask for feedback, and get a
-            feel for how we handle homeowner communication before you ever request a quote.
+            That is completely fair. You can read reviews, see the way we ask for feedback, and get a feel
+            for how we communicate before you ever request a quote.
           </p>
           <div class="flex flex-wrap gap-3">
             <a
@@ -308,7 +318,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             </a>
           </div>
         </div>
-        <div class="rounded-2xl border border-ink/10 bg-paper/70 p-5 sm:p-6">
+        <div class="rounded-[1.5rem] border border-ink/10 bg-paper/70 p-5 sm:p-6">
           <p class="text-xs uppercase tracking-[0.24em] text-ink-soft">What homeowners usually care about</p>
           <ul class="mt-4 space-y-3 text-sm text-ink-soft">
             <li class="flex gap-3">
@@ -332,237 +342,14 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
     </div>
   </section>
 
-  <section id="gallery" class="section content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-10">
-        <div class="space-y-3">
-          <p class="section-kicker">Service examples</p>
-          <h2 class="section-title">A few examples of the clean, finished look we aim for.</h2>
-        </div>
-        <p class="section-copy max-w-md">
-          We only share photos we have permission to use, with details kept general when needed.
-        </p>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {galleryItems.map((item, index) => (
-          <div
-            class="group overflow-hidden rounded-2xl border border-border bg-white/90 shadow-fine animate-rise"
-            style={`animation-delay: ${index * 80}ms`}
-          >
-            <div class="relative aspect-[4/3] overflow-hidden bg-paper/80">
-              <img
-                src={item.image}
-                alt={item.alt}
-                width="600"
-                height="450"
-                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 1024px) 31vw, (min-width: 640px) 48vw, 100vw"
-              />
-            </div>
-            <div class="p-5">
-              <p class="text-sm font-semibold text-ink">{item.label}</p>
-              <p class="mt-1 text-xs text-ink-soft">Shared with permission.</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section pt-2 sm:pt-0 content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-10">
-        <div class="space-y-3">
-          <p class="section-kicker">Project types</p>
-          <h2 class="section-title">Scope that goes beyond basic cleanup.</h2>
-        </div>
-        <a
-          class="text-sm font-semibold text-ink hover:text-ink/70"
-          href="/projects"
-          data-ga-event="cta_click"
-          data-ga-label="homepage_project_types"
-        >
-          See all project profiles -&gt;
-        </a>
-      </div>
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {projectProfiles.map((project, index) => (
-          <article
-            class="rounded-2xl border border-border bg-white/90 p-5 shadow-fine animate-rise"
-            style={`animation-delay: ${index * 70}ms`}
-          >
-            <p class="text-lg font-semibold">{project.title}</p>
-            <p class="mt-2 text-sm text-ink-soft">{project.summary}</p>
-            <div class="mt-4 flex flex-wrap gap-2">
-              {project.relatedServiceHrefs.slice(0, 2).map((related) => (
-                <a
-                  href={related.href}
-                  class="rounded-full border border-border bg-paper px-3 py-1 text-xs text-ink-soft transition hover:border-ink/30 hover:text-ink"
-                >
-                  {related.label}
-                </a>
-              ))}
-            </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section id="services" class="section content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-10">
-        <div class="space-y-3">
-          <p class="section-kicker">Services</p>
-          <h2 class="section-title">Everything your yard needs to look its best.</h2>
-        </div>
-        <p class="section-copy max-w-md">
-          We handle both recurring maintenance and larger exterior projects. That includes lawns, planting
-          areas, mulching, brush clearing, power washing, rock work, driveway grading, and gravel driveway upgrades.
-        </p>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {serviceCatalog.map((service, index) => (
-          <a
-            href={`/services/${service.slug}`}
-            class="lift-card group p-6 animate-rise"
-            style={`animation-delay: ${index * 60}ms`}
-          >
-            <div class="mb-5 flex items-center justify-between gap-4">
-              <span class="service-mark">{String(index + 1).padStart(2, "0")}</span>
-              <span class="h-px flex-1 bg-border"></span>
-            </div>
-            <p class="text-base font-semibold">{service.name}</p>
-            <p class="mt-2 text-sm text-ink-soft">{service.description}</p>
-            <p class="mt-3 text-sm font-semibold text-ink group-hover:text-ink/70">View service -&gt;</p>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section content-auto">
-    <div class="mx-auto grid max-w-6xl gap-8 px-5 sm:gap-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
-      <div class="space-y-4">
-        <p class="section-kicker">Book-now offers</p>
-        <h2 class="section-title">Fast bookings this week.</h2>
-        <p class="section-copy">
-          These are the fastest-turn services we are pushing right now to fill nearby routes.
-        </p>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2">
-        {homepagePackages.map((item, index) => (
-          <div class="rounded-2xl border border-border bg-white/85 p-6 animate-rise" style={`animation-delay: ${index * 80}ms`}>
-            <p class="text-lg font-semibold">{item.name}</p>
-            <p class="text-sm text-ink-soft">{item.description}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="grid gap-6 rounded-[2rem] border border-border bg-white/85 p-7 shadow-soft sm:gap-8 sm:p-9 lg:grid-cols-3 lg:p-10">
-        <div class="space-y-3">
-          <p class="section-kicker">How it works</p>
-          <h2 class="section-title text-2xl sm:text-3xl">A simple process from start to finish.</h2>
-        </div>
-        <div class="space-y-4">
-          <div class="rounded-xl border border-border bg-white/90 p-5 shadow-fine">
-            <p class="text-sm font-semibold">1. Reach out</p>
-            <p class="text-sm text-ink-soft">Call, text, or send the form with a few details.</p>
-          </div>
-          <div class="rounded-xl border border-border bg-white/90 p-5 shadow-fine">
-            <p class="text-sm font-semibold">2. Quick quote</p>
-            <p class="text-sm text-ink-soft">We confirm scope, timing, and a clear price.</p>
-          </div>
-          <div class="rounded-xl border border-border bg-white/90 p-5 shadow-fine">
-            <p class="text-sm font-semibold">3. We show up</p>
-            <p class="text-sm text-ink-soft">You get a tidy, cared-for yard you can relax in.</p>
-          </div>
-        </div>
-        <div class="grid-dots rounded-xl border border-ink/10 p-4 text-sm text-ink-soft">
-          <p class="font-semibold text-ink">Fast replies</p>
-          <p>We aim to reply within 1 hour during work hours.</p>
-          <p class="mt-3 font-semibold text-ink">Service area</p>
-          <p>Lower-mid Vancouver Island.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section pt-2 sm:pt-0 content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="mb-6 space-y-3 sm:mb-10">
-        <p class="section-kicker">Service standards</p>
-        <h2 class="section-title">What you can count on, even before photos or reviews.</h2>
-        <p class="section-copy max-w-3xl">
-          We keep the process transparent and consistent so you know exactly what to expect on every
-          visit.
-        </p>
-      </div>
-      <div class="grid gap-4 md:grid-cols-2">
-        {homepageTrustSignals.map((item, index) => (
-          <article
-            class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine animate-rise"
-            style={`animation-delay: ${index * 70}ms`}
-          >
-            <p class="text-base font-semibold text-ink">{item.title}</p>
-            <p class="mt-2 text-sm text-ink-soft">{item.detail}</p>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section pt-2 sm:pt-0 content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-10">
-        <div class="space-y-3">
-          <p class="section-kicker">Typical outcomes</p>
-          <h2 class="section-title">Results homeowners usually ask us to create.</h2>
-        </div>
-        <a
-          class="text-sm font-semibold text-ink hover:text-ink/70"
-          href="/quote"
-          data-ga-event="cta_click"
-          data-ga-label="outcomes_request_quote"
-        >
-          Request a quote -&gt;
-        </a>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {homepageOutcomeHighlights.map((item, index) => (
-          <article
-            class="rounded-2xl border border-border bg-white/90 p-5 shadow-fine animate-rise"
-            style={`animation-delay: ${index * 70}ms`}
-          >
-            <p class="text-base font-semibold text-ink">{item.title}</p>
-            <p class="mt-2 text-sm text-ink-soft">{item.detail}</p>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <PropertyResetExamples
-    eyebrow="Privacy-safe proof"
-    heading="Common property reset scopes we can quote without public photos."
-    intro="Photos help, but public galleries are not the only way to build confidence. These scope examples show the kind of problems, work, and outcomes homeowners ask us to handle."
-    limit={2}
-  />
-
   <section id="service-area" class="section content-auto">
-    <div class="mx-auto grid max-w-6xl gap-8 px-5 sm:gap-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <div class="mx-auto grid max-w-6xl gap-8 px-5 sm:gap-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
       <div class="space-y-4">
         <p class="section-kicker">Service area</p>
         <h2 class="section-title">Serving lower-mid Vancouver Island.</h2>
         <p class="section-copy">
-          Based near Shawnigan Lake and serving nearby communities across the lower-mid island. If you
-          are close by, ask and we will confirm availability.
+          Based near Shawnigan Lake and serving nearby communities across the lower-mid island. If you are close by, ask
+          and we will confirm availability.
         </p>
         <a class="text-sm font-semibold text-ink hover:text-ink/70" href="/service-area" data-ga-event="cta_click" data-ga-label="service_area_page">
           View full service area -&gt;
@@ -585,10 +372,10 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
         </div>
       </div>
       <div class="space-y-5">
-        <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
-          <p class="section-kicker">Service map</p>
+        <div class="rounded-[1.75rem] border border-border bg-white/92 p-6 shadow-fine">
+          <p class="section-kicker">Local map</p>
           <h3 class="text-xl sm:text-2xl">Lower-mid island service area</h3>
-          <div class="mt-5 flex items-center justify-center rounded-2xl border border-border bg-white p-6 text-ink/80">
+          <div class="mt-5 flex items-center justify-center rounded-[1.5rem] border border-border bg-white p-5 text-ink/80">
             <picture class="block w-full">
               <source srcset="/VIMAP.svg?v=2" type="image/svg+xml" />
               <img
@@ -603,15 +390,9 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
               />
             </picture>
           </div>
-          <div class="mt-4 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-ink-soft">
-            <span class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-ink/70"></span>
-              Lower-mid Vancouver Island
-            </span>
-          </div>
         </div>
-        <div class="glass rounded-2xl border border-border/70 p-7">
-          <p class="section-kicker">Get a same-day quote</p>
+        <div class="rounded-[1.75rem] border border-border bg-white/92 p-6 shadow-fine">
+          <p class="section-kicker">Fast quote path</p>
           <h3 class="text-2xl">Call or text for the fastest response.</h3>
           <div class="mt-5 space-y-3 text-sm">
             <a
@@ -637,100 +418,22 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
     </div>
   </section>
 
-  <section id="about" class="section content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="grid gap-6 rounded-2xl border border-border bg-white/90 p-7 sm:gap-8 sm:p-9 lg:grid-cols-[1.1fr_0.9fr] lg:p-10">
-        <div class="space-y-4">
-          <p class="section-kicker">About</p>
-          <h2 class="section-title">A local, owner-operated service built on pride in the details.</h2>
-          <p class="section-copy">
-            Maestros Services is a local, owner-operated landscaping service built on consistent care,
-            respectful communication, and clean finishes. We show up when we say we will and leave your
-            yard tidy.
-          </p>
-          <p class="section-copy">
-            We focus on residential clients and tailor each visit to the look and feel you want for your
-            outdoor space.
-          </p>
-        </div>
-        <div class="space-y-4">
-          <div class="rounded-2xl border border-ink/10 bg-white/90 p-6">
-            <p class="text-lg font-semibold">Service values</p>
-            <ul class="space-y-3 text-sm text-ink-soft">
-              <li class="flex gap-3">
-                <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-                Friendly communication and clear timelines.
-              </li>
-              <li class="flex gap-3">
-                <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-                Careful work that leaves the property tidy.
-              </li>
-              <li class="flex gap-3">
-                <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-                Flexible scheduling for ongoing or one-time visits.
-              </li>
-            </ul>
-          </div>
-          <div class="rounded-2xl border border-border bg-white/90 p-6 text-sm text-ink-soft">
-            <p class="font-semibold text-ink">Homeowner feedback</p>
-            <p class="mt-2">Most clients mention reliability, clean edges, and straightforward communication.</p>
-            <p class="mt-3">References are available on request.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <section id="faq" class="section content-auto">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="mb-6 space-y-3 sm:mb-10">
+      <div class="mb-6 space-y-3 sm:mb-8">
         <p class="section-kicker">FAQ</p>
         <h2 class="section-title">Common questions.</h2>
       </div>
       <div class="grid gap-4 lg:grid-cols-2">
         {homepageFaqs.map((faq, index) => (
           <div
-            class="rounded-2xl border border-border bg-white/90 p-6 animate-rise"
+            class="rounded-[1.5rem] border border-border bg-white/92 p-6 shadow-fine animate-rise"
             style={`animation-delay: ${index * 60}ms`}
           >
             <p class="text-base font-semibold">{faq.question}</p>
-            <p class="mt-2 text-sm text-ink-soft">{faq.answer}</p>
+            <p class="mt-2 text-sm leading-7 text-ink-soft">{faq.answer}</p>
           </div>
         ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section content-auto">
-    <div class="mx-auto max-w-6xl px-5 sm:px-6">
-      <div class="spotlight-band overflow-hidden rounded-[2rem] border border-ink/10 px-6 py-8 text-paper shadow-soft sm:px-8 sm:py-10">
-        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <p class="section-kicker text-paper/60">Ready to book</p>
-            <h2 class="text-3xl font-display sm:text-4xl">Tell us what your yard needs.</h2>
-            <p class="mt-3 text-sm text-paper/80">
-              Call or text first for the fastest quote. We aim to reply within 1 hour during work hours.
-            </p>
-          </div>
-          <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <a
-              class="btn-secondary border-paper/40 bg-paper px-8 py-4 text-ink hover:border-paper hover:bg-paper/90"
-              href={`tel:${business.phoneTel}`}
-              data-ga-event="cta_click"
-              data-ga-label="cta_band_call"
-            >
-              Call or text {business.phone}
-            </a>
-            <a
-              class="rounded-full border border-paper/40 px-6 py-3 text-sm font-semibold text-paper transition hover:border-paper"
-              href="#quote"
-              data-ga-event="cta_click"
-              data-ga-label="cta_band_get_quote"
-            >
-              Get my free quote
-            </a>
-          </div>
-        </div>
       </div>
     </div>
   </section>

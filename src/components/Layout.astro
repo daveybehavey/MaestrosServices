@@ -12,6 +12,11 @@ interface Props {
   description: string;
   canonicalUrl?: string;
   structuredData?: object | object[];
+  preloadImages?: Array<{
+    href: string;
+    type?: string;
+    media?: string;
+  }>;
   showMobileCTA?: boolean;
   showDesktopCTA?: boolean;
   ogImage?: string;
@@ -38,6 +43,7 @@ const {
   description,
   canonicalUrl,
   structuredData,
+  preloadImages,
   showMobileCTA = true,
   showDesktopCTA = true,
   ogImage,
@@ -57,6 +63,7 @@ const {
       title={title}
       description={description}
       canonicalUrl={canonicalUrl}
+      preloadImages={preloadImages}
       ogImage={ogImage}
       ogType={ogType}
       article={article}

@@ -200,6 +200,15 @@
     background-size: 18px 18px;
   }
 
+  .gallery-rail {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .gallery-rail::-webkit-scrollbar {
+    display: none;
+  }
+
   .content-auto {
     content-visibility: auto;
     contain-intrinsic-size: 1px 1000px;
