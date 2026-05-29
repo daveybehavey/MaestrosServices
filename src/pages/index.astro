@@ -24,9 +24,9 @@ import {
   createWebsiteSchema,
 } from "../lib/schema";
 
-const pageTitle = "Maestros Services | Landscaping, Power Washing & Driveway Work";
+const pageTitle = "Maestros Services | Landscaping Services on Vancouver Island";
 const metaDescription =
-  "Owner-operated landscaping and exterior cleaning across lower-mid Vancouver Island. Power washing, driveway grading, gravel driveways, mulch, fence work, and cleanup.";
+  "Maestros Services provides reliable landscaping services across lower-mid Vancouver Island, including fence work, rock work, mulching, power washing, driveway grading, gravel driveway work, and property improvement projects.";
 const canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`;
 
 const structuredData = [
@@ -37,46 +37,21 @@ const structuredData = [
   ...serviceCatalog.map((service) => createServiceSchema(service)),
 ];
 
-const heroMedia = {
-  desktopAvif: "/homepage/hero-desktop.avif",
-  desktopWebp: "/homepage/hero-desktop.webp",
-  mobileAvifCompact: "/homepage/hero-mobile.compact.avif",
-  mobileAvifNarrow: "/homepage/hero-mobile.narrow.avif",
-  mobileWebpCompact: "/homepage/hero-mobile.compact.webp",
-  mobileWebpNarrow: "/homepage/hero-mobile.narrow.webp",
-  alt: "Power washing a tidy residential driveway beside a landscaped front yard",
-};
-
 const galleryItems = [
-  {
-    label: "Power washing reset",
-    image: "/homepage/hero-desktop.webp",
-    alt: "Power washing a clean residential driveway beside tidy landscaping",
-    detail: "Sharper curb appeal for patios, driveways, and walkways.",
-  },
   {
     label: "Fresh edging and mowing",
     image: "/lawn.webp",
     alt: "Freshly edged lawn with clean borders",
-    detail: "Clean lines that make a yard feel maintained right away.",
   },
   {
     label: "Seasonal cleanup complete",
     image: "/cleanup.webp",
     alt: "Yard after seasonal cleanup",
-    detail: "Leaf, debris, and overgrowth cleanup without the mess.",
   },
   {
     label: "Garden bed refresh",
     image: "/garden.webp",
     alt: "Garden bed with fresh mulch and plants",
-    detail: "Mulch, edging, and bed touch-ups that brighten the front of the home.",
-  },
-  {
-    label: "Branded service snapshot",
-    image: "/homepage/brand-cover.webp",
-    alt: "Maestros Services branded landscaping and power washing cover image",
-    detail: "A quick visual of the work types and brand feel homeowners see online.",
   },
 ];
 
@@ -84,7 +59,7 @@ const heroServiceLinks = [
   { label: "Power washing", href: "/services/power-washing" },
   { label: "Mulch refresh", href: "/services/garden-bed-maintenance" },
   { label: "Fence work", href: "/services/fence-work-minor-repairs" },
-  { label: "Driveway grading", href: "/services/driveway-grading" },
+  { label: "Driveway grading", href: "/services/driveway-grading-repair" },
 ];
 
 const featuredAreaLinks = locations.slice(0, 12).map((location) => ({
@@ -105,51 +80,27 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
     pageType: "home",
     pageTemplate: "home",
   }}
-  preloadImages={[
-    {
-      href: heroMedia.mobileAvifCompact,
-      as: "image",
-      type: "image/avif",
-      media: "(max-width: 767px)",
-      imagesrcset: `${heroMedia.mobileAvifCompact} 480w, ${heroMedia.mobileAvifNarrow} 640w`,
-      imagesizes: "100vw",
-    },
-    {
-      href: heroMedia.desktopAvif,
-      as: "image",
-      type: "image/avif",
-      media: "(min-width: 768px)",
-    },
-  ]}
 >
   <section class="section flex items-start pt-4 pb-4 sm:min-h-screen sm:items-center sm:pt-8 sm:pb-8 lg:pt-10 lg:pb-10">
-    <div class="hero-shell mx-auto grid w-[calc(100%-2.5rem)] max-w-6xl gap-4 px-5 py-7 sm:w-[calc(100%-3rem)] sm:px-8 sm:py-10 lg:grid-cols-[1.04fr_0.96fr] lg:items-center lg:gap-8 lg:px-10 lg:py-12">
-      <div class="relative z-10 space-y-4 sm:space-y-5 animate-rise" style="animation-delay: 50ms">
-        <div class="mb-3 flex items-center gap-3 sm:mb-6 sm:gap-4">
+    <div class="hero-shell mx-auto grid w-[calc(100%-2.5rem)] max-w-6xl gap-4 px-5 py-7 sm:w-[calc(100%-3rem)] sm:px-8 sm:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:px-10 lg:py-12">
+      <div class="relative z-10 space-y-3 sm:space-y-5 animate-rise" style="animation-delay: 50ms">
+        <div class="mb-3 sm:mb-6 flex items-center gap-3 sm:gap-4">
           <div class="rounded-full border border-ink/10 bg-white/80 p-2 shadow-fine">
-            <img
-              src="/logo.webp?v=2"
-              alt="Maestros Services lotus logo"
-              class="h-10 w-10 sm:h-14 sm:w-14"
-              width="64"
-                height="64"
-            />
+            <img src="/logo.png?v=2" alt="Maestros Services lotus logo" class="h-10 w-10 sm:h-14 sm:w-14" width="64" height="64" />
           </div>
           <div class="leading-none">
             <p class="text-xl font-display font-semibold text-ink sm:text-3xl">Maestros Services</p>
-            <p class="mt-1 text-[0.65rem] uppercase tracking-[0.3em] text-ink-soft sm:text-xs">
-              Landscaping Services
-            </p>
+            <p class="mt-1 text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Landscaping Services</p>
           </div>
         </div>
         <p class="section-kicker">Owner-operated across lower-mid Vancouver Island</p>
-        <h1 class="max-w-3xl text-[2.15rem] font-display leading-[0.95] tracking-tight text-balance sm:text-5xl lg:text-6xl">
-          Landscaping and exterior cleaning for cleaner homes, sharper curb appeal, and faster quotes.
+        <h1 class="max-w-3xl text-[2.15rem] font-display leading-[0.95] tracking-tight text-balance sm:text-5xl lg:text-7xl">
+          Owner-operated landscaping for cleaner yards, sharper edges, and faster quotes.
         </h1>
         <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
-          Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby
-          communities. We help homeowners with power washing, driveway resets, cleanup, mulch refreshes,
-          fence work, and tidy property improvement. Call or text first for the fastest quote.
+          Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby communities.
+          We help homeowners with power washing, mulch refreshes, fence work, cleanups, and driveway resets.
+          Call or text first for the fastest quote. We usually reply within 1 hour during work hours.
         </p>
         <div class="flex flex-wrap gap-2 text-[0.72rem] font-medium text-ink-soft sm:text-xs">
           {heroServiceLinks.map((item) => (
@@ -161,7 +112,18 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             </a>
           ))}
         </div>
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <div class="mb-6 sm:mb-8 flex flex-col items-start gap-1 sm:gap-2">
+          <p class="text-[0.65rem] sm:text-xs uppercase tracking-[0.3em] text-ink-soft">Call or text for a fast residential quote</p>
+          <a
+            class="text-xl font-display font-semibold text-ink hover:text-ink/70 sm:text-3xl lg:text-4xl"
+            href={`tel:${business.phoneTel}`}
+            data-ga-event="cta_click"
+            data-ga-label="hero_phone_primary"
+          >
+            {business.phone}
+          </a>
+        </div>
+        <div class="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">
           <a
             class="btn-primary w-full px-6 py-3 text-center shadow-fine sm:w-auto sm:px-8 sm:py-4"
             href={`tel:${business.phoneTel}`}
@@ -187,62 +149,102 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             Get a free quote
           </a>
         </div>
-        <div class="flex flex-wrap gap-2 text-[0.68rem] font-medium text-ink-soft sm:text-xs">
-          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">
-            Owner-operated
-          </span>
-          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">
-            Fast replies during work hours
-          </span>
-          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">
-            Residential only
-          </span>
+        <div class="flex flex-wrap justify-center gap-2 text-[0.68rem] font-medium text-ink-soft sm:justify-start sm:text-xs">
+          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">Owner-operated</span>
+          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">Reply within 1 hour</span>
+          <span class="rounded-full border border-border bg-white/90 px-3 py-1.5 leading-none">Residential only</span>
         </div>
         <div id="hero-sentinel" class="h-1"></div>
       </div>
-      <div class="relative z-10 animate-rise" style="animation-delay: 150ms">
-        <div class="surface-card overflow-hidden p-2 sm:p-3">
-          <div class="relative overflow-hidden rounded-[1.5rem] border border-border bg-paper">
-            <picture>
-              <source media="(min-width: 768px)" type="image/avif" srcset={heroMedia.desktopAvif} />
-              <source media="(min-width: 768px)" type="image/webp" srcset={heroMedia.desktopWebp} />
-              <source
-                media="(max-width: 767px)"
-                type="image/avif"
-                srcset={`${heroMedia.mobileAvifCompact} 480w, ${heroMedia.mobileAvifNarrow} 640w`}
-                sizes="100vw"
-              />
-              <source
-                media="(max-width: 767px)"
-                type="image/webp"
-                srcset={`${heroMedia.mobileWebpCompact} 480w, ${heroMedia.mobileWebpNarrow} 640w`}
-                sizes="100vw"
-              />
-              <img
-                src={heroMedia.mobileWebpCompact}
-                alt={heroMedia.alt}
-                class="aspect-[4/5] h-full w-full object-cover md:aspect-[16/10]"
-                width="480"
-                height="750"
-                fetchpriority="high"
-                decoding="async"
-                sizes="(min-width: 768px) 48vw, 100vw"
-              />
-            </picture>
-            <div class="absolute inset-0 bg-gradient-to-t from-ink/35 via-transparent to-transparent"></div>
-            <div class="absolute inset-x-4 bottom-4 flex flex-wrap items-center gap-2">
-              <span class="rounded-full border border-white/35 bg-white/88 px-3 py-1 text-[0.68rem] font-medium text-ink">
-                Power washing
-              </span>
-              <span class="rounded-full border border-white/35 bg-white/88 px-3 py-1 text-[0.68rem] font-medium text-ink">
-                Driveway resets
-              </span>
-              <span class="rounded-full border border-white/35 bg-white/88 px-3 py-1 text-[0.68rem] font-medium text-ink">
-                Tidy finishes
-              </span>
+      <div class="relative z-10 hidden animate-rise xl:block" style="animation-delay: 150ms">
+        <div class="glass relative overflow-hidden rounded-[2rem] border border-white/60 p-5 shadow-soft">
+          <div class="absolute right-6 top-6 h-24 w-24 rounded-full border border-ink/10 bg-sage/30"></div>
+          <div class="absolute bottom-8 right-16 h-40 w-40 rounded-full border border-ink/10 bg-clay/15"></div>
+          <div class="relative space-y-5">
+            <div class="rounded-2xl border border-border/80 bg-white/88 p-5">
+              <p class="section-kicker">This week</p>
+              <h2 class="mt-2 text-3xl">Fast-turn curb appeal work</h2>
+              <p class="mt-3 text-sm text-ink-soft">
+                Text a few photos, your area, and timing. We will confirm the practical next step.
+              </p>
             </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-2xl border border-border bg-paper/75 p-4">
+                <p class="text-3xl font-display leading-none">1 hr</p>
+                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Typical reply window</p>
+              </div>
+              <div class="rounded-2xl border border-border bg-paper/75 p-4">
+                <p class="text-3xl font-display leading-none">Local</p>
+                <p class="mt-2 text-xs uppercase tracking-[0.22em] text-ink-soft">Owner-operated and residential</p>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-border bg-white/88 p-5 text-sm">
+              <p class="font-semibold text-ink">Best-fit jobs right now</p>
+              <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-soft">
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Fence refresh</span>
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Rock work</span>
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Power washing</span>
+                <span class="rounded-full border border-border bg-paper px-3 py-1">Mulch top-up</span>
+              </div>
+            </div>
+            <a
+              class="btn-primary w-full px-6 py-3"
+              href={business.smsHref}
+              data-ga-event="cta_click"
+              data-ga-label="hero_snapshot_text_photos"
+            >
+              Text photos for a quote
+            </a>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-2 sm:pt-0 lg:hidden">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+        <p class="section-kicker">Quick service snapshot</p>
+        <h2 class="text-2xl">What you can expect</h2>
+        <ul class="mt-4 space-y-2 text-sm text-ink-soft">
+          <li class="flex gap-3">
+            <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+            Clear communication, on-time arrivals, and a tidy finish.
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+            Reply within 1 hour during work hours.
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
+            Priority services this week: fences, rock work, mulching, and power washing.
+          </li>
+        </ul>
+        <div class="mt-4 rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
+          <p class="font-semibold text-ink">What to send for a fast quote</p>
+          <ul class="mt-2 space-y-1">
+            <li>- Your area or neighborhood</li>
+            <li>- The service needed and a couple of photos if you have them</li>
+            <li>- When you want it done</li>
+          </ul>
+        </div>
+        <div class="mt-4 rounded-xl border border-ink/10 bg-white/80 p-4 text-sm">
+          <p class="font-semibold text-ink">Local trust proof</p>
+          <ul class="mt-2 space-y-1 text-ink-soft">
+            {homepageTrustProof.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <a
+          class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-ink/70"
+          href="#quote"
+          data-ga-event="cta_click"
+          data-ga-label="snapshot_mobile_request_quote"
+        >
+          Request your quote
+          <span aria-hidden="true">-&gt;</span>
+        </a>
       </div>
     </div>
   </section>
@@ -341,93 +343,30 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           We only share photos we have permission to use, with details kept general when needed.
         </p>
       </div>
-      <div class="rounded-[2rem] border border-border bg-white/92 p-4 shadow-soft sm:p-6" data-gallery>
-        <div class="grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
-          <div class="relative min-w-0">
-            <div class="relative overflow-hidden rounded-[1.6rem] border border-border bg-paper/70">
-              <div class="relative aspect-[4/3] sm:aspect-[16/10]">
-                {galleryItems.map((item, index) => (
-                  <figure
-                    class:list={[
-                      "absolute inset-0 flex flex-col justify-end opacity-0 transition duration-500 ease-out",
-                      index === 0 && "opacity-100",
-                    ]}
-                    data-gallery-slide
-                    data-gallery-index={index}
-                    aria-hidden={index === 0 ? "false" : "true"}
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.alt}
-                      width="1200"
-                      height="900"
-                      class="absolute inset-0 h-full w-full object-cover"
-                      loading={index === 0 ? "eager" : "lazy"}
-                      decoding="async"
-                      sizes="(min-width: 1024px) 60vw, 100vw"
-                    />
-                    <div class="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent"></div>
-                    <figcaption class="relative z-10 p-5 sm:p-6">
-                      <p class="text-sm font-semibold text-paper sm:text-base">{item.label}</p>
-              <p class="mt-1 max-w-xl text-sm text-paper/80">{item.detail}</p>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {galleryItems.map((item, index) => (
+          <div
+            class="group overflow-hidden rounded-2xl border border-border bg-white/90 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 80}ms`}
+          >
+            <div class="relative aspect-[4/3] overflow-hidden bg-paper/80">
+              <img
+                src={item.image}
+                alt={item.alt}
+                width="600"
+                height="450"
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1024px) 31vw, (min-width: 640px) 48vw, 100vw"
+              />
             </div>
-            <div class="mt-3 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/92 text-ink transition hover:border-ink/30 hover:bg-paper"
-                  data-gallery-prev
-                  aria-label="Previous gallery item"
-                >
-                  <span aria-hidden="true">←</span>
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/92 text-ink transition hover:border-ink/30 hover:bg-paper"
-                  data-gallery-next
-                  aria-label="Next gallery item"
-                >
-                  <span aria-hidden="true">→</span>
-                </button>
-              </div>
-              <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Swipe or use arrows</p>
+            <div class="p-5">
+              <p class="text-sm font-semibold text-ink">{item.label}</p>
+              <p class="mt-1 text-xs text-ink-soft">Shared with permission.</p>
             </div>
           </div>
-
-          <div class="flex min-w-0 flex-col justify-between gap-4 rounded-[1.6rem] border border-border bg-paper/70 p-5 sm:p-6">
-            <div class="space-y-3">
-              <p class="section-kicker">What homeowners usually want to see</p>
-              <h3 class="text-2xl font-display sm:text-3xl">Real work, clean finishes, and a clear next step.</h3>
-              <p class="text-sm leading-7 text-ink-soft">
-                The gallery is meant to show the kind of results we talk about on the service pages without turning
-                the homepage into a noisy slideshow.
-              </p>
-            </div>
-            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-              {galleryItems.map((item, index) => (
-                <button
-                  type="button"
-                  class="flex items-start gap-3 rounded-2xl border border-border bg-white/88 p-3 text-left transition hover:border-ink/25"
-                  data-gallery-dot
-                  data-gallery-index={index}
-                  aria-pressed={index === 0 ? "true" : "false"}
-                >
-                  <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-ink/10 bg-paper text-xs font-semibold text-ink">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span class="min-w-0">
-                    <span class="block text-sm font-semibold text-ink">{item.label}</span>
-                    <span class="mt-1 block text-xs text-ink-soft">Tap to open.</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </section>
@@ -801,56 +740,4 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <QuoteForm showInfoBox={true} />
     </div>
   </section>
-
-  <script is:inline>
-    (function () {
-      var gallery = document.querySelector("[data-gallery]");
-      if (!gallery) return;
-
-      var slides = Array.prototype.slice.call(gallery.querySelectorAll("[data-gallery-slide]"));
-      var dots = Array.prototype.slice.call(gallery.querySelectorAll("[data-gallery-dot]"));
-      var prev = gallery.querySelector("[data-gallery-prev]");
-      var next = gallery.querySelector("[data-gallery-next]");
-      var activeIndex = 0;
-
-      var setActive = function (index) {
-        activeIndex = (index + slides.length) % slides.length;
-
-        slides.forEach(function (slide, slideIndex) {
-          var isActive = slideIndex === activeIndex;
-          slide.style.opacity = isActive ? "1" : "0";
-          slide.style.pointerEvents = isActive ? "auto" : "none";
-          slide.setAttribute("aria-hidden", isActive ? "false" : "true");
-        });
-
-        dots.forEach(function (dot, dotIndex) {
-          var isActive = dotIndex === activeIndex;
-          dot.setAttribute("aria-pressed", isActive ? "true" : "false");
-          dot.classList.toggle("border-ink", isActive);
-          dot.classList.toggle("bg-white", isActive);
-          dot.classList.toggle("shadow-fine", isActive);
-        });
-      };
-
-      if (prev) {
-        prev.addEventListener("click", function () {
-          setActive(activeIndex - 1);
-        });
-      }
-
-      if (next) {
-        next.addEventListener("click", function () {
-          setActive(activeIndex + 1);
-        });
-      }
-
-      dots.forEach(function (dot, index) {
-        dot.addEventListener("click", function () {
-          setActive(index);
-        });
-      });
-
-      setActive(0);
-    })();
-  </script>
 </Layout>

@@ -20,14 +20,6 @@ interface Props {
     pageType?: string;
     pageTemplate?: string;
   };
-  preloadImages?: Array<{
-    href: string;
-    as?: "image" | "style" | "script" | "font";
-    type?: string;
-    media?: string;
-    imagesrcset?: string;
-    imagesizes?: string;
-  }>;
 }
 
 const {
@@ -40,7 +32,6 @@ const {
   noindex = false,
   structuredData,
   analytics,
-  preloadImages,
 } = Astro.props;
 
 const fullOgImage = ogImage.startsWith("http") ? ogImage : `${business.siteUrl}${ogImage}`;
@@ -161,20 +152,6 @@ const structuredDataArray = structuredData
     : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
 />
 <link rel="canonical" href={canonicalUrl} />
-
-{
-  preloadImages?.map((item) => (
-    <link
-      rel="preload"
-      href={item.href}
-      as={item.as ?? "image"}
-      type={item.type}
-      media={item.media}
-      imagesrcset={item.imagesrcset}
-      imagesizes={item.imagesizes}
-    />
-  ))
-}
 
 <!-- Open Graph -->
 <meta property="og:title" content={title} />
