@@ -23,11 +23,13 @@ const facebookUrl = business.sameAs.find((url) => url.includes("facebook.com"));
         class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90"
       >
         <img
-          src="/favicon.svg?v=2"
+          src="/icons/logo-mark.png?v=1"
           alt={`${business.name} logo`}
           class="h-6 w-6"
           width="24"
           height="24"
+          loading="eager"
+          decoding="async"
         />
       </div>
       <div class="space-y-1">

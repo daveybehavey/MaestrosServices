@@ -30,16 +30,15 @@ const { variant = "default", subtitle, quoteHref = "/#quote", mobileSticky = fal
       <div
         class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90 sm:h-12 sm:w-12"
       >
-        <picture>
-          <source srcset="/favicon.svg?v=2" type="image/svg+xml" />
-          <img
-            src="/favicon.svg?v=2"
-            alt={`${business.name} logo`}
-            class="h-7 w-7 sm:h-8 sm:w-8"
-            width="32"
-            height="32"
-          />
-        </picture>
+        <img
+          src="/icons/logo-mark.png?v=1"
+          alt={`${business.name} logo`}
+          class="h-7 w-7 sm:h-8 sm:w-8"
+          width="32"
+          height="32"
+          loading="eager"
+          decoding="async"
+        />
       </div>
       <div class="min-w-0 leading-none">
         <p class="truncate text-base font-display sm:text-lg">{business.name}</p>
