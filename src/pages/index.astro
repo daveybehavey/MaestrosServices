@@ -146,6 +146,20 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       />
       <div class="absolute inset-0 bg-gradient-to-br from-ink/70 via-ink/35 to-ink/10"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1),transparent_38%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.08),transparent_36%),linear-gradient(180deg,transparent,rgba(0,0,0,0.18))]"></div>
+      <div class="absolute right-[8%] top-1/2 z-10 hidden -translate-y-1/2 flex-col items-center gap-3 md:flex lg:right-[10%]">
+        <div class="flex size-44 items-center justify-center rounded-full border border-white/60 bg-white/88 shadow-soft backdrop-blur-sm">
+          <img
+            src="/favicon.svg?v=2"
+            alt="Maestros Services logo"
+            class="h-24 w-24 object-contain"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+        <div class="w-max rounded-full border border-white/50 bg-white/78 px-4 py-2 text-center text-xs font-semibold uppercase leading-none tracking-[0.18em] whitespace-nowrap text-ink shadow-soft backdrop-blur-sm">
+          Maestros Services
+        </div>
+      </div>
       <div class="absolute bottom-[4rem] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5 sm:hidden">
         <div class="flex size-32 items-center justify-center rounded-full border border-white/60 bg-white/88 shadow-soft backdrop-blur-sm">
           <img
@@ -163,7 +177,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       </div>
     </div>
 
-    <div class="relative z-20 mx-auto flex h-full max-w-6xl items-start px-4 pb-5 pt-16 sm:px-6 sm:pb-10 sm:pt-24 lg:items-start lg:px-8 lg:pt-20 lg:pb-12">
+    <div class="relative z-20 mx-auto flex h-full max-w-6xl items-start px-4 pb-5 pt-16 sm:px-6 sm:pb-10 sm:pt-24 lg:items-center lg:px-8 lg:py-0">
       <div class="max-w-xl animate-rise lg:max-w-[34.5rem] xl:max-w-[36rem]">
         <div class="rounded-[2rem] border border-white/25 bg-white/86 p-3 shadow-soft backdrop-blur-xl sm:p-8 lg:p-8">
           <div class="hidden flex-wrap items-center gap-3 sm:flex">
