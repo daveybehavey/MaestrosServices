@@ -117,9 +117,21 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       />
       <div class="absolute inset-0 bg-gradient-to-br from-ink/70 via-ink/35 to-ink/10"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1),transparent_38%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.08),transparent_36%),linear-gradient(180deg,transparent,rgba(0,0,0,0.18))]"></div>
+      <div class="absolute bottom-24 left-1/2 z-10 flex -translate-x-1/2 sm:hidden">
+        <div class="flex size-16 items-center justify-center rounded-full border border-white/60 bg-white/88 shadow-soft backdrop-blur-sm">
+          <img
+            src="/logo.png?v=2"
+            alt=""
+            aria-hidden="true"
+            class="h-11 w-11 object-contain"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+      </div>
     </div>
 
-    <div class="relative mx-auto flex min-h-[100svh] max-w-6xl items-start px-4 pb-5 pt-16 sm:px-6 sm:pb-10 sm:pt-24 lg:items-center lg:px-8 lg:py-10">
+    <div class="relative z-20 mx-auto flex min-h-[100svh] max-w-6xl items-start px-4 pb-5 pt-16 sm:px-6 sm:pb-10 sm:pt-24 lg:items-center lg:px-8 lg:py-10">
       <div class="max-w-xl animate-rise">
         <div class="rounded-[2rem] border border-white/25 bg-white/86 p-3 shadow-soft backdrop-blur-xl sm:p-8 lg:p-10">
           <div class="hidden flex-wrap items-center gap-3 sm:flex">
