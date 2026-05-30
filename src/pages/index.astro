@@ -132,7 +132,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
     pageTemplate: "home",
   }}
 >
-  <section class="relative isolate h-[calc(100dvh-4.5rem)] overflow-hidden md:h-[calc(100svh-5rem)] lg:h-[calc(100svh-6.5rem)]">
+  <section class="relative isolate h-[calc(100dvh-4.5rem)] overflow-hidden pb-4 mb-6 md:h-[calc(100svh-5rem)] md:mb-10 md:pb-6 lg:h-[calc(100svh-6.5rem)] lg:mb-14 lg:pb-8">
     <div class="absolute inset-0">
       <img
           src={heroImageFallback}
@@ -206,7 +206,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
     </div>
   </section>
 
-  <section class="section pt-6 sm:pt-10 content-auto">
+  <section class="section pt-10 sm:pt-14 lg:pt-16 content-auto">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
       <div class="grid gap-4 md:grid-cols-3">
         {homepageTrustMoments.map((item, index) => (
