@@ -31,6 +31,7 @@ interface Props {
   headerVariant?: "default" | "simple";
   headerSubtitle?: string;
   quoteHref?: string;
+  mobileStickyHeader?: boolean;
   analytics?: {
     pageGroup?: string;
     pageType?: string;
@@ -53,6 +54,7 @@ const {
   headerVariant = "default",
   headerSubtitle,
   quoteHref = "/#quote",
+  mobileStickyHeader = false,
   analytics,
 } = Astro.props;
 ---
@@ -80,8 +82,19 @@ const {
       Skip to main content
     </a>
     <div class="relative flex min-h-screen flex-col">
-      <Header variant={headerVariant} subtitle={headerSubtitle} quoteHref={quoteHref} />
-      <main id="main-content" class="relative z-10 flex-1">
+      <Header
+        variant={headerVariant}
+        subtitle={headerSubtitle}
+        quoteHref={quoteHref}
+        mobileSticky={mobileStickyHeader}
+      />
+      <main
+        id="main-content"
+        class:list={[
+          "relative z-10 flex-1",
+          mobileStickyHeader && "pt-[3.75rem] sm:pt-0",
+        ]}
+      >
         <slot />
       </main>
       <Footer includeMobilePadding={showMobileCTA} />

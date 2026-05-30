@@ -5,15 +5,17 @@ interface Props {
   variant?: "default" | "simple";
   subtitle?: string;
   quoteHref?: string;
+  mobileSticky?: boolean;
 }
 
-const { variant = "default", subtitle, quoteHref = "/#quote" } = Astro.props;
+const { variant = "default", subtitle, quoteHref = "/#quote", mobileSticky = false } = Astro.props;
 ---
 
 <header
   class:list={[
     "border-b border-border/70 bg-paper/82 backdrop-blur-xl",
     variant === "default" && "sticky top-0 z-50 animate-fade",
+    variant === "simple" && mobileSticky && "fixed left-0 right-0 top-0 z-50 animate-fade md:sticky md:top-0",
   ]}
 >
   <div
