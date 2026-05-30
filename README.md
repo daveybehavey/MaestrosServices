@@ -128,6 +128,7 @@ Other options:
 ```sh
 npm run ads:customers
 npm run ads:campaigns
+npm run ads:search-terms
 npm run ads:conversions
 npm run ads:create:website-conversions
 npm run ads:create:power-washing

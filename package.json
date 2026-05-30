@@ -18,6 +18,7 @@
     "ads:smoke": "node scripts/google-ads.mjs smoke",
     "ads:customers": "node scripts/google-ads.mjs customers",
     "ads:campaigns": "node scripts/google-ads.mjs campaigns",
+    "ads:search-terms": "node scripts/google-ads.mjs search-terms",
     "ads:conversions": "node scripts/google-ads.mjs conversions",
     "ads:create:website-conversions": "node scripts/google-ads.mjs create-website-conversions",
     "ads:create:power-washing": "node scripts/google-ads.mjs create-power-washing-search",

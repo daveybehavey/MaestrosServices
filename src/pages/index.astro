@@ -32,7 +32,12 @@ const structuredData = [
   ...serviceCatalog.map((service) => createServiceSchema(service)),
 ];
 
-const heroImage = "/garden.webp";
+const heroImageMobile = "/responsive/garden-640.webp";
+const heroImageMobileWide = "/responsive/garden-768.webp";
+const heroImageTablet = "/responsive/garden-960.webp";
+const heroImagePhoneRetina = "/responsive/garden-1125.webp";
+const heroImageDesktop = "/responsive/garden-1280.webp";
+const heroImageFallback = "/garden.webp";
 
 const featuredServiceSlugs = [
   "power-washing",
@@ -49,21 +54,28 @@ const galleryItems = [
   {
     kind: "image",
     label: "Garden bed refresh",
-    image: "/garden.webp",
+    image: "/responsive/garden-640.webp",
+    srcSet:
+      "/responsive/garden-640.webp 640w, /responsive/garden-768.webp 768w, /responsive/garden-960.webp 960w, /responsive/garden-1125.webp 1125w, /responsive/garden-1280.webp 1280w, /garden.webp 1600w",
+    sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
     alt: "Well-kept front garden with clean edges and mulch",
     detail: "Sharper bed lines and a cleaner front-yard finish.",
   },
   {
     kind: "image",
     label: "Seasonal cleanup",
-    image: "/cleanup.webp",
+    image: "/responsive/cleanup-640.webp",
+    srcSet: "/responsive/cleanup-640.webp 640w, /responsive/cleanup-960.webp 960w, /cleanup.webp 1200w",
+    sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
     alt: "Leaf cleanup with a rake and tidy lawn",
     detail: "A practical reset before weather changes or guests arrive.",
   },
   {
     kind: "image",
     label: "Clean lawn detail",
-    image: "/lawn.webp",
+    image: "/responsive/lawn-640.webp",
+    srcSet: "/responsive/lawn-640.webp 640w, /responsive/lawn-960.webp 960w, /lawn.webp 1280w",
+    sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
     alt: "Clean lawn edge with mulched planting area",
     detail: "A tidy edge and a finish that reads well from the street.",
   },
@@ -96,8 +108,22 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
   showDesktopCTA={false}
   preloadImages={[
     {
-      href: heroImage,
+      href: heroImageMobileWide,
       type: "image/webp",
+      media: "(max-width: 767px)",
+      fetchPriority: "high",
+    },
+    {
+      href: heroImageTablet,
+      type: "image/webp",
+      media: "(min-width: 768px) and (max-width: 1023px)",
+      fetchPriority: "high",
+    },
+    {
+      href: heroImageDesktop,
+      type: "image/webp",
+      media: "(min-width: 1024px)",
+      fetchPriority: "high",
     },
   ]}
   analytics={{
@@ -109,19 +135,21 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
   <section class="relative isolate min-h-[100svh] overflow-hidden">
     <div class="absolute inset-0">
       <img
-        src={heroImage}
-        alt="Clean front yard with fresh landscaping and neat garden beds"
-        class="h-full w-full object-cover object-[center_28%] sm:object-[center_34%] lg:object-center"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
+          src={heroImageFallback}
+          srcset={`${heroImageMobile} 640w, ${heroImageMobileWide} 768w, ${heroImageTablet} 960w, ${heroImagePhoneRetina} 1125w, ${heroImageDesktop} 1280w, ${heroImageFallback} 1600w`}
+          sizes="100vw"
+          alt="Clean front yard with fresh landscaping and neat garden beds"
+          class="h-full w-full object-cover object-[center_28%] sm:object-[center_34%] lg:object-center"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
       />
       <div class="absolute inset-0 bg-gradient-to-br from-ink/70 via-ink/35 to-ink/10"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1),transparent_38%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.08),transparent_36%),linear-gradient(180deg,transparent,rgba(0,0,0,0.18))]"></div>
       <div class="absolute bottom-[4rem] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5 sm:hidden">
         <div class="flex size-32 items-center justify-center rounded-full border border-white/60 bg-white/88 shadow-soft backdrop-blur-sm">
           <img
-            src="/logo.png?v=2"
+            src="/favicon.svg?v=2"
             alt=""
             aria-hidden="true"
             class="h-20 w-20 object-contain"
@@ -190,7 +218,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             >
               Send them here
             </a>
-            and we’ll reply with the practical next step.
+            and we'll reply with the practical next step.
           </p>
           <div class="mt-4 hidden flex-wrap gap-2 text-xs text-ink-soft sm:mt-5 sm:flex">
             <span class="rounded-full border border-border bg-paper px-3 py-1.5">Power washing</span>
@@ -224,10 +252,10 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-8">
         <div class="space-y-3">
           <p class="section-kicker">Featured services</p>
-          <h2 class="section-title">The fastest-turn services we want more of.</h2>
+          <h2 class="section-title">Services homeowners ask us about most.</h2>
         </div>
         <p class="section-copy max-w-md">
-          Tight, high-intent services that are easier to quote quickly and easier for homeowners to say yes to.
+          Practical exterior and yard work with straightforward quotes, clear expectations, and a quick reply from the owner.
         </p>
       </div>
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -243,7 +271,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             </div>
             <p class="text-base font-semibold">{service.name}</p>
             <p class="mt-2 text-sm leading-7 text-ink-soft">{service.description}</p>
-            <p class="mt-4 text-sm font-semibold text-ink group-hover:text-ink/70">View service -&gt;</p>
+            <p class="mt-4 text-sm font-semibold text-ink group-hover:text-ink/70">See service details -&gt;</p>
           </a>
         ))}
       </div>
@@ -255,10 +283,10 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-8">
         <div class="space-y-3">
           <p class="section-kicker">Recent work</p>
-          <h2 class="section-title">Swipe through a few examples of the finished look we aim for.</h2>
+          <h2 class="section-title">Swipe through a few recent jobs to see the kind of finish we aim for.</h2>
         </div>
         <p class="section-copy max-w-md">
-          Clean, simple, and permission-friendly. The point is proof, not noise.
+          Clean, simple, and permission-friendly. The point is to show the work, not add noise.
         </p>
       </div>
       <div class="gallery-rail -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
@@ -272,6 +300,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
                 <div class="relative aspect-[4/3] overflow-hidden bg-paper/80">
                   <img
                     src={item.image}
+                    srcset={item.srcSet}
+                    sizes={item.sizes}
                     alt={item.alt}
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
@@ -311,10 +341,10 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <div class="grid gap-6 rounded-[2rem] border border-border bg-white/92 p-6 shadow-soft sm:p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <div class="space-y-3">
           <p class="section-kicker">Reviews and reputation</p>
-          <h2 class="text-2xl font-display sm:text-3xl">Want to sanity-check us first?</h2>
+          <h2 class="text-2xl font-display sm:text-3xl">Want to get a feel for the work before you reach out?</h2>
           <p class="text-sm leading-7 text-ink-soft">
-            That is completely fair. You can read reviews, see the way we ask for feedback, and get a feel
-            for how we communicate before you ever request a quote.
+            Fair enough. You can read reviews, see how we ask for feedback, and get a feel for our
+            communication before you request a quote.
           </p>
           <div class="flex flex-wrap gap-3">
             <a
@@ -338,11 +368,11 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           </div>
         </div>
         <div class="rounded-[1.5rem] border border-ink/10 bg-paper/70 p-5 sm:p-6">
-          <p class="text-xs uppercase tracking-[0.24em] text-ink-soft">What homeowners usually care about</p>
+          <p class="text-xs uppercase tracking-[0.24em] text-ink-soft">What homeowners usually want to know</p>
           <ul class="mt-4 space-y-3 text-sm text-ink-soft">
             <li class="flex gap-3">
               <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
-              Will the job feel straightforward from quote to cleanup?
+              Is the process straightforward from quote to cleanup?
             </li>
             <li class="flex gap-3">
               <span class="mt-2 h-1.5 w-1.5 rounded-full bg-ink/70"></span>
@@ -354,7 +384,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             </li>
           </ul>
           <p class="mt-4 text-sm font-semibold text-ink">
-            Those are exactly the trust points we try to make obvious early.
+            We try to make those answers obvious early.
           </p>
         </div>
       </div>
@@ -371,7 +401,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           and we will confirm availability.
         </p>
         <a class="text-sm font-semibold text-ink hover:text-ink/70" href="/service-area" data-ga-event="cta_click" data-ga-label="service_area_page">
-          View full service area -&gt;
+          See all areas we cover -&gt;
         </a>
         <div class="flex flex-wrap gap-3 text-sm text-ink-soft">
           {featuredAreaLinks.map((area) => (
@@ -393,7 +423,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <div class="space-y-5">
         <div class="rounded-[1.75rem] border border-border bg-white/92 p-6 shadow-fine">
           <p class="section-kicker">Local map</p>
-          <h3 class="text-xl sm:text-2xl">Lower-mid island service area</h3>
+          <h3 class="text-xl sm:text-2xl">Coverage map</h3>
           <div class="mt-5 flex items-center justify-center rounded-[1.5rem] border border-border bg-white p-5 text-ink/80">
             <picture class="block w-full">
               <source srcset="/VIMAP.svg?v=2" type="image/svg+xml" />
@@ -412,7 +442,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
         </div>
         <div class="rounded-[1.75rem] border border-border bg-white/92 p-6 shadow-fine">
           <p class="section-kicker">Fast quote path</p>
-          <h3 class="text-2xl">Call or text for the fastest response.</h3>
+          <h3 class="text-2xl">Need a quick quote? Call or text.</h3>
           <div class="mt-5 space-y-3 text-sm">
             <a
               class="block rounded-xl bg-ink px-4 py-3 text-center font-semibold text-paper hover:bg-ink/90"

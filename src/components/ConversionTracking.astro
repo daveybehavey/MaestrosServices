@@ -24,6 +24,9 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
 
         var sendAdsConversion = function (label) {
           if (!label) return;
+          if (window.__MS_LOAD_GOOGLE_ADS) {
+            window.__MS_LOAD_GOOGLE_ADS();
+          }
           window.gtag("event", "conversion", {
             send_to: label,
           });

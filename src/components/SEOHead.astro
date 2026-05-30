@@ -9,6 +9,9 @@ interface Props {
     href: string;
     type?: string;
     media?: string;
+    srcSet?: string;
+    sizes?: string;
+    fetchPriority?: "high" | "low" | "auto";
   }>;
   ogImage?: string;
   ogType?: "website" | "article";
@@ -143,6 +146,7 @@ const structuredDataArray = structuredData
     ? structuredData
     : [structuredData]
   : [];
+const shouldAutoLoadGoogleAds = analyticsContext.pageTemplate !== "home";
 ---
 
 <meta charset="utf-8" />
@@ -161,7 +165,16 @@ const structuredDataArray = structuredData
 
 {
   preloadImages.map((image) => (
-    <link rel="preload" as="image" href={image.href} type={image.type} media={image.media} />
+    <link
+      rel="preload"
+      as="image"
+      href={image.href}
+      type={image.type}
+      media={image.media}
+      imagesrcset={image.srcSet}
+      imagesizes={image.sizes}
+      fetchpriority={image.fetchPriority}
+    />
   ))
 }
 
@@ -234,15 +247,16 @@ const structuredDataArray = structuredData
     <>
       <script
         is:inline
-        define:vars={{
-          gaId,
-          googleAdsId,
-          primaryGoogleTagId,
-          googleAdsQuoteLabel,
-          googleAdsPhoneLabel,
-          googleAdsSmsLabel,
-          analyticsContext,
-        }}
+      define:vars={{
+        gaId,
+        googleAdsId,
+        primaryGoogleTagId,
+        googleAdsQuoteLabel,
+        googleAdsPhoneLabel,
+        googleAdsSmsLabel,
+        analyticsContext,
+        shouldAutoLoadGoogleAds,
+      }}
       >
         window.dataLayer = window.dataLayer || [];
         window.gtag = function gtag() {
@@ -250,12 +264,22 @@ const structuredDataArray = structuredData
         };
 
         var gaLoaded = false;
+        var googleAdsLoaded = false;
         var loadAnalytics = function () {
           if (gaLoaded) return;
           gaLoaded = true;
           var script = document.createElement("script");
           script.async = true;
           script.src = "https://www.googletagmanager.com/gtag/js?id=" + primaryGoogleTagId;
+          document.head.appendChild(script);
+        };
+        var loadGoogleAds = function () {
+          if (!googleAdsId || googleAdsLoaded) return;
+          googleAdsLoaded = true;
+          gtag("config", googleAdsId);
+          var script = document.createElement("script");
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=" + googleAdsId;
           document.head.appendChild(script);
         };
 
@@ -271,6 +295,7 @@ const structuredDataArray = structuredData
         ["pointerdown", "keydown", "touchstart", "scroll"].forEach(function (eventName) {
           window.addEventListener(eventName, loadAnalytics, { once: true, passive: true });
         });
+        window.__MS_LOAD_GOOGLE_ADS = loadGoogleAds;
 
         gtag("js", new Date());
         window.__MS_ANALYTICS_CONTEXT__ = analyticsContext;
@@ -285,8 +310,8 @@ const structuredDataArray = structuredData
             send_page_view: false,
           });
         }
-        if (googleAdsId) {
-          gtag("config", googleAdsId);
+        if (googleAdsId && shouldAutoLoadGoogleAds) {
+          loadGoogleAds();
         }
         gtag("event", "page_view", {
           page_title: document.title,

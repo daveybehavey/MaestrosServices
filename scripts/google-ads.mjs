@@ -856,6 +856,56 @@ const createWebsiteConversions = async (accessToken) => {
   return createdOrExisting;
 };
 
+const reportSearchTerms = async (accessToken, campaignId = null) => {
+  const whereClauses = [
+    "segments.date DURING LAST_30_DAYS",
+    "metrics.impressions > 0",
+    "search_term_view.search_term IS NOT NULL",
+  ];
+
+  if (campaignId) {
+    whereClauses.push(`campaign.id = ${campaignId}`);
+  }
+
+  const rows = await runSearch(
+    accessToken,
+    [
+      "SELECT",
+      "  campaign.id,",
+      "  campaign.name,",
+      "  ad_group.id,",
+      "  ad_group.name,",
+      "  search_term_view.search_term,",
+      "  metrics.impressions,",
+      "  metrics.clicks,",
+      "  metrics.cost_micros,",
+      "  metrics.conversions",
+      "FROM search_term_view",
+      `WHERE ${whereClauses.join(" AND ")}`,
+      "ORDER BY metrics.clicks DESC, metrics.impressions DESC",
+      "LIMIT 50",
+    ].join("\n")
+  );
+
+  console.log(
+    `Search terms for customer ${customerId}${campaignId ? ` (campaign ${campaignId})` : ""}:`
+  );
+  if (rows.length === 0) {
+    console.log("- No search terms with impressions found for the selected scope.");
+    return rows;
+  }
+
+  for (const row of rows) {
+    const term = row.searchTermView?.searchTerm ?? "";
+    const costCad = Number(row.metrics?.costMicros ?? 0) / 1_000_000;
+    console.log(
+      `- ${term} | ${row.metrics?.clicks ?? 0} clicks | ${row.metrics?.impressions ?? 0} impressions | CA$${costCad.toFixed(2)} | conv ${row.metrics?.conversions ?? 0} | ${row.campaign?.name ?? ""}`
+    );
+  }
+
+  return rows;
+};
+
 const main = async () => {
   const accessToken = await getAccessToken();
 
@@ -889,6 +939,12 @@ const main = async () => {
         `- ${row.campaign?.id}: ${row.campaign?.name} [${row.campaign?.status}] (${row.campaign?.advertisingChannelType})`
       );
     }
+    return;
+  }
+
+  if (command === "search-terms") {
+    const campaignId = process.argv[3] ? process.argv[3].replace(/-/g, "") : null;
+    await reportSearchTerms(accessToken, campaignId);
     return;
   }
 

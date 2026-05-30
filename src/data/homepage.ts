@@ -31,23 +31,23 @@ export const homepageServiceAreas = [...locationNames, "Cowichan Valley"];
 
 export const homepageTrustProof = [
   "Owner-operated from first message to cleanup.",
-  "Most new leads get a reply within 1 hour during work hours.",
+  "Most messages during work hours get a reply within 1 hour.",
   "Serving homeowners across Shawnigan, Cowichan, and Greater Victoria.",
 ] as const;
 
 export const homepageTrustMoments = [
   {
-    title: "Straight answer on fit",
+    title: "Clear answer on fit",
     detail:
       "If a smaller fix, different service, or another trade makes more sense, we say that early instead of padding the job.",
   },
   {
-    title: "Fast quote path",
+    title: "Quick quote path",
     detail:
       "Texting photos, your area, and timing is usually enough for us to confirm the practical next step quickly.",
   },
   {
-    title: "Proof without oversharing",
+    title: "Privacy-friendly proof",
     detail:
       "We only publish approved photos and use privacy-safe scope examples when homeowners prefer not to share property images publicly.",
   },

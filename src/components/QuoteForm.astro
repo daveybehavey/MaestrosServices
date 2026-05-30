@@ -438,6 +438,11 @@ const showErrorState = error === "1";
       startedAtInput.value = String(Date.now());
     }
     if (window.gtag) {
+      var ensureGoogleAdsLoaded = function () {
+        if (window.__MS_LOAD_GOOGLE_ADS) {
+          window.__MS_LOAD_GOOGLE_ADS();
+        }
+      };
       var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
       var urlParams = new URLSearchParams(window.location.search);
       var submittedStatus = urlParams.get("submitted");
@@ -461,6 +466,7 @@ const showErrorState = error === "1";
         });
         var adsConversions = window.__MS_GOOGLE_ADS_CONVERSIONS__ || {};
         if (adsConversions.quote) {
+          ensureGoogleAdsLoaded();
           window.gtag("event", "conversion", {
             send_to: adsConversions.quote,
           });
