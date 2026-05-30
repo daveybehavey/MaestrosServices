@@ -121,7 +121,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
 
     <div class="relative mx-auto flex min-h-[100svh] max-w-6xl items-start px-4 pb-6 pt-20 sm:px-6 sm:pb-10 sm:pt-24 lg:items-center lg:px-8 lg:py-10">
       <div class="max-w-xl animate-rise">
-        <div class="rounded-[2rem] border border-white/25 bg-white/86 p-5 shadow-soft backdrop-blur-xl sm:p-8 lg:p-10">
+        <div class="rounded-[2rem] border border-white/25 bg-white/86 p-4 shadow-soft backdrop-blur-xl sm:p-8 lg:p-10">
           <div class="flex flex-wrap items-center gap-3">
             <div class="rounded-full border border-ink/10 bg-white/90 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.3em] text-ink-soft">
               Owner-operated across lower-mid Vancouver Island
@@ -130,13 +130,13 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
               Residential only
             </div>
           </div>
-          <p class="mt-4 text-[0.68rem] font-medium uppercase tracking-[0.28em] text-ink-soft">
+          <p class="mt-3 hidden text-[0.68rem] font-medium uppercase tracking-[0.28em] text-ink-soft sm:block">
             Call or text for the fastest response
           </p>
-          <h1 class="mt-4 max-w-xl text-[2.3rem] font-display leading-[0.95] tracking-tight text-ink text-balance sm:text-5xl lg:text-6xl">
+          <h1 class="mt-4 max-w-xl text-[2.05rem] font-display leading-[0.96] tracking-tight text-ink text-balance sm:text-5xl lg:text-6xl">
             Landscaping and exterior cleanup that makes your property feel cared for.
           </h1>
-          <p class="mt-4 max-w-lg text-base leading-7 text-ink-soft sm:text-lg">
+          <p class="mt-3 max-w-lg text-[0.96rem] leading-6 text-ink-soft sm:mt-4 sm:text-lg sm:leading-7">
             Based near Shawnigan Lake and serving Victoria, Langford, Saanich, Mill Bay, Duncan, and nearby communities.
             Send a photo, your area, and timing, and we will reply with the practical next step.
           </p>
@@ -147,7 +147,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
               </span>
             ))}
           </div>
-          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div class="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center">
             <a
               class="btn-primary w-full px-6 py-3 text-center shadow-fine sm:w-auto sm:px-8 sm:py-4"
               href={`tel:${business.phoneTel}`}
@@ -165,7 +165,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
               Get a quote
             </a>
           </div>
-          <p class="mt-3 text-sm leading-7 text-ink-soft">
+          <p class="mt-3 text-[0.9rem] leading-6 text-ink-soft sm:text-sm sm:leading-7">
             Prefer to text photos first?
             <a
               class="font-semibold text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink/60"
@@ -177,7 +177,7 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             </a>
             and we’ll reply with the practical next step.
           </p>
-          <div class="mt-5 hidden flex-wrap gap-2 text-xs text-ink-soft sm:flex">
+          <div class="mt-4 hidden flex-wrap gap-2 text-xs text-ink-soft sm:mt-5 sm:flex">
             <span class="rounded-full border border-border bg-paper px-3 py-1.5">Power washing</span>
             <span class="rounded-full border border-border bg-paper px-3 py-1.5">Gravel driveways</span>
             <span class="rounded-full border border-border bg-paper px-3 py-1.5">Cleanup and mulch</span>
