@@ -6,7 +6,7 @@ import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema"
 
 const pageTitle = `Leave a Review | ${business.name}`;
 const pageDescription =
-  "Had a good experience with Maestros Services? Leave a quick review or contact us directly if something needs attention.";
+  "If you had a good experience with Maestros Services, you can leave a quick review or send us a text if something needs attention.";
 const canonicalUrl = `${business.siteUrl}/review`;
 const breadcrumbItems = [{ name: "Leave a review", href: "/review" }];
 
@@ -25,7 +25,7 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
   canonicalUrl={canonicalUrl}
   structuredData={structuredData}
   headerVariant="simple"
-  headerSubtitle="Leave a review"
+  headerSubtitle="Share your experience"
   quoteHref="/quote"
   analytics={{
     pageGroup: "review",
@@ -42,11 +42,11 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
           <div class="space-y-5">
             <p class="section-kicker">Thank you</p>
             <h1 class="max-w-3xl text-[2.25rem] font-display leading-[0.98] tracking-tight text-balance sm:text-5xl lg:text-6xl">
-              Happy with the work? A quick review helps local homeowners find us.
+              If we did a good job, a quick review helps a lot.
             </h1>
             <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
-              Reviews make a real difference for a local, owner-operated service. If we earned it,
-              a short note about the job and your experience would mean a lot.
+              Short, honest feedback helps local homeowners know what to expect and helps a small,
+              owner-operated business keep growing.
             </p>
             <div class="flex flex-col gap-3 sm:flex-row">
               <a
@@ -85,10 +85,10 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
               }
             </ul>
             <div class="mt-5 rounded-2xl border border-ink/10 bg-white/80 p-4 text-sm text-ink-soft">
-              <p class="font-semibold text-ink">If something was not right</p>
+              <p class="font-semibold text-ink">If something needs attention</p>
               <p class="mt-1">
                 Please text or call {business.phone} first so we can understand what happened and
-                make it right where possible.
+                help sort it out as quickly as possible.
               </p>
             </div>
           </div>
@@ -113,10 +113,10 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
         </div>
         <div class="space-y-4">
           <p class="section-kicker">Scan to review</p>
-          <h2 class="section-title text-3xl sm:text-4xl">Use this QR code for cards, invoices, or quick handoffs.</h2>
+          <h2 class="section-title text-3xl sm:text-4xl">Keep this QR code handy for invoices, handoffs, or follow-up texts.</h2>
           <p class="section-copy max-w-2xl">
-            This QR code points customers to the Google review flow. It is useful after a walkthrough,
-            in a follow-up text, or on printed leave-behind material.
+            This QR code opens the Google review form. It works well after a walkthrough, in a
+            follow-up text, or on printed leave-behind material.
           </p>
           <div class="flex flex-wrap gap-3">
             <a
@@ -148,7 +148,7 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
           <p class="section-kicker">Option 1</p>
           <h2 class="mt-2 text-2xl font-display">Leave a Google review</h2>
           <p class="mt-3 text-sm text-ink-soft">
-            This is the most helpful review for local search and Google Business Profile trust.
+            This is the most helpful review for local search and for future customers looking us up.
           </p>
           <a
             class="mt-5 btn-primary px-6 py-3"
@@ -166,8 +166,7 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
           <p class="section-kicker">Option 2</p>
           <h2 class="mt-2 text-2xl font-display">Recommend us on Facebook</h2>
           <p class="mt-3 text-sm text-ink-soft">
-            A local Facebook mention or recommendation helps neighbors feel more confident reaching
-            out.
+            A short recommendation on Facebook helps neighbors feel more comfortable reaching out.
           </p>
           <a
             class="mt-5 btn-secondary px-6 py-3"
@@ -186,7 +185,7 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
           <h2 class="mt-2 text-2xl font-display">Send a referral</h2>
           <p class="mt-3 text-sm text-ink-soft">
             Know a neighbor who needs help with their yard, driveway, fence line, or cleanup? A quick
-            text introduction is hugely appreciated.
+            text introduction is always appreciated.
           </p>
           <a
             class="mt-5 btn-secondary px-6 py-3"
