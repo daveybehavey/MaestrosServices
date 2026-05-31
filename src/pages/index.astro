@@ -281,12 +281,12 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <div class="gallery-rail flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
         {galleryItems.map((item, index) => (
           <article
-            class="gallery-card group min-w-[82vw] snap-start overflow-hidden rounded-[1.75rem] border border-border bg-white/92 shadow-fine sm:min-w-[24rem] lg:min-w-[22rem] animate-rise"
+            class="gallery-card group min-w-[82vw] snap-start overflow-hidden rounded-[1.75rem] border border-border/70 bg-paper/86 shadow-soft sm:min-w-[24rem] lg:min-w-[22rem] animate-rise"
             style={`animation-delay: ${index * 70}ms`}
           >
             {"image" in item ? (
               <>
-                <div class="relative aspect-[4/3] overflow-hidden bg-paper/80">
+                <div class="relative aspect-[4/3] overflow-hidden bg-paper/70">
                   <img
                     src={item.image}
                     srcset={item.srcSet}
