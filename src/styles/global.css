@@ -67,11 +67,6 @@
   body {
     @apply bg-paper text-ink font-body antialiased leading-relaxed;
     overflow-x: clip;
-    background-image:
-      radial-gradient(80rem 52rem at 85% -18%, oklch(0.83 0.06 122 / 0.34), transparent 66%),
-      radial-gradient(56rem 44rem at 0% 10%, oklch(0.85 0.07 58 / 0.28), transparent 62%),
-      linear-gradient(135deg, oklch(0.99 0.008 84), oklch(0.94 0.018 83));
-    background-attachment: fixed;
   }
 
   body::before {
