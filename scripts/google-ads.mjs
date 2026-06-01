@@ -700,6 +700,130 @@ const addTrustAssetsToCampaign = async (accessToken, campaignId) => {
   return attached;
 };
 
+const findMainAdGroupForCampaign = async (accessToken, campaignId) => {
+  const row = await firstResult(
+    accessToken,
+    [
+      "SELECT ad_group.resource_name, ad_group.id, ad_group.name",
+      "FROM ad_group",
+      `WHERE campaign.id = ${campaignId}`,
+      "ORDER BY ad_group.id ASC",
+      "LIMIT 1",
+    ].join("\n")
+  );
+
+  return row?.adGroup ?? null;
+};
+
+const addKeywordsToAdGroup = async (accessToken, adGroupResourceName, desiredKeywords) => {
+  const existingRows = await runSearch(
+    accessToken,
+    [
+      "SELECT ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type",
+      "FROM keyword_view",
+      `WHERE ad_group.id = ${adGroupResourceName.split("/").pop()}`,
+    ].join("\n")
+  );
+
+  const existingKeys = new Set(
+    existingRows
+      .map((row) => row.adGroupCriterion)
+      .filter(Boolean)
+      .map((criterion) => `${criterion.keyword?.text ?? ""}::${criterion.keyword?.matchType ?? ""}`)
+  );
+
+  const toCreate = desiredKeywords.filter(
+    ({ text, matchType }) => !existingKeys.has(`${text}::${matchType}`)
+  );
+
+  if (toCreate.length === 0) return [];
+
+  const result = await mutate(
+    accessToken,
+    toCreate.map(({ text, matchType }) => ({
+      adGroupCriterionOperation: {
+        create: {
+          adGroup: adGroupResourceName,
+          status: "ENABLED",
+          keyword: { text, matchType },
+        },
+      },
+    }))
+  );
+
+  return result.mutateOperationResponses ?? [];
+};
+
+const addCampaignNegativeKeywords = async (accessToken, campaignResourceName, desiredKeywords) => {
+  const existingRows = await runSearch(
+    accessToken,
+    [
+      "SELECT campaign_criterion.negative, campaign_criterion.keyword.text, campaign_criterion.keyword.match_type",
+      "FROM campaign_criterion",
+      `WHERE campaign_criterion.campaign = '${campaignResourceName}'`,
+      "AND campaign_criterion.type = KEYWORD",
+    ].join("\n")
+  );
+
+  const existingKeys = new Set(
+    existingRows
+      .map((row) => row.campaignCriterion)
+      .filter((criterion) => criterion?.negative)
+      .map((criterion) => `${criterion.keyword?.text ?? ""}::${criterion.keyword?.matchType ?? ""}`)
+  );
+
+  const toCreate = desiredKeywords.filter(
+    ({ text, matchType }) => !existingKeys.has(`${text}::${matchType}`)
+  );
+
+  if (toCreate.length === 0) return [];
+
+  const result = await mutate(
+    accessToken,
+    toCreate.map(({ text, matchType }) => ({
+      campaignCriterionOperation: {
+        create: {
+          campaign: campaignResourceName,
+          negative: true,
+          keyword: { text, matchType },
+        },
+      },
+    }))
+  );
+
+  return result.mutateOperationResponses ?? [];
+};
+
+const optimizePowerWashingCampaign = async (accessToken, campaignId) => {
+  const campaignResourceName = `customers/${customerId}/campaigns/${campaignId}`;
+  const adGroup = await findMainAdGroupForCampaign(accessToken, campaignId);
+
+  if (!adGroup?.resourceName) {
+    throw new Error(`Could not find an ad group for campaign ${campaignId}.`);
+  }
+
+  const keywordAdds = await addKeywordsToAdGroup(accessToken, adGroup.resourceName, [
+    { text: "pressure washing victoria", matchType: "EXACT" },
+    { text: "deck cleaning companies", matchType: "PHRASE" },
+    { text: "deck cleaning services", matchType: "PHRASE" },
+  ]);
+
+  const negativeAdds = await addCampaignNegativeKeywords(accessToken, campaignResourceName, [
+    { text: "daves pressure washing", matchType: "PHRASE" },
+    { text: "dave's pressure washing", matchType: "PHRASE" },
+  ]);
+
+  const sitelinks = await addSitelinksToCampaign(accessToken, campaignId);
+  const trustAssets = await addTrustAssetsToCampaign(accessToken, campaignId);
+
+  return {
+    keywordAdds: keywordAdds.length,
+    negativeAdds: negativeAdds.length,
+    sitelinks: sitelinks.length,
+    trustAssets: trustAssets.length,
+  };
+};
+
 const updateCampaignBudgetAndWindow = async (accessToken, campaignId, dailyBudgetCad, endDate) => {
   const campaignRow = await firstResult(
     accessToken,
@@ -972,6 +1096,20 @@ const main = async () => {
     }
     const result = await addTrustAssetsToCampaign(accessToken, campaignId);
     console.log(`Attached ${result.length} trust assets to campaign ${campaignId}`);
+    return;
+  }
+
+  if (command === "optimize-power-washing") {
+    const campaignId = process.argv[3];
+    if (!campaignId) {
+      throw new Error(
+        "Provide a campaign ID, e.g. npm run ads:optimize:power-washing -- 23882682845"
+      );
+    }
+    const result = await optimizePowerWashingCampaign(accessToken, campaignId);
+    console.log(
+      `Optimized campaign ${campaignId}: ${result.keywordAdds} keyword adds, ${result.negativeAdds} negative adds, ${result.sitelinks} sitelinks checked, ${result.trustAssets} trust assets checked`
+    );
     return;
   }
 
