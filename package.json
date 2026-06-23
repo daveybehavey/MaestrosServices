@@ -14,6 +14,7 @@
     "reporting:gsc": "node scripts/google-reporting.mjs gsc",
     "gbp:accounts": "node scripts/google-business-profile.mjs accounts",
     "gbp:locations": "node scripts/google-business-profile.mjs locations",
+    "gbp:list-posts": "node scripts/google-business-profile.mjs list-posts",
     "gbp:create-post": "node scripts/google-business-profile.mjs create-post",
     "ads:smoke": "node scripts/google-ads.mjs smoke",
     "ads:customers": "node scripts/google-ads.mjs customers",

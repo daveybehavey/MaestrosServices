@@ -91,16 +91,24 @@ const listAccounts = async (accessToken) =>
   googleApi("https://mybusinessaccountmanagement.googleapis.com/v1/accounts", accessToken);
 
 const listLocations = async (accessToken, parentAccountName) => {
-  const baseUrl = "https://mybusinessbusinessinformation.googleapis.com/v1/locations";
+  const baseUrl = `https://mybusinessbusinessinformation.googleapis.com/v1/${parentAccountName}/locations`;
   const params = new URLSearchParams({
     readMask: "name,title,storefrontAddress,metadata",
     pageSize: "100",
-    filter: `parent=${parentAccountName}`,
   });
   return googleApi(`${baseUrl}?${params.toString()}`, accessToken);
 };
 
+const toLocalPostParent = (targetLocationName) => {
+  if (targetLocationName.startsWith("accounts/")) return targetLocationName;
+  if (targetLocationName.startsWith("locations/") && accountName) {
+    return `${accountName}/${targetLocationName}`;
+  }
+  return targetLocationName;
+};
+
 const createLocalPost = async (accessToken, { locationName: targetLocationName, summary, ctaUrl, mediaUrl }) => {
+  const parent = toLocalPostParent(targetLocationName);
   const payload = {
     languageCode: "en-US",
     summary,
@@ -121,12 +129,20 @@ const createLocalPost = async (accessToken, { locationName: targetLocationName, 
   }
 
   return googleApi(
-    `https://mybusiness.googleapis.com/v4/${targetLocationName}/localPosts`,
+    `https://mybusiness.googleapis.com/v4/${parent}/localPosts`,
     accessToken,
     {
       method: "POST",
       body: JSON.stringify(payload),
     }
+  );
+};
+
+const listLocalPosts = async (accessToken, targetLocationName) => {
+  const parent = toLocalPostParent(targetLocationName);
+  return googleApi(
+    `https://mybusiness.googleapis.com/v4/${parent}/localPosts?pageSize=20`,
+    accessToken
   );
 };
 
@@ -169,6 +185,16 @@ const main = async () => {
       ctaUrl,
       mediaUrl,
     });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (command === "list-posts") {
+    if (!locationName) {
+      throw new Error("Set GOOGLE_GBP_LOCATION_NAME in .env.local before listing posts.");
+    }
+
+    const result = await listLocalPosts(accessToken, locationName);
     console.log(JSON.stringify(result, null, 2));
     return;
   }
