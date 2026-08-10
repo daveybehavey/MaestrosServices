@@ -73,36 +73,70 @@ Reports are written to `qa-reports/` as JSON for later review.
 
 ## Google Business Profile API
 
-If `.env.local` contains a Google Business Profile refresh token with the GBP scope, you can inspect accounts and publish posts locally:
+GBP commands live in `scripts/google-business-profile.mjs` with shared helpers in `scripts/lib/gbp.mjs`.
 
-```sh
-npm run gbp:accounts
-```
+### Auth and config separation
 
-Other options:
+| Concern | Script | Preferred env vars | Fallback |
+| --- | --- | --- | --- |
+| GBP Business Profile | `scripts/google-business-profile.mjs` | `GOOGLE_GBP_OAUTH_CLIENT_ID`, `GOOGLE_GBP_OAUTH_CLIENT_SECRET`, `GOOGLE_GBP_OAUTH_REFRESH_TOKEN` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN` |
+| GA4 + Search Console reporting | `scripts/google-reporting.mjs` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN` | none |
 
-```sh
-npm run gbp:locations
-npm run gbp:create-post -- "Post summary" "https://maestrosservices.com/quote" "https://example.com/image.png"
-```
+Preferred practice: keep a **GBP write-capable** OAuth client/refresh token (`business.manage`) in the `GOOGLE_GBP_OAUTH_*` vars, and use a more limited reporting credential in `GOOGLE_OAUTH_*` for GA4/GSC. The GBP script preserves that separation and only falls back to shared `GOOGLE_OAUTH_*` when a GBP-specific value is unset.
 
-Expected environment values:
+Also set:
 
-- `GOOGLE_GBP_OAUTH_REFRESH_TOKEN`
-- `GOOGLE_GBP_ACCOUNT_NAME`
-- `GOOGLE_GBP_LOCATION_NAME`
+- `GOOGLE_GBP_ACCOUNT_NAME` (`accounts/{id}`)
+- `GOOGLE_GBP_LOCATION_NAME` (`locations/{id}` or `accounts/{id}/locations/{id}`)
 
-Optional overrides:
-
-- `GOOGLE_GBP_OAUTH_CLIENT_ID`
-- `GOOGLE_GBP_OAUTH_CLIENT_SECRET`
-
-If you reuse the general Google OAuth app, the GBP script will fall back to `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`, but the refresh token still needs the Google Business Profile scope:
+Required GBP OAuth scope:
 
 ```text
 https://www.googleapis.com/auth/business.manage
 ```
 
+Enable these Google Cloud APIs on the OAuth client project before smoke testing:
+
+- My Business Account Management API (`mybusinessaccountmanagement.googleapis.com`) — `gbp:accounts`
+- My Business Business Information API (`mybusinessbusinessinformation.googleapis.com`) — `gbp:locations`, `gbp:profile-audit`
+- Business Profile Performance API (`businessprofileperformance.googleapis.com`) — `gbp:performance`, `gbp:search-keywords`
+- Google My Business API (`mybusiness.googleapis.com`) — legacy v4 needed for `gbp:list-posts`, `gbp:reviews`, and post publish
+
+Inspect which credential source is active without printing secrets:
+
+```sh
+npm run gbp:auth-info
+```
+
+### Read-only local smoke (Growth Ops P0 / P1)
+
+Do **not** run `gbp:create-post` during verification. These commands are read-only measurement / discovery:
+
+```sh
+npm run test:gbp
+npm run gbp:auth-info
+npm run gbp:accounts
+npm run gbp:locations
+npm run gbp:list-posts
+npm run gbp:performance
+npm run gbp:search-keywords
+npm run gbp:reviews
+npm run gbp:profile-audit
+npm run reporting:ga4
+npm run reporting:gsc
+```
+
+Reports write JSON under gitignored `qa-reports/` (`gbp-performance.json`, `gbp-search-keywords.json`, `gbp-reviews.json`, `gbp-profile-audit.json`).
+
+If a command returns HTTP 403 mentioning an API "has not been used" or "is disabled", enable that API on the Cloud project and retry. Do not create posts or mutate profile fields while debugging enablement.
+
+### Publishing posts (manual only)
+
+Publishing remains an explicit local action, not part of smoke verification:
+
+```sh
+npm run gbp:create-post -- "Post summary" "https://maestrosservices.com/quote" "https://example.com/image.png"
+```
 ## Google Tags
 
 The site supports both GA4 and Google Ads tags through environment variables:

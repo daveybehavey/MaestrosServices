@@ -1,8 +1,32 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import {
+  DEFAULT_DAILY_METRICS,
+  auditProfileCompleteness,
+  buildMultiDailyMetricsUrl,
+  buildProfileGetUrl,
+  buildReviewsListUrl,
+  buildSearchKeywordsUrl,
+  collectSecretValues,
+  defaultDailyRange,
+  defaultMonthlyRange,
+  describeGbpAuthSources,
+  formatGoogleApiError,
+  listMissingGbpOauthLabels,
+  normalizeDailyMetricsResponse,
+  normalizeReviewsResponse,
+  normalizeSearchKeywordsResponse,
+  paginateGoogleList,
+  redactSecrets,
+  resolveGbpOAuthConfig,
+  toAccountLocationParent,
+  toLocationResourceName,
+} from "./lib/gbp.mjs";
+
 const rootDir = process.cwd();
 const envPath = path.join(rootDir, ".env.local");
+const reportsDir = path.join(rootDir, "qa-reports");
 const command = process.argv[2] ?? "accounts";
 
 const loadEnvFile = (filePath) => {
@@ -23,32 +47,37 @@ const loadEnvFile = (filePath) => {
 
 loadEnvFile(envPath);
 
-const oauthClientId =
-  process.env.GOOGLE_GBP_OAUTH_CLIENT_ID ?? process.env.GOOGLE_OAUTH_CLIENT_ID;
-const oauthClientSecret =
-  process.env.GOOGLE_GBP_OAUTH_CLIENT_SECRET ?? process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-const oauthRefreshToken =
-  process.env.GOOGLE_GBP_OAUTH_REFRESH_TOKEN ?? process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
-const accountName = process.env.GOOGLE_GBP_ACCOUNT_NAME;
-const locationName = process.env.GOOGLE_GBP_LOCATION_NAME;
+const oauthConfig = resolveGbpOAuthConfig(process.env);
+const secretValues = collectSecretValues(oauthConfig);
+const missingEnv = listMissingGbpOauthLabels(oauthConfig);
 
-const requiredEnv = [
-  ["oauth client ID", oauthClientId],
-  ["oauth client secret", oauthClientSecret],
-  ["oauth refresh token", oauthRefreshToken],
-];
-
-const missingEnv = requiredEnv.filter(([, value]) => !value).map(([label]) => label);
 if (missingEnv.length > 0) {
   console.error(`Missing Google Business Profile environment values: ${missingEnv.join(", ")}`);
   process.exit(1);
 }
 
+const accountName = oauthConfig.accountName;
+const locationName = oauthConfig.locationName;
+
+const writeReport = (fileName, data) => {
+  if (!fs.existsSync(reportsDir)) {
+    fs.mkdirSync(reportsDir, { recursive: true });
+  }
+  const reportPath = path.join(reportsDir, fileName);
+  fs.writeFileSync(reportPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  return reportPath;
+};
+
+const safeErrorMessage = (error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return redactSecrets(message, secretValues);
+};
+
 const getAccessToken = async () => {
   const body = new URLSearchParams({
-    client_id: oauthClientId,
-    client_secret: oauthClientSecret,
-    refresh_token: oauthRefreshToken,
+    client_id: oauthConfig.clientId,
+    client_secret: oauthConfig.clientSecret,
+    refresh_token: oauthConfig.refreshToken,
     grant_type: "refresh_token",
   });
 
@@ -62,10 +91,18 @@ const getAccessToken = async () => {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Failed to refresh Google Business Profile access token: ${response.status} ${text}`);
+    throw new Error(
+      redactSecrets(
+        `Failed to refresh Google Business Profile access token: ${response.status} ${text}`,
+        secretValues
+      )
+    );
   }
 
   const result = await response.json();
+  if (!result?.access_token) {
+    throw new Error("Failed to refresh Google Business Profile access token: missing access_token.");
+  }
   return result.access_token;
 };
 
@@ -81,7 +118,11 @@ const googleApi = async (url, accessToken, options = {}) => {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Google Business Profile API error ${response.status} for ${url}: ${text}`);
+    throw new Error(formatGoogleApiError(response.status, url, text, [...secretValues, accessToken]));
+  }
+
+  if (response.status === 204) {
+    return null;
   }
 
   return response.json();
@@ -99,13 +140,8 @@ const listLocations = async (accessToken, parentAccountName) => {
   return googleApi(`${baseUrl}?${params.toString()}`, accessToken);
 };
 
-const toLocalPostParent = (targetLocationName) => {
-  if (targetLocationName.startsWith("accounts/")) return targetLocationName;
-  if (targetLocationName.startsWith("locations/") && accountName) {
-    return `${accountName}/${targetLocationName}`;
-  }
-  return targetLocationName;
-};
+const toLocalPostParent = (targetLocationName) =>
+  toAccountLocationParent(targetLocationName, accountName);
 
 const createLocalPost = async (accessToken, { locationName: targetLocationName, summary, ctaUrl, mediaUrl }) => {
   const parent = toLocalPostParent(targetLocationName);
@@ -146,6 +182,114 @@ const listLocalPosts = async (accessToken, targetLocationName) => {
   );
 };
 
+const requireLocationName = () => {
+  if (!locationName) {
+    throw new Error("Set GOOGLE_GBP_LOCATION_NAME in .env.local before running this command.");
+  }
+  return locationName;
+};
+
+const requireAccountName = () => {
+  if (!accountName) {
+    throw new Error("Set GOOGLE_GBP_ACCOUNT_NAME in .env.local before running this command.");
+  }
+  return accountName;
+};
+
+const fetchPerformance = async (accessToken, targetLocationName) => {
+  const range = defaultDailyRange();
+  const url = buildMultiDailyMetricsUrl(targetLocationName, {
+    ...range,
+    dailyMetrics: DEFAULT_DAILY_METRICS,
+  });
+  const raw = await googleApi(url, accessToken);
+  const normalized = normalizeDailyMetricsResponse(raw);
+  return {
+    generatedAt: new Date().toISOString(),
+    location: toLocationResourceName(targetLocationName),
+    dateRange: range,
+    dailyMetrics: DEFAULT_DAILY_METRICS,
+    ...normalized,
+    auth: describeGbpAuthSources(oauthConfig),
+  };
+};
+
+const fetchSearchKeywords = async (accessToken, targetLocationName) => {
+  const monthlyRange = defaultMonthlyRange();
+  const { items, pages } = await paginateGoogleList(async (pageToken) => {
+    const url = buildSearchKeywordsUrl(targetLocationName, {
+      ...monthlyRange,
+      pageToken,
+    });
+    const raw = await googleApi(url, accessToken);
+    const normalized = normalizeSearchKeywordsResponse(raw);
+    return {
+      items: normalized.keywords,
+      nextPageToken: normalized.nextPageToken,
+    };
+  });
+
+  return {
+    generatedAt: new Date().toISOString(),
+    location: toLocationResourceName(targetLocationName),
+    monthlyRange,
+    pages,
+    keywords: items,
+    keywordCount: items.length,
+    auth: describeGbpAuthSources(oauthConfig),
+  };
+};
+
+const fetchReviews = async (accessToken, targetLocationName, parentAccountName) => {
+  let averageRating = null;
+  let totalReviewCount = null;
+
+  const { items, pages } = await paginateGoogleList(async (pageToken) => {
+    const url = buildReviewsListUrl(targetLocationName, parentAccountName, { pageToken });
+    const raw = await googleApi(url, accessToken);
+    const normalized = normalizeReviewsResponse(raw);
+    if (averageRating === null && normalized.averageRating !== null) {
+      averageRating = normalized.averageRating;
+    }
+    if (totalReviewCount === null && normalized.totalReviewCount !== null) {
+      totalReviewCount = normalized.totalReviewCount;
+    }
+    return {
+      items: normalized.reviews,
+      nextPageToken: normalized.nextPageToken,
+    };
+  });
+
+  const unreplied = items.filter((review) => !review.hasOwnerReply);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    location: toAccountLocationParent(targetLocationName, parentAccountName),
+    pages,
+    averageRating,
+    totalReviewCount: totalReviewCount ?? items.length,
+    reviews: items,
+    unrepliedCount: unreplied.length,
+    unrepliedReviewIds: unreplied.map((review) => review.reviewId).filter(Boolean),
+    auth: describeGbpAuthSources(oauthConfig),
+  };
+};
+
+const fetchProfileAudit = async (accessToken, targetLocationName) => {
+  const url = buildProfileGetUrl(targetLocationName);
+  const raw = await googleApi(url, accessToken);
+  const audit = auditProfileCompleteness(raw);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    location: toLocationResourceName(targetLocationName),
+    mutation: false,
+    readOnly: true,
+    audit,
+    auth: describeGbpAuthSources(oauthConfig),
+  };
+};
+
 const main = async () => {
   const accessToken = await getAccessToken();
 
@@ -156,18 +300,14 @@ const main = async () => {
   }
 
   if (command === "locations") {
-    if (!accountName) {
-      throw new Error("Set GOOGLE_GBP_ACCOUNT_NAME in .env.local before listing locations.");
-    }
+    requireAccountName();
     const result = await listLocations(accessToken, accountName);
     console.log(JSON.stringify(result, null, 2));
     return;
   }
 
   if (command === "create-post") {
-    if (!locationName) {
-      throw new Error("Set GOOGLE_GBP_LOCATION_NAME in .env.local before creating a post.");
-    }
+    requireLocationName();
 
     const summary = process.argv[3];
     const ctaUrl = process.argv[4];
@@ -190,12 +330,84 @@ const main = async () => {
   }
 
   if (command === "list-posts") {
-    if (!locationName) {
-      throw new Error("Set GOOGLE_GBP_LOCATION_NAME in .env.local before listing posts.");
-    }
-
+    requireLocationName();
     const result = await listLocalPosts(accessToken, locationName);
     console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (command === "performance") {
+    requireLocationName();
+    const report = await fetchPerformance(accessToken, locationName);
+    const reportPath = writeReport("gbp-performance.json", report);
+    console.log(`Wrote GBP performance report to ${reportPath}`);
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
+
+  if (command === "search-keywords") {
+    requireLocationName();
+    const report = await fetchSearchKeywords(accessToken, locationName);
+    const reportPath = writeReport("gbp-search-keywords.json", report);
+    console.log(`Wrote GBP search-keywords report to ${reportPath}`);
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
+
+  if (command === "reviews") {
+    requireLocationName();
+    requireAccountName();
+    const report = await fetchReviews(accessToken, locationName, accountName);
+    const reportPath = writeReport("gbp-reviews.json", report);
+    console.log(`Wrote GBP reviews report to ${reportPath}`);
+    console.log(
+      JSON.stringify(
+        {
+          generatedAt: report.generatedAt,
+          location: report.location,
+          averageRating: report.averageRating,
+          totalReviewCount: report.totalReviewCount,
+          unrepliedCount: report.unrepliedCount,
+          unrepliedReviewIds: report.unrepliedReviewIds,
+          reviews: report.reviews.map((review) => ({
+            reviewId: review.reviewId,
+            starRating: review.starRating,
+            createTime: review.createTime,
+            hasOwnerReply: review.hasOwnerReply,
+            commentPreview: (review.comment ?? "").slice(0, 120),
+          })),
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
+
+  if (command === "profile-audit") {
+    requireLocationName();
+    const report = await fetchProfileAudit(accessToken, locationName);
+    const reportPath = writeReport("gbp-profile-audit.json", report);
+    console.log(`Wrote GBP profile-audit report to ${reportPath}`);
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
+
+  if (command === "auth-info") {
+    // Read-only local config summary. Never prints secret values.
+    console.log(
+      JSON.stringify(
+        {
+          auth: describeGbpAuthSources(oauthConfig),
+          hasAccountName: Boolean(accountName),
+          hasLocationName: Boolean(locationName),
+          accountNameSet: Boolean(accountName),
+          locationNameSet: Boolean(locationName),
+        },
+        null,
+        2
+      )
+    );
     return;
   }
 
@@ -203,6 +415,6 @@ const main = async () => {
 };
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
+  console.error(safeErrorMessage(error));
   process.exit(1);
 });
