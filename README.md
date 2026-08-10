@@ -128,6 +128,8 @@ npm run reporting:gsc
 
 Reports write JSON under gitignored `qa-reports/` (`gbp-performance.json`, `gbp-search-keywords.json`, `gbp-reviews.json`, `gbp-profile-audit.json`).
 
+`gbp:performance` defaults to the last **28 completed UTC calendar days** (inclusive `endDate` = yesterday UTC, `startDate` = end minus 27 days). Google's Performance `DailyRange` treats both ends as inclusive.
+
 If a command returns HTTP 403 mentioning an API "has not been used" or "is disabled", enable that API on the Cloud project and retry. Do not create posts or mutate profile fields while debugging enablement.
 
 ### Publishing posts (manual only)

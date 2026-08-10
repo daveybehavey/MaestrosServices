@@ -5,10 +5,14 @@ import {
   BUSINESS_MANAGE_SCOPE,
   PROFILE_AUDIT_READ_MASK,
   auditProfileCompleteness,
+  buildAuthInfoReport,
   buildMultiDailyMetricsUrl,
   buildProfileGetUrl,
   buildReviewsListUrl,
   buildSearchKeywordsUrl,
+  classifyLocationPresenceModel,
+  countInclusiveUtcDays,
+  defaultDailyRange,
   describeGbpAuthSources,
   formatGoogleApiError,
   listMissingGbpOauthLabels,
@@ -39,8 +43,11 @@ test("resolveGbpOAuthConfig prefers GOOGLE_GBP_OAUTH_* over GOOGLE_OAUTH_*", () 
   assert.equal(config.refreshToken, "gbp-refresh");
   assert.equal(config.sources.clientId, "GOOGLE_GBP_OAUTH_CLIENT_ID");
   assert.equal(config.sources.refreshToken, "GOOGLE_GBP_OAUTH_REFRESH_TOKEN");
-  assert.equal(describeGbpAuthSources(config).usingGbpSpecificClient, true);
-  assert.equal(describeGbpAuthSources(config).requiredScope, BUSINESS_MANAGE_SCOPE);
+  const described = describeGbpAuthSources(config);
+  assert.equal(described.usingGbpSpecificClient, true);
+  assert.equal(described.usingGbpSpecificRefreshToken, true);
+  assert.equal(described.usingAnyGbpSpecificCredential, true);
+  assert.equal(described.requiredScope, BUSINESS_MANAGE_SCOPE);
 });
 
 test("resolveGbpOAuthConfig falls back to shared GOOGLE_OAUTH_*", () => {
@@ -53,7 +60,47 @@ test("resolveGbpOAuthConfig falls back to shared GOOGLE_OAUTH_*", () => {
   assert.equal(config.clientId, "shared-client");
   assert.equal(config.sources.clientId, "GOOGLE_OAUTH_CLIENT_ID");
   assert.deepEqual(listMissingGbpOauthLabels(config), []);
-  assert.equal(describeGbpAuthSources(config).usingGbpSpecificClient, false);
+  const described = describeGbpAuthSources(config);
+  assert.equal(described.usingGbpSpecificClient, false);
+  assert.equal(described.usingGbpSpecificRefreshToken, false);
+  assert.equal(described.usingAnyGbpSpecificCredential, false);
+});
+
+test("describeGbpAuthSources distinguishes mixed shared-client + GBP refresh token", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh-only",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh",
+  });
+
+  const described = describeGbpAuthSources(config);
+  assert.equal(described.clientIdSource, "GOOGLE_OAUTH_CLIENT_ID");
+  assert.equal(described.clientSecretSource, "GOOGLE_OAUTH_CLIENT_SECRET");
+  assert.equal(described.refreshTokenSource, "GOOGLE_GBP_OAUTH_REFRESH_TOKEN");
+  assert.equal(described.usingGbpSpecificClient, false);
+  assert.equal(described.usingGbpSpecificRefreshToken, true);
+  assert.equal(described.usingAnyGbpSpecificCredential, true);
+});
+
+test("buildAuthInfoReport stays local and never embeds secret values", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client-id-value",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-client-secret-value",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh-token-value",
+  });
+  const report = buildAuthInfoReport(config);
+  const serialized = JSON.stringify(report);
+
+  assert.equal(report.contactsGoogle, false);
+  assert.equal(report.mode, "local-config-only");
+  assert.equal(report.auth.usingGbpSpecificClient, false);
+  assert.equal(report.auth.usingGbpSpecificRefreshToken, true);
+  assert.equal(report.oauthValuesConfigured.clientId, true);
+  assert.equal(report.oauthValuesConfigured.refreshToken, true);
+  assert.equal(serialized.includes("shared-client-id-value"), false);
+  assert.equal(serialized.includes("shared-client-secret-value"), false);
+  assert.equal(serialized.includes("gbp-refresh-token-value"), false);
 });
 
 test("listMissingGbpOauthLabels reports missing configuration", () => {
@@ -228,21 +275,82 @@ test("normalizeReviewsResponse identifies owner reply state", () => {
   assert.throws(() => normalizeReviewsResponse(undefined), /Malformed reviews/);
 });
 
-test("auditProfileCompleteness reports missing fields without mutating input", () => {
-  const location = {
-    name: "locations/222",
+test("defaultDailyRange uses exactly 28 inclusive completed UTC days ending yesterday", () => {
+  const now = new Date(Date.UTC(2026, 7, 10, 15, 30, 0)); // 2026-08-10
+  const range = defaultDailyRange(now);
+  assert.deepEqual(range, {
+    startDate: "2026-07-13",
+    endDate: "2026-08-09",
+  });
+  assert.equal(countInclusiveUtcDays(range.startDate, range.endDate), 28);
+
+  const januaryNow = new Date(Date.UTC(2026, 0, 5, 12, 0, 0)); // 2026-01-05
+  const januaryRange = defaultDailyRange(januaryNow);
+  assert.deepEqual(januaryRange, {
+    startDate: "2025-12-08",
+    endDate: "2026-01-04",
+  });
+  assert.equal(countInclusiveUtcDays(januaryRange.startDate, januaryRange.endDate), 28);
+});
+
+test("auditProfileCompleteness is service-area aware and does not invent certainty", () => {
+  const serviceAreaOnly = {
+    name: "locations/sa",
     title: "Maestros Services",
     websiteUri: "https://maestrosservices.com",
     phoneNumbers: { primaryPhone: "+12505551234" },
+    serviceArea: { businessType: "CUSTOMER_LOCATION_ONLY" },
+    categories: { primaryCategory: { name: "gcid:landscaper" } },
+    regularHours: { periods: [{ openDay: "MONDAY" }] },
+    profile: { description: "Residential landscaping" },
+    latlng: { latitude: 48.4, longitude: -123.5 },
+    openInfo: { status: "OPEN" },
+    serviceItems: [{ freeFormServiceItem: { label: { displayName: "Lawn care" } } }],
   };
-  const before = JSON.stringify(location);
-  const audit = auditProfileCompleteness(location);
+  const serviceAudit = auditProfileCompleteness(serviceAreaOnly);
+  assert.equal(classifyLocationPresenceModel(serviceAreaOnly), "service_area_only");
+  assert.equal(serviceAudit.presenceModel, "service_area_only");
+  assert.equal(serviceAudit.checks.find((c) => c.id === "storefrontAddress").status, "not_applicable");
+  assert.equal(serviceAudit.missing.includes("storefrontAddress"), false);
+  assert.equal(serviceAudit.scoreKind, "internal_audit_heuristic");
+  assert.equal(serviceAudit.internalAuditHeuristicScore, 1);
 
-  assert.equal(audit.checks.find((check) => check.id === "title").present, true);
-  assert.equal(audit.checks.find((check) => check.id === "regularHours").present, false);
-  assert.ok(audit.missing.includes("regularHours"));
-  assert.ok(audit.completenessScore < 1);
-  assert.equal(JSON.stringify(location), before);
+  const storefront = {
+    name: "locations/sf",
+    title: "Shop",
+    storefrontAddress: { addressLines: ["123 Main St"] },
+    websiteUri: "https://example.com",
+    phoneNumbers: { primaryPhone: "+12505550000" },
+  };
+  const storefrontAudit = auditProfileCompleteness(storefront);
+  assert.equal(storefrontAudit.presenceModel, "storefront");
+  assert.equal(storefrontAudit.checks.find((c) => c.id === "serviceArea").status, "not_applicable");
+  assert.equal(storefrontAudit.checks.find((c) => c.id === "storefrontAddress").status, "pass");
+
+  const hybrid = {
+    name: "locations/hy",
+    title: "Hybrid",
+    storefrontAddress: { addressLines: ["123 Main St"] },
+    serviceArea: { businessType: "CUSTOMER_AND_BUSINESS_LOCATION" },
+  };
+  const hybridAudit = auditProfileCompleteness(hybrid);
+  assert.equal(hybridAudit.presenceModel, "hybrid");
+  assert.equal(hybridAudit.checks.find((c) => c.id === "storefrontAddress").status, "pass");
+  assert.equal(hybridAudit.checks.find((c) => c.id === "serviceArea").status, "pass");
+
+  const ambiguous = {
+    name: "locations/unk",
+    title: "Ambiguous",
+    serviceArea: { places: { placeInfos: [{ placeName: "Victoria" }] } },
+  };
+  const before = JSON.stringify(ambiguous);
+  const unknownAudit = auditProfileCompleteness(ambiguous);
+  assert.equal(unknownAudit.presenceModel, "unknown");
+  assert.equal(unknownAudit.checks.find((c) => c.id === "storefrontAddress").status, "unknown");
+  assert.equal(unknownAudit.checks.find((c) => c.id === "serviceArea").status, "unknown");
+  assert.equal(unknownAudit.missing.includes("storefrontAddress"), false);
+  assert.equal(unknownAudit.missing.includes("serviceArea"), false);
+  assert.equal(JSON.stringify(ambiguous), before);
   assert.throws(() => auditProfileCompleteness(null), /Malformed profile/);
 });
 

@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   DEFAULT_DAILY_METRICS,
   auditProfileCompleteness,
+  buildAuthInfoReport,
   buildMultiDailyMetricsUrl,
   buildProfileGetUrl,
   buildReviewsListUrl,
@@ -50,11 +51,6 @@ loadEnvFile(envPath);
 const oauthConfig = resolveGbpOAuthConfig(process.env);
 const secretValues = collectSecretValues(oauthConfig);
 const missingEnv = listMissingGbpOauthLabels(oauthConfig);
-
-if (missingEnv.length > 0) {
-  console.error(`Missing Google Business Profile environment values: ${missingEnv.join(", ")}`);
-  process.exit(1);
-}
 
 const accountName = oauthConfig.accountName;
 const locationName = oauthConfig.locationName;
@@ -291,6 +287,17 @@ const fetchProfileAudit = async (accessToken, targetLocationName) => {
 };
 
 const main = async () => {
+  // Local diagnostic only: never refresh tokens or call Google.
+  if (command === "auth-info") {
+    console.log(JSON.stringify(buildAuthInfoReport(oauthConfig), null, 2));
+    return;
+  }
+
+  if (missingEnv.length > 0) {
+    console.error(`Missing Google Business Profile environment values: ${missingEnv.join(", ")}`);
+    process.exit(1);
+  }
+
   const accessToken = await getAccessToken();
 
   if (command === "accounts") {
@@ -390,24 +397,6 @@ const main = async () => {
     const reportPath = writeReport("gbp-profile-audit.json", report);
     console.log(`Wrote GBP profile-audit report to ${reportPath}`);
     console.log(JSON.stringify(report, null, 2));
-    return;
-  }
-
-  if (command === "auth-info") {
-    // Read-only local config summary. Never prints secret values.
-    console.log(
-      JSON.stringify(
-        {
-          auth: describeGbpAuthSources(oauthConfig),
-          hasAccountName: Boolean(accountName),
-          hasLocationName: Boolean(locationName),
-          accountNameSet: Boolean(accountName),
-          locationNameSet: Boolean(locationName),
-        },
-        null,
-        2
-      )
-    );
     return;
   }
 

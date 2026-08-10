@@ -91,16 +91,51 @@ export const listMissingGbpOauthLabels = (config) => {
   return missing;
 };
 
-export const describeGbpAuthSources = (config) => ({
-  clientIdSource: config.sources?.clientId ?? null,
-  clientSecretSource: config.sources?.clientSecret ?? null,
-  refreshTokenSource: config.sources?.refreshToken ?? null,
-  usingGbpSpecificClient:
-    Boolean(config.sources?.clientId?.startsWith("GOOGLE_GBP_")) ||
-    Boolean(config.sources?.clientSecret?.startsWith("GOOGLE_GBP_")) ||
-    Boolean(config.sources?.refreshToken?.startsWith("GOOGLE_GBP_")),
-  requiredScope: BUSINESS_MANAGE_SCOPE,
-});
+export const describeGbpAuthSources = (config) => {
+  const clientIdSource = config.sources?.clientId ?? null;
+  const clientSecretSource = config.sources?.clientSecret ?? null;
+  const refreshTokenSource = config.sources?.refreshToken ?? null;
+  const usingGbpSpecificClient =
+    Boolean(clientIdSource?.startsWith("GOOGLE_GBP_")) ||
+    Boolean(clientSecretSource?.startsWith("GOOGLE_GBP_"));
+  const usingGbpSpecificRefreshToken = Boolean(
+    refreshTokenSource?.startsWith("GOOGLE_GBP_")
+  );
+
+  return {
+    clientIdSource,
+    clientSecretSource,
+    refreshTokenSource,
+    usingGbpSpecificClient,
+    usingGbpSpecificRefreshToken,
+    usingAnyGbpSpecificCredential: usingGbpSpecificClient || usingGbpSpecificRefreshToken,
+    requiredScope: BUSINESS_MANAGE_SCOPE,
+  };
+};
+
+/**
+ * Local-only auth diagnostic. Never includes secret values and never contacts Google.
+ */
+export const buildAuthInfoReport = (config) => {
+  const auth = describeGbpAuthSources(config);
+  const missingOauthLabels = listMissingGbpOauthLabels(config);
+  return {
+    generatedAt: new Date().toISOString(),
+    mode: "local-config-only",
+    contactsGoogle: false,
+    auth,
+    oauthValuesConfigured: {
+      clientId: Boolean(config.clientId),
+      clientSecret: Boolean(config.clientSecret),
+      refreshToken: Boolean(config.refreshToken),
+    },
+    missingOauthLabels,
+    hasAccountName: Boolean(config.accountName),
+    hasLocationName: Boolean(config.locationName),
+    accountNameSet: Boolean(config.accountName),
+    locationNameSet: Boolean(config.locationName),
+  };
+};
 
 /** Normalize to `locations/{locationId}` for Performance + Business Information APIs. */
 export const toLocationResourceName = (locationName) => {
@@ -188,9 +223,30 @@ export const toIsoDateUtc = (date) =>
     date.getUTCDate()
   ).padStart(2, "0")}`;
 
+/**
+ * Count inclusive UTC calendar dates between YYYY-MM-DD bounds.
+ * Google Business Profile Performance DailyRange treats both ends as inclusive.
+ */
+export const countInclusiveUtcDays = (startDate, endDate) => {
+  const start = parseIsoDateParts(startDate);
+  const end = parseIsoDateParts(endDate);
+  const startMs = Date.UTC(start.year, start.month - 1, start.day);
+  const endMs = Date.UTC(end.year, end.month - 1, end.day);
+  if (endMs < startMs) {
+    throw new Error("endDate must be on or after startDate");
+  }
+  return Math.floor((endMs - startMs) / 86400000) + 1;
+};
+
+/**
+ * Default performance window: exactly 28 inclusive completed UTC days.
+ * endDate = yesterday UTC (avoids partial "today" data)
+ * startDate = endDate - 27 days
+ */
 export const defaultDailyRange = (now = new Date()) => {
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const start = shiftUtcDate(end, -28);
+  const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const end = shiftUtcDate(todayUtc, -1);
+  const start = shiftUtcDate(end, -27);
   return {
     startDate: toIsoDateUtc(start),
     endDate: toIsoDateUtc(end),
@@ -397,97 +453,192 @@ export const normalizeReviewsResponse = (raw) => {
 
 const hasText = (value) => typeof value === "string" && value.trim().length > 0;
 
+const hasStorefrontAddress = (location) =>
+  Boolean(location?.storefrontAddress?.addressLines?.length);
+
+const hasServiceArea = (location) => Boolean(location?.serviceArea);
+
+/**
+ * Classify presence model from Business Information evidence only.
+ * Returns unknown when the API payload is insufficient to decide safely.
+ */
+export const classifyLocationPresenceModel = (location) => {
+  const addressPresent = hasStorefrontAddress(location);
+  const serviceAreaPresent = hasServiceArea(location);
+  const businessType = location?.serviceArea?.businessType ?? null;
+
+  if (businessType === "CUSTOMER_LOCATION_ONLY") {
+    return "service_area_only";
+  }
+  if (businessType === "CUSTOMER_AND_BUSINESS_LOCATION") {
+    return "hybrid";
+  }
+  if (addressPresent && serviceAreaPresent) {
+    return "hybrid";
+  }
+  if (addressPresent && !serviceAreaPresent) {
+    return "storefront";
+  }
+  return "unknown";
+};
+
+const buildCheck = ({ id, label, present, value, applicable = true, status }) => {
+  let resolvedStatus = status;
+  if (!resolvedStatus) {
+    if (!applicable) resolvedStatus = "not_applicable";
+    else resolvedStatus = present ? "pass" : "fail";
+  }
+  return {
+    id,
+    label,
+    applicable,
+    present,
+    status: resolvedStatus,
+    value,
+  };
+};
+
 export const auditProfileCompleteness = (location) => {
   if (location == null || typeof location !== "object" || Array.isArray(location)) {
     throw new Error("Malformed profile response: expected a location object.");
   }
 
+  const presenceModel = classifyLocationPresenceModel(location);
+  const addressPresent = hasStorefrontAddress(location);
+  const serviceAreaPresent = hasServiceArea(location);
+  const businessType = location.serviceArea?.businessType ?? null;
+
+  const addressApplicable =
+    presenceModel === "storefront" || presenceModel === "hybrid";
+  const serviceAreaApplicable =
+    presenceModel === "service_area_only" || presenceModel === "hybrid";
+
   const checks = [
-    {
+    buildCheck({
       id: "title",
       label: "Business title",
       present: hasText(location.title),
       value: location.title ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "primaryPhone",
       label: "Primary phone",
       present: hasText(location.phoneNumbers?.primaryPhone),
       value: location.phoneNumbers?.primaryPhone ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "websiteUri",
       label: "Website URI",
       present: hasText(location.websiteUri),
       value: location.websiteUri ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "storefrontAddress",
       label: "Storefront address",
-      present: Boolean(location.storefrontAddress?.addressLines?.length),
+      applicable: addressApplicable,
+      present: addressPresent,
       value: location.storefrontAddress ?? null,
-    },
-    {
+      status:
+        presenceModel === "unknown"
+          ? "unknown"
+          : presenceModel === "service_area_only"
+            ? "not_applicable"
+            : addressPresent
+              ? "pass"
+              : "fail",
+    }),
+    buildCheck({
       id: "serviceArea",
       label: "Service area",
-      present: Boolean(location.serviceArea),
-      value: location.serviceArea ? { present: true } : null,
-    },
-    {
+      applicable: serviceAreaApplicable,
+      present: serviceAreaPresent,
+      value: serviceAreaPresent
+        ? { present: true, businessType }
+        : null,
+      status:
+        presenceModel === "unknown"
+          ? "unknown"
+          : presenceModel === "storefront"
+            ? "not_applicable"
+            : serviceAreaPresent
+              ? "pass"
+              : "fail",
+    }),
+    buildCheck({
       id: "primaryCategory",
       label: "Primary category",
-      present: hasText(location.categories?.primaryCategory?.displayName) ||
+      present:
+        hasText(location.categories?.primaryCategory?.displayName) ||
         hasText(location.categories?.primaryCategory?.name),
       value: location.categories?.primaryCategory ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "regularHours",
       label: "Regular hours",
       present: Boolean(location.regularHours?.periods?.length),
       value: location.regularHours ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "profileDescription",
       label: "Profile description",
       present: hasText(location.profile?.description),
       value: location.profile?.description ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "latlng",
       label: "Lat/lng",
       present:
         location.latlng?.latitude !== undefined && location.latlng?.longitude !== undefined,
       value: location.latlng ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "openInfo",
       label: "Open info status",
       present: hasText(location.openInfo?.status),
       value: location.openInfo ?? null,
-    },
-    {
+    }),
+    buildCheck({
       id: "serviceItems",
       label: "Service items",
       present: Array.isArray(location.serviceItems) && location.serviceItems.length > 0,
       value: Array.isArray(location.serviceItems) ? location.serviceItems.length : 0,
-    },
+    }),
   ];
 
-  const missing = checks.filter((check) => !check.present).map((check) => check.id);
-  const presentCount = checks.length - missing.length;
+  // Only score checks that are explicitly applicable. Unknown/not_applicable
+  // presence fields are informational and excluded from the denominator.
+  const scoredChecks = checks.filter((check) => check.applicable && check.status !== "unknown");
+  const missing = scoredChecks.filter((check) => check.status === "fail").map((check) => check.id);
+  const presentCount = scoredChecks.length - missing.length;
+  const internalAuditHeuristicScore =
+    scoredChecks.length === 0
+      ? null
+      : Number((presentCount / scoredChecks.length).toFixed(2));
 
   return {
     name: location.name ?? null,
     title: location.title ?? null,
+    presenceModel,
+    presenceModelNote:
+      presenceModel === "unknown"
+        ? "Insufficient API evidence to classify storefront vs service-area vs hybrid; address/service-area checks are informational only."
+        : presenceModel === "service_area_only"
+          ? "Service-area-only model: hidden/absent storefront address is not treated as incompleteness."
+          : null,
     checks,
     missing,
-    completenessScore: Number((presentCount / checks.length).toFixed(2)),
+    // Internal heuristic only — not a Google-provided completeness score.
+    internalAuditHeuristicScore,
+    completenessScore: internalAuditHeuristicScore,
+    scoreKind: "internal_audit_heuristic",
+    scoredCheckCount: scoredChecks.length,
     snapshot: {
       websiteUri: location.websiteUri ?? null,
       primaryPhone: location.phoneNumbers?.primaryPhone ?? null,
       primaryCategory: location.categories?.primaryCategory ?? null,
       storefrontAddress: location.storefrontAddress ?? null,
-      hasServiceArea: Boolean(location.serviceArea),
+      hasServiceArea: serviceAreaPresent,
+      serviceAreaBusinessType: businessType,
       regularHoursPeriods: location.regularHours?.periods?.length ?? 0,
       serviceItemCount: Array.isArray(location.serviceItems) ? location.serviceItems.length : 0,
       openStatus: location.openInfo?.status ?? null,
