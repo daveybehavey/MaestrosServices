@@ -52,5 +52,5 @@
     ]
   },
   "failClosed": true,
-  "notes": "Unverified or ambiguous claims fail closed. Sensitive language requires explicit evidence refs. Passing validation does not publish."
+  "notes": "Unverified or ambiguous claims fail closed. Sensitive language requires explicit evidence refs. CALL CTA needs no website URL; URL CTAs require approved HTTPS+UTMs. Passing validation does not publish."
 }

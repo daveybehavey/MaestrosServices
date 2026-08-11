@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { buildCanonicalGbpQuoteUrl, validateGbpCtaUrl } from "./growth-cta.mjs";
+import { buildCanonicalGbpQuoteUrl, validateGbpCta, validateGbpCtaUrl } from "./growth-cta.mjs";
 import {
   findDuplicateMatch,
   normalizePostText,
@@ -40,13 +40,13 @@ test("missing facts directory fails closed", () => {
   assert.throws(() => loadGrowthFacts(path.join(root, "growth/does-not-exist")), /Missing facts directory/);
 });
 
-test("CTA validator enforces https, host, path, and GBP UTMs", () => {
+test("CTA validator enforces https, host, path, and GBP UTMs for URL actions", () => {
   const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const approvedUrl =
+    "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts#quote";
+  assert.equal(validateGbpCtaUrl(approvedUrl, rules).ok, true);
   assert.equal(
-    validateGbpCtaUrl(
-      "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts#quote",
-      rules
-    ).ok,
+    validateGbpCta({ actionType: "LEARN_MORE", url: approvedUrl }, rules).ok,
     true
   );
   assert.match(
@@ -68,6 +68,109 @@ test("CTA validator enforces https, host, path, and GBP UTMs", () => {
     /forbidden scheme/
   );
   assert.ok(buildCanonicalGbpQuoteUrl({ campaign: "GBP Posts!" }).includes("utm_campaign=gbp_posts"));
+});
+
+test("PASS: CALL CTA with no URL is valid", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const result = validateGbpCta({ actionType: "CALL" }, rules);
+  assert.equal(result.ok, true, result.errors.join("; "));
+  assert.equal(result.normalizedCta, null);
+  assert.equal(result.errors.length, 0);
+
+  const post = validateGbpPost({
+    draft: readJson(path.join(postsDir, "valid-call-cta.json")),
+    facts: loadGrowthFacts(overlayFactsDir),
+  });
+  assert.equal(post.valid, true, post.errors.join("; "));
+  assert.equal(post.normalizedCta, null);
+});
+
+test("PASS: LEARN_MORE with valid approved UTM URL", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const url =
+    "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts#quote";
+  const result = validateGbpCta({ actionType: "LEARN_MORE", url }, rules);
+  assert.equal(result.ok, true, result.errors.join("; "));
+  assert.ok(result.normalizedCta);
+});
+
+test("FAIL: LEARN_MORE with no URL", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const result = validateGbpCta({ actionType: "LEARN_MORE" }, rules);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => /CTA URL is required/i.test(e)));
+
+  const post = validateGbpPost({
+    draft: {
+      ...validDraft(),
+      callToAction: { actionType: "LEARN_MORE" },
+    },
+    facts: loadGrowthFacts(overlayFactsDir),
+  });
+  assert.equal(post.valid, false);
+  assert.ok(post.errors.some((e) => /CTA URL is required/i.test(e)));
+});
+
+test("FAIL: BOOK with external URL", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const result = validateGbpCta(
+    {
+      actionType: "BOOK",
+      url: "https://other-site.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts",
+    },
+    rules
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => /hostname/i.test(e)));
+});
+
+test("FAIL: URL-based CTA missing UTMs", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const result = validateGbpCta(
+    {
+      actionType: "LEARN_MORE",
+      url: "https://maestrosservices.com/quote#quote",
+    },
+    rules
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => /utm_source/i.test(e)));
+});
+
+test("FAIL: malformed URL on URL-based CTA", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const result = validateGbpCta(
+    { actionType: "LEARN_MORE", url: "not a url at all" },
+    rules
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => /malformed/i.test(e)));
+});
+
+test("FAIL: CALL with website URL is inconsistent", () => {
+  const rules = loadGrowthFacts(overlayFactsDir).rules;
+  const result = validateGbpCta(
+    {
+      actionType: "CALL",
+      url: "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts",
+    },
+    rules
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => /must not include a website URL/i.test(e)));
+
+  const post = validateGbpPost({
+    draft: {
+      ...validDraft(),
+      callToAction: {
+        actionType: "CALL",
+        url: "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts",
+      },
+    },
+    facts: loadGrowthFacts(overlayFactsDir),
+  });
+  assert.equal(post.valid, false);
+  assert.ok(post.errors.some((e) => /must not include a website URL/i.test(e)));
 });
 
 test("duplicate detection catches exact and near-duplicate May power-washing captions", () => {

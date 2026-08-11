@@ -6,7 +6,7 @@
  * Unrelated verified facts in the same broad category never authorize a claim.
  */
 
-import { validateGbpCtaUrl } from "./growth-cta.mjs";
+import { validateGbpCta } from "./growth-cta.mjs";
 import { findDuplicateMatch, normalizePostText } from "./growth-duplicate.mjs";
 
 const compilePatterns = (patterns = []) =>
@@ -329,7 +329,10 @@ export const validateGbpPost = ({
     errors.push(`CTA actionType "${actionType}" is not allowed.`);
   }
 
-  const ctaResult = validateGbpCtaUrl(cta.url, rules);
+  const ctaResult = validateGbpCta(
+    { actionType, url: cta.url },
+    rules
+  );
   errors.push(...ctaResult.errors);
   warnings.push(...ctaResult.warnings);
 

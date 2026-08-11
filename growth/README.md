@@ -72,7 +72,18 @@ Do not invent job outcomes. Empty catalog = project-specific claims fail.
 
 ## CTA / UTM convention
 
-GBP website CTAs must:
+Validation is **action-type aware** via `validateGbpCta({ actionType, url }, rules)`.
+
+### `CALL`
+
+- Website URL is **not** required (GBP CALL uses the profile phone).
+- Website UTM requirements do **not** apply when there is no URL.
+- `normalizedCta` is `null` on a valid CALL CTA.
+- Supplying a website `url` with `CALL` **fails** as inconsistent (deterministic; do not silently ignore).
+
+### URL-based CTAs (`LEARN_MORE`, `BOOK`, `ORDER`, `SHOP`, `SIGN_UP`)
+
+These **require** an approved website URL and must:
 
 - use HTTPS
 - host on `maestrosservices.com` (or `www.`)
@@ -82,7 +93,7 @@ GBP website CTAs must:
 - use an allowed `utm_campaign` (`gbp_posts`, `gbp_profile`, or `gbp_growth_ops`)
 - may keep `#quote` / other anchors
 
-Malformed, HTTP, or external URLs fail validation. The validator reports failures; it does not silently rewrite and proceed as publishable.
+Malformed, HTTP, external, or missing URLs fail validation. The validator reports failures; it does not silently rewrite and proceed as publishable.
 
 ## Duplicate detection
 

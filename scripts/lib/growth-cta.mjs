@@ -1,5 +1,6 @@
 /**
- * Deterministic GBP CTA URL validation and normalization reporting.
+ * Deterministic GBP CTA validation and normalization reporting.
+ * Action-type aware: CALL does not require a website URL; URL CTAs do.
  * Does not silently repair invalid URLs into a publishable pass.
  */
 
@@ -7,6 +8,18 @@ const DEFAULT_REQUIRED_UTM = {
   utm_source: "google_business_profile",
   utm_medium: "organic",
 };
+
+/** CTA action types that require an approved website URL + UTMs. */
+export const URL_REQUIRED_CTA_ACTIONS = [
+  "LEARN_MORE",
+  "BOOK",
+  "ORDER",
+  "SHOP",
+  "SIGN_UP",
+];
+
+/** CTA action types that must not carry a website URL. */
+export const NO_URL_CTA_ACTIONS = ["CALL"];
 
 const sanitizeCampaign = (value) =>
   String(value ?? "")
@@ -16,12 +29,18 @@ const sanitizeCampaign = (value) =>
     .replace(/_+/g, "_")
     .replace(/^_|_$/g, "");
 
+const hasUrlValue = (rawUrl) => rawUrl != null && String(rawUrl).trim() !== "";
+
+/**
+ * Validate a website CTA URL (HTTPS, host, path, required UTMs).
+ * Used by URL-required action types. Does not interpret actionType.
+ */
 export const validateGbpCtaUrl = (rawUrl, rules = {}) => {
   const errors = [];
   const warnings = [];
   let parsed = null;
 
-  if (rawUrl == null || String(rawUrl).trim() === "") {
+  if (!hasUrlValue(rawUrl)) {
     return {
       ok: false,
       errors: ["CTA URL is required."],
@@ -123,6 +142,62 @@ export const validateGbpCtaUrl = (rawUrl, rules = {}) => {
       utm_medium: parsed.searchParams.get("utm_medium"),
       utm_campaign: parsed.searchParams.get("utm_campaign"),
     },
+  };
+};
+
+/**
+ * Action-aware GBP CTA validation.
+ *
+ * - LEARN_MORE / BOOK / ORDER / SHOP / SIGN_UP: require URL + full website rules
+ * - CALL: URL must be absent (GBP CALL uses the profile phone). normalizedCta is null.
+ *   If a URL is supplied with CALL, fail as inconsistent (deterministic; no silent ignore).
+ */
+export const validateGbpCta = ({ actionType = "LEARN_MORE", url } = {}, rules = {}) => {
+  const action = String(actionType || "LEARN_MORE").trim().toUpperCase() || "LEARN_MORE";
+  const warnings = [];
+
+  if (NO_URL_CTA_ACTIONS.includes(action)) {
+    if (hasUrlValue(url)) {
+      return {
+        ok: false,
+        errors: [
+          `CTA actionType CALL must not include a website URL (GBP CALL uses the profile phone). Remove url or use a URL-based actionType.`,
+        ],
+        warnings,
+        normalizedCta: null,
+        parsed: null,
+        actionType: action,
+      };
+    }
+    return {
+      ok: true,
+      errors: [],
+      warnings,
+      normalizedCta: null,
+      parsed: null,
+      actionType: action,
+    };
+  }
+
+  if (URL_REQUIRED_CTA_ACTIONS.includes(action)) {
+    const result = validateGbpCtaUrl(url, rules);
+    return { ...result, actionType: action };
+  }
+
+  // Unknown action types are not inventively validated here; post validator
+  // already rejects actions outside rules.allowedCtaActionTypes. Still require
+  // URL semantics if a URL is present, otherwise fail closed on missing URL.
+  if (hasUrlValue(url)) {
+    const result = validateGbpCtaUrl(url, rules);
+    return { ...result, actionType: action };
+  }
+  return {
+    ok: false,
+    errors: [`CTA actionType "${action}" requires a website URL.`],
+    warnings,
+    normalizedCta: null,
+    parsed: null,
+    actionType: action,
   };
 };
 
