@@ -198,7 +198,8 @@ test("negative: invented price fails", () => {
   };
   const result = validateGbpPost({ draft, facts });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /Price\/discount/i.test(e)));
+  assert.ok(result.errors.some((e) => /offerRef|Price\/discount/i.test(e)));
+  assert.ok(result.audit.unsupportedClaims.some((c) => c.claim === "price_or_discount"));
 });
 
 test("negative: unsupported discount fails", () => {
@@ -209,7 +210,7 @@ test("negative: unsupported discount fails", () => {
   };
   const result = validateGbpPost({ draft, facts });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /Price\/discount/i.test(e)));
+  assert.ok(result.errors.some((e) => /offerRef|Price\/discount/i.test(e)));
 });
 
 test("negative: available this week fails without availability evidence", () => {
@@ -219,9 +220,9 @@ test("negative: available this week fails without availability evidence", () => 
     summary:
       "We have openings this week for Power Washing around Shawnigan Lake. Send photos for a quote.",
   };
-  const result = validateGbpPost({ draft, facts });
+  const result = validateGbpPost({ draft, facts, now: new Date("2026-08-11T12:00:00Z") });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /Availability/i.test(e)));
+  assert.ok(result.errors.some((e) => /availabilityRef|Availability/i.test(e)));
 });
 
 test("negative: unsupported guarantee/superlative fails", () => {
@@ -233,17 +234,274 @@ test("negative: unsupported guarantee/superlative fails", () => {
   };
   const result = validateGbpPost({ draft, facts });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /Guarantee|superlative|credential/i.test(e)));
+  assert.ok(result.errors.some((e) => /claimRefs|Guarantee|superlative|credential/i.test(e)));
 });
 
 test("negative: unsupported project claim fails without project evidence", () => {
   const facts = loadGrowthFacts(overlayFactsDir);
-  // Remove projects to simulate missing evidence.
   const factsNoProjects = { ...facts, projects: [] };
   const draft = readJson(path.join(postsDir, "valid-project-backed.json"));
   const result = validateGbpPost({ draft, facts: factsNoProjects });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /Project\/job-specific/i.test(e)));
+  assert.ok(result.errors.some((e) => /projectRef|Project\/job-specific|Unknown evidence/i.test(e)));
+});
+
+test("PASS: exact verified price/offer evidence binds", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = readJson(path.join(postsDir, "valid-price-bound.json"));
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, true, result.errors.join("; "));
+  assert.ok(result.audit.matchedEvidenceIds.includes("offer.pw-minimum-250"));
+  assert.ok(result.audit.evidenceBindings.some((b) => b.role === "offer"));
+});
+
+test("PASS: exact current availability evidence binds", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = readJson(path.join(postsDir, "valid-availability-bound.json"));
+  const result = validateGbpPost({
+    draft,
+    facts,
+    now: new Date("2026-08-11T12:00:00Z"),
+  });
+  assert.equal(result.valid, true, result.errors.join("; "));
+  assert.ok(result.audit.matchedEvidenceIds.includes("availability.pw-shawnigan-current"));
+});
+
+test("PASS: exact verified credential evidence binds", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = readJson(path.join(postsDir, "valid-credential-bound.json"));
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, true, result.errors.join("; "));
+  assert.ok(result.audit.matchedEvidenceIds.includes("credential.insured"));
+});
+
+test("PASS: approved testimonial evidence binds", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = readJson(path.join(postsDir, "valid-testimonial-bound.json"));
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, true, result.errors.join("; "));
+  assert.ok(result.audit.matchedEvidenceIds.includes("testimonial.driveway-algae"));
+});
+
+test("PASS: project claim correctly bound to its project/service/area", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    summary:
+      "We just finished a Retaining Walls repair in Sooke. Send photos for a practical quote.",
+    topicType: "STANDARD",
+    projectRef: "proj.sooke-retaining-wall",
+    callToAction: validDraft().callToAction,
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, true, result.errors.join("; "));
+  assert.ok(result.audit.matchedEvidenceIds.includes("proj.sooke-retaining-wall"));
+  assert.ok(result.matchedFactIds.includes("svc.retaining-walls"));
+  assert.ok(result.matchedFactIds.includes("area.sooke"));
+});
+
+test("FAIL: wrong dollar amount against verified offer", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      "Power Washing in Shawnigan Lake starting at $199 this month. Send photos for a quote.",
+    offerRef: "offer.pw-minimum-250",
+    claimedPrice: { amount: 199 },
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /\$199|does not match offer/i.test(e)));
+});
+
+test("FAIL: wrong discount percent against verified offer", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary: "Power Washing in Shawnigan Lake with 20% off this month. Send photos.",
+    offerRef: "offer.spring-10-off",
+    claimedDiscount: { percent: 20 },
+  };
+  const result = validateGbpPost({ draft, facts, now: new Date("2026-08-11T12:00:00Z") });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /20%|does not match offer/i.test(e)));
+});
+
+test("FAIL: expired availability evidence", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      "We have openings this week for Power Washing around Shawnigan Lake. Send photos for a quote.",
+    availabilityRef: "availability.pw-shawnigan-expired",
+    claimedAvailability: { key: "openings_this_week" },
+  };
+  const result = validateGbpPost({
+    draft,
+    facts,
+    now: new Date("2026-08-11T12:00:00Z"),
+  });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /expired|not yet valid/i.test(e)));
+});
+
+test("FAIL: availability evidence for another service/area", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      "We have openings this week for Power Washing around Shawnigan Lake. Send photos for a quote.",
+    availabilityRef: "availability.fence-victoria",
+    claimedAvailability: { key: "openings_this_week" },
+  };
+  const result = validateGbpPost({
+    draft,
+    facts,
+    now: new Date("2026-08-11T12:00:00Z"),
+  });
+  assert.equal(result.valid, false);
+  assert.ok(
+    result.errors.some((e) => /does not cover (service|area)/i.test(e)),
+    result.errors.join("; ")
+  );
+});
+
+test("FAIL: unrelated verified claim does not authorize licensed/insured/certified/#1/best/years", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      "Licensed, insured, and certified Power Washing in Shawnigan Lake. Best and #1 crew with 10 years of experience.",
+    claimRefs: ["claim.unrelated-verified"],
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /insured/i.test(e)));
+  assert.ok(result.errors.some((e) => /licensed/i.test(e)));
+  assert.ok(result.errors.some((e) => /certified/i.test(e)));
+  assert.ok(result.errors.some((e) => /superlative/i.test(e)));
+  assert.ok(result.errors.some((e) => /years experience/i.test(e)));
+  assert.ok(
+    result.audit.unsupportedClaims.some((c) => /insured|licensed|certified|superlative|years/i.test(c.claim))
+  );
+});
+
+test("FAIL: invented testimonial despite another verified testimonial", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      'Our customers say "Absolutely the fastest crew we have ever hired for outdoor work." Power Washing around Shawnigan Lake.',
+    testimonialRef: "testimonial.driveway-algae",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /does not match approved quote/i.test(e)));
+});
+
+test("FAIL: Langford power-washing project must not authorize Sooke retaining-wall claim", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    summary:
+      "We just finished a Retaining Walls job in Sooke. Send photos for a practical quote.",
+    topicType: "STANDARD",
+    projectRef: "proj.langford-power-wash",
+    callToAction: validDraft().callToAction,
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /does not include mentioned service/i.test(e)));
+  assert.ok(result.errors.some((e) => /does not include mentioned area/i.test(e)));
+});
+
+test("FAIL: project service mismatch", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    summary:
+      "We just finished Fence Work near Shawnigan Lake. Send photos for a quote.",
+    topicType: "STANDARD",
+    projectRef: "proj.power-wash-reset",
+    callToAction: validDraft().callToAction,
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /does not include mentioned service/i.test(e)));
+});
+
+test("FAIL: project area mismatch", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    summary:
+      "We just finished Power Washing in Victoria. Send photos for a quote.",
+    topicType: "STANDARD",
+    projectRef: "proj.power-wash-reset",
+    callToAction: validDraft().callToAction,
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /does not include mentioned area/i.test(e)));
+});
+
+test("FAIL: sensitive claim with no evidence reference", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary: "Insured Power Washing around Shawnigan Lake. Send photos for a quote.",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /claimRefs/i.test(e)));
+  assert.ok(result.audit.unsupportedClaims.some((c) => c.reason === "missing_claimRefs"));
+});
+
+test("FAIL: unknown evidence ID", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      "Power Washing in Shawnigan Lake starting at $250 this month. Send photos for a quote.",
+    offerRef: "offer.does-not-exist",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /Unknown evidence id/i.test(e)));
+  assert.ok(result.audit.rejectedEvidence.some((r) => r.reason === "unknown_evidence_id"));
+});
+
+test("FAIL: candidate/unverified evidence ID", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    summary:
+      "Power Washing in Shawnigan Lake starting at $199 this month. Send photos for a quote.",
+    offerRef: "offer.candidate-price",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /not verified/i.test(e)));
+  assert.ok(result.audit.rejectedEvidence.some((r) => String(r.reason).startsWith("status:")));
+});
+
+test("audit includes evidence binding fields on pass and fail", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const pass = validateGbpPost({
+    draft: readJson(path.join(postsDir, "valid-price-bound.json")),
+    facts,
+  });
+  assert.ok(Array.isArray(pass.audit.requestedEvidenceIds));
+  assert.ok(Array.isArray(pass.audit.matchedEvidenceIds));
+  assert.ok(Array.isArray(pass.audit.rejectedEvidence));
+  assert.ok(Array.isArray(pass.audit.unsupportedClaims));
+  assert.ok(Array.isArray(pass.audit.evidenceBindings));
+
+  const fail = validateGbpPost({
+    draft: {
+      ...validDraft(),
+      summary: "Insured Power Washing around Shawnigan Lake. Send photos.",
+    },
+    facts,
+  });
+  assert.equal(fail.valid, false);
+  assert.ok(fail.audit.unsupportedClaims.length >= 1);
 });
 
 test("negative: exact and near duplicates fail closed", () => {

@@ -70,6 +70,27 @@ export const formatValidationReport = (result, meta = {}) => {
   if (meta.factsDir) lines.push(`Facts dir: ${meta.factsDir}`);
   if (result.normalizedCta) lines.push(`Normalized CTA: ${result.normalizedCta}`);
   lines.push(`Matched facts: ${result.matchedFactIds.join(", ") || "(none)"}`);
+  const audit = result.audit ?? {};
+  lines.push(
+    `Requested evidence: ${(audit.requestedEvidenceIds ?? []).join(", ") || "(none)"}`
+  );
+  lines.push(
+    `Matched evidence: ${(audit.matchedEvidenceIds ?? []).join(", ") || "(none)"}`
+  );
+  if ((audit.unsupportedClaims ?? []).length) {
+    lines.push(
+      `Unsupported claims: ${audit.unsupportedClaims
+        .map((c) => (typeof c === "string" ? c : c.claim))
+        .join(", ")}`
+    );
+  }
+  if ((audit.rejectedEvidence ?? []).length) {
+    lines.push(
+      `Rejected evidence: ${audit.rejectedEvidence
+        .map((r) => `${r.id || "?"} (${r.reason})`)
+        .join(", ")}`
+    );
+  }
   lines.push(
     `Duplicate: score=${result.duplicateScore}` +
       (result.duplicateMatch?.isDuplicate

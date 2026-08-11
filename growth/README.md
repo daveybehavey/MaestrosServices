@@ -32,6 +32,32 @@ Website marketing copy is **not** automatically verified just because it exists.
 5. Add notes if there are scope limits.
 6. Re-run `npm run growth:validate-post -- <draft.json>`.
 
+## Evidence binding (fail closed)
+
+Sensitive language must cite **explicit evidence IDs** on the draft. The validator does **not** accept a claim just because some other verified fact in the same broad category exists.
+
+Draft fields:
+
+| Field | When required |
+| --- | --- |
+| `offerRef` | Price, discount, coupon, or offer language |
+| `availabilityRef` + `claimedAvailability.key` | Openings / available-now language |
+| `claimRefs[]` | Insured, licensed, certified, guarantees, experience years, superlatives |
+| `testimonialRef` | Testimonial/review quote language |
+| `projectRef` | Project/job-specific phrasing |
+
+Binding rules:
+
+- Evidence id must exist, `status=verified`, kind must match the claim family
+- Expired `validUntil` / future `validFrom` fails
+- Dollar amounts and discount percents must match the referenced offer record
+- Availability service/area scope must cover mentions in the draft
+- Unrelated verified `kind=claim` does **not** authorize insured/certified/best/#1/years
+- Testimonials require approved quote text to appear in the draft (no invented paraphrase)
+- Projects require that mentioned services/areas appear on that project record
+
+Audit fields on every result: `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`.
+
 ## Project evidence
 
 Add one JSON file per approved project under `projects/` with fields:

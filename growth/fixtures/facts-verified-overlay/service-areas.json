@@ -36,6 +36,30 @@
       "sourceReference": "overlay",
       "verifiedAt": null,
       "notes": null
+    },
+    {
+      "id": "area.langford",
+      "slug": "langford",
+      "name": "Langford",
+      "region": "Greater Victoria",
+      "aliases": [],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-11",
+      "notes": "Fixture area for project-binding tests."
+    },
+    {
+      "id": "area.sooke",
+      "slug": "sooke",
+      "name": "Sooke",
+      "region": "Greater Victoria",
+      "aliases": [],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-11",
+      "notes": "Fixture area for project-binding mismatch tests."
     }
   ]
 }

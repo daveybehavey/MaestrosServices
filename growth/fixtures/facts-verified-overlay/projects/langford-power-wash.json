@@ -1,0 +1,14 @@
+{
+  "id": "proj.langford-power-wash",
+  "title": "Langford driveway power wash",
+  "status": "verified",
+  "serviceIds": ["svc.power-washing"],
+  "areaIds": ["area.langford"],
+  "summary": "Residential driveway power wash in Langford.",
+  "outcomes": ["driveway_algae_removed"],
+  "source": "fixture",
+  "sourceReference": "overlay",
+  "verifiedAt": "2026-08-11",
+  "permissionGranted": true,
+  "notes": "Langford power-washing project — must NOT authorize Sooke retaining-wall claims."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "proj.sooke-retaining-wall",
+  "title": "Sooke retaining wall repair",
+  "status": "verified",
+  "serviceIds": ["svc.retaining-walls"],
+  "areaIds": ["area.sooke"],
+  "summary": "Small residential retaining wall repair in Sooke.",
+  "outcomes": ["wall_reset"],
+  "source": "fixture",
+  "sourceReference": "overlay",
+  "verifiedAt": "2026-08-11",
+  "permissionGranted": true,
+  "notes": "Used for correct binding and as the expected target when wrong Langford PW ref is rejected."
+}

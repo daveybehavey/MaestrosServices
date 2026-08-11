@@ -1,0 +1,10 @@
+{
+  "summary": "Power Washing around Shawnigan Lake starts at a $250 minimum for residential driveways and walkways. Send photos for a practical quote.",
+  "topicType": "STANDARD",
+  "offerRef": "offer.pw-minimum-250",
+  "claimedPrice": { "amount": 250, "currency": "CAD" },
+  "callToAction": {
+    "actionType": "LEARN_MORE",
+    "url": "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts#quote"
+  }
+}

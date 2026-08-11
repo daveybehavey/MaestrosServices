@@ -1,0 +1,10 @@
+{
+  "summary": "We have openings this week for Power Washing around Shawnigan Lake. Send photos for a practical quote.",
+  "topicType": "STANDARD",
+  "availabilityRef": "availability.pw-shawnigan-current",
+  "claimedAvailability": { "key": "openings_this_week" },
+  "callToAction": {
+    "actionType": "LEARN_MORE",
+    "url": "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_posts#quote"
+  }
+}
