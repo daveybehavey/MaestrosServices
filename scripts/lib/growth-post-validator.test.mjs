@@ -35,7 +35,8 @@ test("production growth facts load verified operating catalog plus remaining can
   assert.equal(facts.services.find((s) => s.id === "svc.large-tree-felling").status, "rejected");
   assert.equal(facts.services.find((s) => s.id === "svc.gutter-cleaning-ground-access").status, "candidate");
   assert.equal(facts.areas.find((a) => a.id === "area.shawnigan-lake").status, "verified");
-  assert.equal(facts.areas.find((a) => a.id === "area.saanich").status, "verified");
+  assert.equal(facts.areas.find((a) => a.id === "area.cordova-bay").status, "verified");
+  assert.equal(facts.areas.find((a) => a.id === "area.saanich").status, "candidate");
   assert.equal(facts.areas.find((a) => a.id === "area.vancouver").status, "rejected");
   assert.equal(facts.areas.find((a) => a.id === "area.langford").status, "candidate");
   assert.equal(facts.rules.duplicate.nearDuplicateThreshold, 0.82);
@@ -649,12 +650,20 @@ test("production verified services/areas can pass dry-run validator drafts", () 
   for (const file of [
     "production-power-washing-shawnigan.json",
     "production-gravel-driveway-shawnigan.json",
-    "production-cleanup-saanich.json",
+    "production-cleanup-cordova-bay.json",
   ]) {
     const draft = readJson(path.join(postsDir, file));
     const result = validateGbpPost({ draft, facts, recentPosts: [] });
     assert.equal(result.valid, true, `${file}: ${result.errors.join("; ")}`);
   }
+});
+
+test("candidate Saanich claim fails while Cordova Bay remains verified separately", () => {
+  const facts = loadGrowthFacts(productionFactsDir);
+  const draft = readJson(path.join(postsDir, "production-candidate-cleanup-saanich.json"));
+  const result = validateGbpPost({ draft, facts, recentPosts: [] });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /Saanich/i.test(e) && /not verified/i.test(e)));
 });
 
 test("candidate services/areas in production facts still fail closed", () => {

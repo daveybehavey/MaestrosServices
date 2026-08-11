@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updatedAt": "2026-08-11",
-  "notes": "Operating catalog promotion 2026-08-11. Municipalities stay candidate unless base-locality or completed-job evidence defends coverage. Broad 'lower-mid Vancouver Island' copy does not auto-verify every location. See growth/evidence/operating-catalog-2026-08-11.md.",
+  "notes": "Operating catalog promotion 2026-08-11 (Cordova Bay locality granularity corrected). Municipalities stay candidate unless base-locality or exact completed-job locality evidence defends coverage. Broad 'lower-mid Vancouver Island' copy does not auto-verify every location. See growth/evidence/operating-catalog-2026-08-11.md.",
   "areas": [
     {
       "id": "area.shawnigan-lake",
@@ -109,19 +109,31 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "victoria",
       "verifiedAt": null,
-      "notes": "Review mentioned Victoria as general marketing context; completed job locality was Cordova Bay (Saanich). Left candidate."
+      "notes": "Review mentioned Victoria as general marketing context; completed job locality was Cordova Bay. Left candidate."
+    },
+    {
+      "id": "area.cordova-bay",
+      "slug": null,
+      "name": "Cordova Bay",
+      "region": "Greater Victoria",
+      "aliases": [],
+      "status": "verified",
+      "source": "gbp:reviews",
+      "sourceReference": "review:2026-05-10:completed-yard-work-in-cordova-bay",
+      "verifiedAt": "2026-08-11",
+      "notes": "Growth Ops factual locality only (no SEO/location page). Genuine completed residential yard work confirmed in Cordova Bay."
     },
     {
       "id": "area.saanich",
       "slug": "saanich",
       "name": "Saanich",
       "region": "Greater Victoria",
-      "aliases": ["Cordova Bay"],
-      "status": "verified",
-      "source": "gbp:reviews",
-      "sourceReference": "review:2026-05-10:completed-yard-work-in-cordova-bay",
-      "verifiedAt": "2026-08-11",
-      "notes": "Genuine public review confirms completed residential yard work in Cordova Bay (District of Saanich). Alias Cordova Bay added for mention matching."
+      "aliases": [],
+      "status": "candidate",
+      "source": "repo:src/data/locations.ts",
+      "sourceReference": "saanich",
+      "verifiedAt": null,
+      "notes": "Completed evidence exists in Cordova Bay (area.cordova-bay), but that alone does not authorize municipality-wide Saanich claims. Promote later only with explicit current coverage/business confirmation."
     },
     {
       "id": "area.central-saanich",

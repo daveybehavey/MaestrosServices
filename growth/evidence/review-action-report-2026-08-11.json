@@ -31,8 +31,8 @@
       "createTime": "2026-05-10T02:50:46.803885Z",
       "hasOwnerReply": false,
       "nonSensitiveSummary": "Five-star review of a completed residential yard tidy-up including weeding, raking, mowing, bush trimming, and bark mulch. Job locality named as Cordova Bay; broader Victoria mentioned as marketing context.",
-      "namedMunicipality": "Cordova Bay",
-      "mappedAreaId": "area.saanich",
+      "namedLocality": "Cordova Bay",
+      "mappedAreaId": "area.cordova-bay",
       "servicesMentioned": [
         "svc.weed-control",
         "svc.lawn-mowing",
@@ -41,7 +41,7 @@
         "svc.seasonal-cleanups"
       ],
       "canSupportProjectEvidence": true,
-      "projectEvidenceNotes": "Strong future project/evidence candidate once a non-identifying, permission-reviewed project JSON is authored. Do not copy reviewer identity/PII into fixtures."
+      "projectEvidenceNotes": "Strong future project/evidence candidate once a non-identifying, permission-reviewed project JSON is authored. Do not copy reviewer identity/PII into fixtures. Locality credit is Cordova Bay only; do not generalize to municipality-wide Saanich."
     }
   ],
   "actionsRecommended": [

@@ -43,12 +43,15 @@ Generic GBP landscaper category `serviceTypes` were **not** treated as offered-s
 | id | prior | decision | strongest provenance |
 | --- | --- | --- | --- |
 | area.shawnigan-lake | candidate | **verified** | Base locality + GBP post “Established in Shawnigan Lake” |
-| area.saanich | candidate | **verified** | Completed Cordova Bay job (alias `Cordova Bay` added) |
+| area.cordova-bay | *(new Growth Ops locality)* | **verified** | Completed Cordova Bay job review (exact locality only; no SEO page) |
+| area.saanich | candidate | remain **candidate** | Cordova Bay evidence exists but is not generalized to municipality-wide Saanich |
 | area.victoria | candidate | remain candidate | “Victoria” appears as general marketing context only |
 | all other municipalities | candidate | remain candidate | Website location catalog / broad Island copy only |
 | area.vancouver | rejected | remain **rejected** | Outside footprint |
 
 Broad “lower-mid Vancouver Island” language was **not** used to verify municipalities such as Langford, Sooke, Duncan, etc.
+
+Cordova Bay evidence authorizes **Cordova Bay** only. It does **not** automatically authorize “Saanich”.
 
 ## Identity facts re-check
 
@@ -70,4 +73,4 @@ See `growth/evidence/review-action-report-2026-08-11.json`.
 
 ## Validator reality check
 
-Production `growth/` facts now support truthful drafts for verified services near Shawnigan Lake / Saanich without weakening gates. Remaining candidates still fail closed.
+Production `growth/` facts now support truthful drafts for verified services near Shawnigan Lake / Cordova Bay without weakening gates. Remaining candidates (including municipality-wide Saanich) still fail closed.
