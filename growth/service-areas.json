@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-10",
-  "notes": "Discovered from src/data/locations.ts. Status defaults to candidate until human verification of active service coverage.",
+  "updatedAt": "2026-08-11",
+  "notes": "Operating catalog promotion 2026-08-11 (Cordova Bay locality granularity corrected). Municipalities stay candidate unless base-locality or exact completed-job locality evidence defends coverage. Broad 'lower-mid Vancouver Island' copy does not auto-verify every location. See growth/evidence/operating-catalog-2026-08-11.md.",
   "areas": [
     {
       "id": "area.shawnigan-lake",
@@ -9,11 +9,11 @@
       "name": "Shawnigan Lake",
       "region": "Cowichan Valley",
       "aliases": ["Shawnigan"],
-      "status": "candidate",
-      "source": "repo:src/data/locations.ts",
-      "sourceReference": "shawnigan-lake",
-      "verifiedAt": null,
-      "notes": "Also listed as business base locality."
+      "status": "verified",
+      "source": "gbp:list-posts+repo:business",
+      "sourceReference": "post:2026-02-27:established-in-shawnigan-lake; business.address.locality",
+      "verifiedAt": "2026-08-11",
+      "notes": "Business base locality and explicit LIVE GBP post stating established in Shawnigan Lake."
     },
     {
       "id": "area.mill-bay",
@@ -25,7 +25,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "mill-bay",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.cobble-hill",
@@ -37,7 +37,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "cobble-hill",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.cowichan-bay",
@@ -49,7 +49,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "cowichan-bay",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.chemainus",
@@ -61,7 +61,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "chemainus",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.maple-bay",
@@ -73,7 +73,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "maple-bay",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.lake-cowichan",
@@ -85,7 +85,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "lake-cowichan",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.duncan",
@@ -97,7 +97,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "duncan",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.victoria",
@@ -109,7 +109,19 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "victoria",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Review mentioned Victoria as general marketing context; completed job locality was Cordova Bay. Left candidate."
+    },
+    {
+      "id": "area.cordova-bay",
+      "slug": null,
+      "name": "Cordova Bay",
+      "region": "Greater Victoria",
+      "aliases": [],
+      "status": "verified",
+      "source": "gbp:reviews",
+      "sourceReference": "review:2026-05-10:completed-yard-work-in-cordova-bay",
+      "verifiedAt": "2026-08-11",
+      "notes": "Growth Ops factual locality only (no SEO/location page). Genuine completed residential yard work confirmed in Cordova Bay."
     },
     {
       "id": "area.saanich",
@@ -121,7 +133,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "saanich",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Completed evidence exists in Cordova Bay (area.cordova-bay), but that alone does not authorize municipality-wide Saanich claims. Promote later only with explicit current coverage/business confirmation."
     },
     {
       "id": "area.central-saanich",
@@ -133,7 +145,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "central-saanich",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.north-saanich",
@@ -145,7 +157,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "north-saanich",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.brentwood-bay",
@@ -157,7 +169,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "brentwood-bay",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.sidney",
@@ -169,7 +181,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "sidney",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.langford",
@@ -181,7 +193,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "langford",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.colwood",
@@ -193,7 +205,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "colwood",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.view-royal",
@@ -205,7 +217,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "view-royal",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.esquimalt",
@@ -217,7 +229,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "esquimalt",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.sooke",
@@ -229,7 +241,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "sooke",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.metchosin",
@@ -241,7 +253,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "metchosin",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.highlands",
@@ -253,7 +265,7 @@
       "source": "repo:src/data/locations.ts",
       "sourceReference": "highlands",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website location catalog only in this evidence pass."
     },
     {
       "id": "area.vancouver",

@@ -25,12 +25,14 @@ Website marketing copy is **not** automatically verified just because it exists.
 
 ## Promoting a candidate to verified
 
-1. Confirm the fact against live GBP/business knowledge.
+1. Confirm the fact against live GBP/business knowledge using the evidence hierarchy in `growth/evidence/`.
 2. Set `status` to `verified`.
 3. Set `verifiedAt` (ISO date).
 4. Set `source` / `sourceReference` to the approval source.
 5. Add notes if there are scope limits.
-6. Re-run `npm run growth:validate-post -- <draft.json>`.
+6. Re-run `npm run growth:validate-post -- <draft.json>` against production `growth/`.
+
+Latest operating-catalog evidence pass: `growth/evidence/operating-catalog-2026-08-11.md`.
 
 ## Evidence binding (fail closed)
 
