@@ -1,62 +1,62 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-10",
-  "notes": "Discovered from src/data/services.ts. Status defaults to candidate until human verification against live offerings.",
+  "updatedAt": "2026-08-11",
+  "notes": "Operating catalog promotion 2026-08-11. Status=verified only when defended by live GBP posts and/or genuine public reviews; website discovery alone remains candidate. See growth/evidence/operating-catalog-2026-08-11.md.",
   "services": [
     {
       "id": "svc.lawn-mowing",
       "slug": "lawn-mowing",
       "name": "Lawn Mowing",
       "aliases": ["lawn care", "mowing"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "lawn-mowing",
-      "verifiedAt": null,
-      "notes": "Present on website; not auto-verified for GBP automation."
+      "status": "verified",
+      "source": "gbp:reviews",
+      "sourceReference": "review:2026-05-10:cordova-bay-yard-tidy#mowing",
+      "verifiedAt": "2026-08-11",
+      "notes": "Completed Cordova Bay yard job explicitly included mowing. Website catalogs the service; review is the promotion trigger."
     },
     {
       "id": "svc.hedge-trimming",
       "slug": "hedge-trimming",
       "name": "Hedge Trimming",
-      "aliases": ["hedge trimming", "hedges"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "hedge-trimming",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["hedge trimming", "hedges", "trimming bushes"],
+      "status": "verified",
+      "source": "gbp:reviews",
+      "sourceReference": "review:2026-05-10:cordova-bay-yard-tidy#trimming-bushes",
+      "verifiedAt": "2026-08-11",
+      "notes": "Completed Cordova Bay yard job explicitly included trimming bushes."
     },
     {
       "id": "svc.garden-bed-maintenance",
       "slug": "garden-bed-maintenance",
       "name": "Mulching and Garden Beds",
-      "aliases": ["mulch", "mulching", "garden beds", "garden bed"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "garden-bed-maintenance",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["mulch", "mulching", "garden beds", "garden bed", "mulch refresh"],
+      "status": "verified",
+      "source": "gbp:list-posts+reviews",
+      "sourceReference": "posts:2026-03..2026-05:mulch-refresh; review:2026-05-10:bark-mulch",
+      "verifiedAt": "2026-08-11",
+      "notes": "Repeated business-owned GBP posts advertise Mulch Refresh; review confirms bark mulch installation."
     },
     {
       "id": "svc.seasonal-cleanups",
       "slug": "seasonal-cleanups",
       "name": "Seasonal Cleanups",
-      "aliases": ["yard cleanup", "seasonal cleanup", "property cleanup"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "seasonal-cleanups",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["yard cleanup", "seasonal cleanup", "property cleanup", "exterior cleanup", "property refresh"],
+      "status": "verified",
+      "source": "gbp:list-posts+reviews",
+      "sourceReference": "posts:2026-05-24:exterior-cleanup; review:2026-05-10:yard-tidy",
+      "verifiedAt": "2026-08-11",
+      "notes": "GBP openings posts advertise exterior/property cleanup; review confirms a completed yard tidy-up."
     },
     {
       "id": "svc.weed-control",
       "slug": "weed-control",
       "name": "Weed Control",
       "aliases": ["weeding", "weed control"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "weed-control",
-      "verifiedAt": null,
-      "notes": null
+      "status": "verified",
+      "source": "gbp:reviews",
+      "sourceReference": "review:2026-05-10:cordova-bay-yard-tidy#weeding",
+      "verifiedAt": "2026-08-11",
+      "notes": "Completed Cordova Bay job explicitly included weeding as part of the yard refresh scope."
     },
     {
       "id": "svc.yard-waste-removal",
@@ -67,7 +67,7 @@
       "source": "repo:src/data/services.ts",
       "sourceReference": "yard-waste-removal",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website catalogs it; no dedicated GBP post or explicit review line-item found in the 2026-08-11 evidence pass."
     },
     {
       "id": "svc.brush-clearing",
@@ -78,7 +78,7 @@
       "source": "repo:src/data/services.ts",
       "sourceReference": "brush-clearing",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website catalogs it; not defended by live GBP posts/reviews in this pass."
     },
     {
       "id": "svc.gutter-cleaning-ground-access",
@@ -89,7 +89,7 @@
       "source": "repo:src/data/services.ts",
       "sourceReference": "gutter-cleaning-ground-access",
       "verifiedAt": null,
-      "notes": "Ground-accessible only per website scope."
+      "notes": "Ground-accessible only per website; no GBP post/review confirmation in this pass."
     },
     {
       "id": "svc.light-pruning",
@@ -100,7 +100,7 @@
       "source": "repo:src/data/services.ts",
       "sourceReference": "light-pruning",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Website catalogs it. Bush trimming evidence was credited to hedge-trimming instead of expanding into separate light-pruning verification."
     },
     {
       "id": "svc.moss-algae-treatment",
@@ -111,62 +111,62 @@
       "source": "repo:src/data/services.ts",
       "sourceReference": "moss-algae-treatment",
       "verifiedAt": null,
-      "notes": null
+      "notes": "Power-washing posts mention moss buildup as cleaning context; that is not treated as standalone moss/algae treatment verification."
     },
     {
       "id": "svc.fence-work-minor-repairs",
       "slug": "fence-work-minor-repairs",
       "name": "Fence Work",
-      "aliases": ["fence repair", "fence repairs", "fence work", "gate adjustments"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "fence-work-minor-repairs",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["fence repair", "fence repairs", "fence work", "gate adjustments", "fence refresh", "minor fence fixes"],
+      "status": "verified",
+      "source": "gbp:list-posts",
+      "sourceReference": "posts:2026-03..2026-05:fence-refresh|fence-repairs|minor-fence-fixes",
+      "verifiedAt": "2026-08-11",
+      "notes": "Repeated business-owned GBP posts advertise fence refresh/repairs/minor fence fixes. Automation copy should stay within minor repair/refresh scope; do not invent major fence builds."
     },
     {
       "id": "svc.power-washing",
       "slug": "power-washing",
       "name": "Power Washing",
-      "aliases": ["power washing", "pressure washing"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "power-washing",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["power washing", "pressure washing", "power wash"],
+      "status": "verified",
+      "source": "gbp:list-posts",
+      "sourceReference": "posts:2026-03-02..2026-05-29:power-washing",
+      "verifiedAt": "2026-08-11",
+      "notes": "Multiple dedicated LIVE GBP STANDARD posts actively offer power washing."
     },
     {
       "id": "svc.rock-work-walls",
       "slug": "rock-work-walls",
       "name": "Rock Work and Walls",
-      "aliases": ["rock work", "rock walls"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "rock-work-walls",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["rock work", "rock walls", "rockwork", "rock work refresh"],
+      "status": "verified",
+      "source": "gbp:list-posts",
+      "sourceReference": "posts:2026-02-27..2026-03-25:rock-work-refresh|rockwork",
+      "verifiedAt": "2026-08-11",
+      "notes": "Business-owned GBP posts advertise Rock Work Refresh / rockwork and decorative stone features."
     },
     {
       "id": "svc.driveway-grading",
       "slug": "driveway-grading",
       "name": "Driveway Grading",
       "aliases": ["driveway grading", "regrading"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "driveway-grading",
-      "verifiedAt": null,
-      "notes": null
+      "status": "verified",
+      "source": "gbp:list-posts",
+      "sourceReference": "posts:2026-05-11..2026-05-24:driveway-grading; profile-description:driveway-grading",
+      "verifiedAt": "2026-08-11",
+      "notes": "GBP openings posts and live profile description explicitly offer driveway grading."
     },
     {
       "id": "svc.gravel-driveway-installation",
       "slug": "gravel-driveway-installation",
       "name": "Gravel Driveways",
-      "aliases": ["gravel driveway", "gravel driveways"],
-      "status": "candidate",
-      "source": "repo:src/data/services.ts",
-      "sourceReference": "gravel-driveway-installation",
-      "verifiedAt": null,
-      "notes": null
+      "aliases": ["gravel driveway", "gravel driveways", "gravel driveway repairs"],
+      "status": "verified",
+      "source": "gbp:list-posts",
+      "sourceReference": "post:2026-06-01:gravel-driveway-repairs; post:2026-02-27:gravel-driveways-and-pads",
+      "verifiedAt": "2026-08-11",
+      "notes": "Dedicated LIVE GBP post for gravel driveway repairs/refreshes plus specialization list naming gravel driveways and pads."
     },
     {
       "id": "svc.large-tree-felling",
@@ -177,7 +177,7 @@
       "source": "repo:src/data/services.ts",
       "sourceReference": "explicit_not_yet",
       "verifiedAt": null,
-      "notes": "Website marks large tree felling as not offered."
+      "notes": "Website marks large tree felling as not offered. No contrary GBP evidence found; remains rejected."
     }
   ]
 }

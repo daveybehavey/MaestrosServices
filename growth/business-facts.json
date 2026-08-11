@@ -1,26 +1,26 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-10",
-  "notes": "Conservative seed. Identity fields verified against repo business metadata that matches live GBP read checks. Marketing claims stay candidate until human-approved.",
+  "updatedAt": "2026-08-11",
+  "notes": "Conservative seed. Identity fields verified against repo business metadata and re-checked against live GBP profile-audit on 2026-08-11. Marketing claims stay unsupported until human-approved dated evidence exists.",
   "facts": [
     {
       "id": "biz.name",
       "kind": "business_name",
       "value": "Maestros Services",
       "status": "verified",
-      "source": "repo:src/data/business.ts",
-      "sourceReference": "business.name",
-      "verifiedAt": "2026-08-10",
-      "notes": "Matches live GBP profile title from profile-audit."
+      "source": "repo:src/data/business.ts+gbp:profile-audit",
+      "sourceReference": "business.name; profile-audit.title",
+      "verifiedAt": "2026-08-11",
+      "notes": "Matches live GBP profile title (Maestros Services)."
     },
     {
       "id": "biz.phone",
       "kind": "phone",
       "value": "250-858-1781",
       "status": "verified",
-      "source": "repo:src/data/business.ts",
-      "sourceReference": "business.phone",
-      "verifiedAt": "2026-08-10",
+      "source": "repo:src/data/business.ts+gbp:profile-audit",
+      "sourceReference": "business.phone; profile-audit.primaryPhone=(250) 858-1781",
+      "verifiedAt": "2026-08-11",
       "notes": "Phone may be used for contact elsewhere; never embed in GBP post body."
     },
     {
@@ -30,7 +30,7 @@
       "status": "verified",
       "source": "repo:src/data/business.ts",
       "sourceReference": "business.phoneTel",
-      "verifiedAt": "2026-08-10",
+      "verifiedAt": "2026-08-11",
       "notes": "E.164 form of the primary phone."
     },
     {
@@ -40,28 +40,28 @@
       "status": "verified",
       "source": "repo:src/data/business.ts",
       "sourceReference": "business.email",
-      "verifiedAt": "2026-08-10",
-      "notes": null
+      "verifiedAt": "2026-08-11",
+      "notes": "Repo identity; not contradicted by GBP profile-audit (email not required on GBP)."
     },
     {
       "id": "biz.siteUrl",
       "kind": "website",
       "value": "https://maestrosservices.com",
       "status": "verified",
-      "source": "repo:src/data/business.ts",
-      "sourceReference": "business.siteUrl",
-      "verifiedAt": "2026-08-10",
-      "notes": "Canonical site origin for CTA hostname allowlisting."
+      "source": "repo:src/data/business.ts+gbp:profile-audit",
+      "sourceReference": "business.siteUrl; profile-audit.websiteUri host maestrosservices.com",
+      "verifiedAt": "2026-08-11",
+      "notes": "Canonical site origin for CTA hostname allowlisting. Live GBP website URI includes profile UTM params."
     },
     {
       "id": "biz.baseLocality",
       "kind": "base_locality",
       "value": "Shawnigan Lake",
       "status": "verified",
-      "source": "repo:src/data/business.ts",
-      "sourceReference": "business.address.locality",
-      "verifiedAt": "2026-08-10",
-      "notes": "Base locality only; served areas live in service-areas.json."
+      "source": "repo:src/data/business.ts+gbp:list-posts",
+      "sourceReference": "business.address.locality; post:2026-02-27:established-in-shawnigan-lake",
+      "verifiedAt": "2026-08-11",
+      "notes": "Base locality only; served municipalities live in service-areas.json."
     },
     {
       "id": "biz.region",
@@ -70,7 +70,7 @@
       "status": "verified",
       "source": "repo:src/data/business.ts",
       "sourceReference": "business.address.region",
-      "verifiedAt": "2026-08-10",
+      "verifiedAt": "2026-08-11",
       "notes": null
     },
     {
@@ -101,7 +101,7 @@
       "source": "policy",
       "sourceReference": "no_evidence",
       "verifiedAt": null,
-      "notes": "Availability/openings claims require a dated verified availability fact with validUntil."
+      "notes": "Historical GBP openings posts are not current dated availability facts. Availability/openings claims require a dated verified availability fact with validUntil."
     }
   ]
 }

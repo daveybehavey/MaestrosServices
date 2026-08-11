@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-08-11",
+  "sourceCommand": "npm run gbp:reviews",
+  "mutation": false,
+  "readOnly": true,
+  "repliesPublished": false,
+  "summary": {
+    "totalReviews": 2,
+    "averageRating": 5,
+    "unrepliedCount": 2,
+    "unrepliedReviewIds": [
+      "AbFvOqlkT1dl-_Xmv9WMWxBazeUzxAbx-KJPCQM897g4zdEmY4IjQGN6Nl-KAgT3n4KvBY-hY3nfYw",
+      "AbFvOqmw46rUovHGFPStUhoYrB-uEGZerFAH3pfiXlzHyvfY2flBmDhMnCS68Xnf6KhOQYhnQ70XNw"
+    ]
+  },
+  "reviews": [
+    {
+      "reviewId": "AbFvOqlkT1dl-_Xmv9WMWxBazeUzxAbx-KJPCQM897g4zdEmY4IjQGN6Nl-KAgT3n4KvBY-hY3nfYw",
+      "starRating": "FIVE",
+      "createTime": "2026-06-11T16:31:05.492468Z",
+      "hasOwnerReply": false,
+      "nonSensitiveSummary": "Five-star review praising hard work, on-time completion, and willingness to hire again. No specific Maestro service catalog ID or municipality named.",
+      "namedMunicipality": null,
+      "servicesMentioned": [],
+      "canSupportProjectEvidence": false,
+      "projectEvidenceNotes": "Positive reputation signal only; too nonspecific for a project or catalog promotion record."
+    },
+    {
+      "reviewId": "AbFvOqmw46rUovHGFPStUhoYrB-uEGZerFAH3pfiXlzHyvfY2flBmDhMnCS68Xnf6KhOQYhnQ70XNw",
+      "starRating": "FIVE",
+      "createTime": "2026-05-10T02:50:46.803885Z",
+      "hasOwnerReply": false,
+      "nonSensitiveSummary": "Five-star review of a completed residential yard tidy-up including weeding, raking, mowing, bush trimming, and bark mulch. Job locality named as Cordova Bay; broader Victoria mentioned as marketing context.",
+      "namedMunicipality": "Cordova Bay",
+      "mappedAreaId": "area.saanich",
+      "servicesMentioned": [
+        "svc.weed-control",
+        "svc.lawn-mowing",
+        "svc.hedge-trimming",
+        "svc.garden-bed-maintenance",
+        "svc.seasonal-cleanups"
+      ],
+      "canSupportProjectEvidence": true,
+      "projectEvidenceNotes": "Strong future project/evidence candidate once a non-identifying, permission-reviewed project JSON is authored. Do not copy reviewer identity/PII into fixtures."
+    }
+  ],
+  "actionsRecommended": [
+    {
+      "type": "owner_reply_draft_needed",
+      "priority": "high",
+      "reviewIds": [
+        "AbFvOqlkT1dl-_Xmv9WMWxBazeUzxAbx-KJPCQM897g4zdEmY4IjQGN6Nl-KAgT3n4KvBY-hY3nfYw",
+        "AbFvOqmw46rUovHGFPStUhoYrB-uEGZerFAH3pfiXlzHyvfY2flBmDhMnCS68Xnf6KhOQYhnQ70XNw"
+      ],
+      "notes": "Both reviews are unreplied. Reply drafting/publishing is out of scope for this catalog slice."
+    },
+    {
+      "type": "future_project_evidence_candidate",
+      "priority": "medium",
+      "reviewId": "AbFvOqmw46rUovHGFPStUhoYrB-uEGZerFAH3pfiXlzHyvfY2flBmDhMnCS68Xnf6KhOQYhnQ70XNw",
+      "notes": "Eligible for a sanitized project evidence record after permission review; not authored in this slice."
+    }
+  ]
+}

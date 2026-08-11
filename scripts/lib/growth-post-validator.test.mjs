@@ -27,12 +27,17 @@ const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, "utf8"));
 
 const validDraft = () => readJson(path.join(postsDir, "valid-power-washing.json"));
 
-test("production growth facts load and keep services as candidates by default", () => {
+test("production growth facts load verified operating catalog plus remaining candidates", () => {
   const facts = loadGrowthFacts(productionFactsDir);
   assert.ok(facts.businessFacts.some((f) => f.id === "biz.name" && f.status === "verified"));
   const power = facts.services.find((s) => s.id === "svc.power-washing");
-  assert.equal(power.status, "candidate");
-  assert.ok(facts.services.every((s) => s.id === "svc.large-tree-felling" || s.status === "candidate"));
+  assert.equal(power.status, "verified");
+  assert.equal(facts.services.find((s) => s.id === "svc.large-tree-felling").status, "rejected");
+  assert.equal(facts.services.find((s) => s.id === "svc.gutter-cleaning-ground-access").status, "candidate");
+  assert.equal(facts.areas.find((a) => a.id === "area.shawnigan-lake").status, "verified");
+  assert.equal(facts.areas.find((a) => a.id === "area.saanich").status, "verified");
+  assert.equal(facts.areas.find((a) => a.id === "area.vancouver").status, "rejected");
+  assert.equal(facts.areas.find((a) => a.id === "area.langford").status, "candidate");
   assert.equal(facts.rules.duplicate.nearDuplicateThreshold, 0.82);
 });
 
@@ -639,10 +644,24 @@ test("negative: malformed draft and missing facts/rules fail", () => {
   assert.equal(validateGbpPost({ draft: validDraft(), facts: null }).valid, false);
 });
 
-test("candidate services in production facts cause fail-closed on mention", () => {
+test("production verified services/areas can pass dry-run validator drafts", () => {
   const facts = loadGrowthFacts(productionFactsDir);
+  for (const file of [
+    "production-power-washing-shawnigan.json",
+    "production-gravel-driveway-shawnigan.json",
+    "production-cleanup-saanich.json",
+  ]) {
+    const draft = readJson(path.join(postsDir, file));
+    const result = validateGbpPost({ draft, facts, recentPosts: [] });
+    assert.equal(result.valid, true, `${file}: ${result.errors.join("; ")}`);
+  }
+});
+
+test("candidate services/areas in production facts still fail closed", () => {
+  const facts = loadGrowthFacts(productionFactsDir);
+  const draft = readJson(path.join(postsDir, "production-candidate-gutter-highlands.json"));
   const result = validateGbpPost({
-    draft: validDraft(),
+    draft,
     facts,
     recentPosts: [],
   });
@@ -652,8 +671,8 @@ test("candidate services in production facts cause fail-closed on mention", () =
 
 test("dry-run CLI reports PASS/FAIL and never claims publish", () => {
   const pass = runValidatePostCli({
-    draftPath: path.join(postsDir, "valid-power-washing.json"),
-    factsDir: overlayFactsDir,
+    draftPath: path.join(postsDir, "production-power-washing-shawnigan.json"),
+    factsDir: productionFactsDir,
   });
   assert.equal(pass.result.valid, true);
   assert.equal(pass.meta.guard.mayCallCreatePost, false);
@@ -663,7 +682,7 @@ test("dry-run CLI reports PASS/FAIL and never claims publish", () => {
   assert.match(report, /Publishes: no/);
 
   const fail = runValidatePostCli({
-    draftPath: path.join(postsDir, "valid-power-washing.json"),
+    draftPath: path.join(postsDir, "production-candidate-gutter-highlands.json"),
     factsDir: productionFactsDir,
   });
   assert.equal(fail.result.valid, false);
