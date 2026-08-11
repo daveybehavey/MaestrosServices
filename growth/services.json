@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-10",
+  "notes": "Discovered from src/data/services.ts. Status defaults to candidate until human verification against live offerings.",
+  "services": [
+    {
+      "id": "svc.lawn-mowing",
+      "slug": "lawn-mowing",
+      "name": "Lawn Mowing",
+      "aliases": ["lawn care", "mowing"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "lawn-mowing",
+      "verifiedAt": null,
+      "notes": "Present on website; not auto-verified for GBP automation."
+    },
+    {
+      "id": "svc.hedge-trimming",
+      "slug": "hedge-trimming",
+      "name": "Hedge Trimming",
+      "aliases": ["hedge trimming", "hedges"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "hedge-trimming",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.garden-bed-maintenance",
+      "slug": "garden-bed-maintenance",
+      "name": "Mulching and Garden Beds",
+      "aliases": ["mulch", "mulching", "garden beds", "garden bed"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "garden-bed-maintenance",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.seasonal-cleanups",
+      "slug": "seasonal-cleanups",
+      "name": "Seasonal Cleanups",
+      "aliases": ["yard cleanup", "seasonal cleanup", "property cleanup"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "seasonal-cleanups",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.weed-control",
+      "slug": "weed-control",
+      "name": "Weed Control",
+      "aliases": ["weeding", "weed control"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "weed-control",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.yard-waste-removal",
+      "slug": "yard-waste-removal",
+      "name": "Yard Waste Removal",
+      "aliases": ["yard waste", "green waste"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "yard-waste-removal",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.brush-clearing",
+      "slug": "brush-clearing",
+      "name": "Brush Clearing",
+      "aliases": ["brush clearing", "overgrowth"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "brush-clearing",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.gutter-cleaning-ground-access",
+      "slug": "gutter-cleaning-ground-access",
+      "name": "Gutter Cleaning",
+      "aliases": ["gutter cleaning", "gutters"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "gutter-cleaning-ground-access",
+      "verifiedAt": null,
+      "notes": "Ground-accessible only per website scope."
+    },
+    {
+      "id": "svc.light-pruning",
+      "slug": "light-pruning",
+      "name": "Light Pruning",
+      "aliases": ["pruning", "light pruning"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "light-pruning",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.moss-algae-treatment",
+      "slug": "moss-algae-treatment",
+      "name": "Moss and Algae Treatment",
+      "aliases": ["moss", "algae", "moss and algae"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "moss-algae-treatment",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.fence-work-minor-repairs",
+      "slug": "fence-work-minor-repairs",
+      "name": "Fence Work",
+      "aliases": ["fence repair", "fence repairs", "fence work", "gate adjustments"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "fence-work-minor-repairs",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.power-washing",
+      "slug": "power-washing",
+      "name": "Power Washing",
+      "aliases": ["power washing", "pressure washing"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "power-washing",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.rock-work-walls",
+      "slug": "rock-work-walls",
+      "name": "Rock Work and Walls",
+      "aliases": ["rock work", "rock walls"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "rock-work-walls",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.driveway-grading",
+      "slug": "driveway-grading",
+      "name": "Driveway Grading",
+      "aliases": ["driveway grading", "regrading"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "driveway-grading",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.gravel-driveway-installation",
+      "slug": "gravel-driveway-installation",
+      "name": "Gravel Driveways",
+      "aliases": ["gravel driveway", "gravel driveways"],
+      "status": "candidate",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "gravel-driveway-installation",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.large-tree-felling",
+      "slug": null,
+      "name": "Large Tree Felling",
+      "aliases": ["tree felling", "tree removal", "arborist"],
+      "status": "rejected",
+      "source": "repo:src/data/services.ts",
+      "sourceReference": "explicit_not_yet",
+      "verifiedAt": null,
+      "notes": "Website marks large tree felling as not offered."
+    }
+  ]
+}

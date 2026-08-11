@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-10",
+  "notes": "Conservative seed. Identity fields verified against repo business metadata that matches live GBP read checks. Marketing claims stay candidate until human-approved.",
+  "facts": [
+    {
+      "id": "biz.name",
+      "kind": "business_name",
+      "value": "Maestros Services",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.name",
+      "verifiedAt": "2026-08-10",
+      "notes": "Matches live GBP profile title from profile-audit."
+    },
+    {
+      "id": "biz.phone",
+      "kind": "phone",
+      "value": "250-858-1781",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.phone",
+      "verifiedAt": "2026-08-10",
+      "notes": "Phone may be used for contact elsewhere; never embed in GBP post body."
+    },
+    {
+      "id": "biz.phoneE164",
+      "kind": "phone",
+      "value": "+12508581781",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.phoneTel",
+      "verifiedAt": "2026-08-10",
+      "notes": "E.164 form of the primary phone."
+    },
+    {
+      "id": "biz.email",
+      "kind": "email",
+      "value": "quotes@maestrosservices.com",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.email",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "biz.siteUrl",
+      "kind": "website",
+      "value": "https://maestrosservices.com",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.siteUrl",
+      "verifiedAt": "2026-08-10",
+      "notes": "Canonical site origin for CTA hostname allowlisting."
+    },
+    {
+      "id": "biz.baseLocality",
+      "kind": "base_locality",
+      "value": "Shawnigan Lake",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.address.locality",
+      "verifiedAt": "2026-08-10",
+      "notes": "Base locality only; served areas live in service-areas.json."
+    },
+    {
+      "id": "biz.region",
+      "kind": "region",
+      "value": "BC",
+      "status": "verified",
+      "source": "repo:src/data/business.ts",
+      "sourceReference": "business.address.region",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "claim.yearsInBusiness",
+      "kind": "claim",
+      "value": null,
+      "status": "unsupported",
+      "source": "policy",
+      "sourceReference": "no_evidence",
+      "verifiedAt": null,
+      "notes": "Do not invent years-in-business claims."
+    },
+    {
+      "id": "claim.dollarPricing",
+      "kind": "claim",
+      "value": null,
+      "status": "unsupported",
+      "source": "policy",
+      "sourceReference": "no_evidence",
+      "verifiedAt": null,
+      "notes": "No approved dollar prices or discounts for automation."
+    },
+    {
+      "id": "claim.currentOpenings",
+      "kind": "availability",
+      "value": null,
+      "status": "unsupported",
+      "source": "policy",
+      "sourceReference": "no_evidence",
+      "verifiedAt": null,
+      "notes": "Availability/openings claims require a dated verified availability fact with validUntil."
+    }
+  ]
+}

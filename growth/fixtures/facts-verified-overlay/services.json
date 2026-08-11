@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "services": [
+    {
+      "id": "svc.power-washing",
+      "slug": "power-washing",
+      "name": "Power Washing",
+      "aliases": ["power washing", "pressure washing"],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": "Fixture-only verification for positive tests."
+    },
+    {
+      "id": "svc.fence-work-minor-repairs",
+      "slug": "fence-work-minor-repairs",
+      "name": "Fence Work",
+      "aliases": ["fence repair", "fence repairs"],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "svc.large-tree-felling",
+      "slug": null,
+      "name": "Large Tree Felling",
+      "aliases": ["tree felling", "tree removal"],
+      "status": "rejected",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": null,
+      "notes": null
+    },
+    {
+      "id": "svc.retaining-walls",
+      "slug": "retaining-walls",
+      "name": "Retaining Walls",
+      "aliases": ["retaining wall", "retaining-wall"],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-11",
+      "notes": "Fixture service for project-binding mismatch tests."
+    }
+  ]
+}

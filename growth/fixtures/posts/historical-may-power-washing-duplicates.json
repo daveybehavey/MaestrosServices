@@ -1,0 +1,15 @@
+{
+  "recentPosts": [
+    {
+      "id": "historical-2026-05-26",
+      "createTime": "2026-05-26T16:00:00Z",
+      "summary": "Power washing is one of the quickest ways to make a property feel cleaner before summer. Driveways, patios, walkways, fences, and entry areas can collect grime, algae, and dull patches through the wet season. We check the surface first and use a practical approach for the material, so the goal is a cleaner look without unnecessary damage. If you want a quick quote, send a photo and your location."
+    },
+    {
+      "id": "historical-2026-05-29",
+      "createTime": "2026-05-29T16:00:00Z",
+      "summary": "Power washing is one of the quickest ways to make a property feel cleaner before summer. Driveways, patios, walkways, fences and entry areas can gather grime, algae and dull patches through the wet season. We check the surface first and use a practical approach for the material so the goal is a cleaner look. If you want a quick quote send a photo and your location."
+    }
+  ],
+  "notes": "Regression fixture for the May 26 / May 29 near-duplicate power-washing GBP post situation. Public caption text only."
+}
