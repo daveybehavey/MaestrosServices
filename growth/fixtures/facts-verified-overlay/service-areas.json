@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "areas": [
+    {
+      "id": "area.shawnigan-lake",
+      "slug": "shawnigan-lake",
+      "name": "Shawnigan Lake",
+      "region": "Cowichan Valley",
+      "aliases": ["Shawnigan"],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "area.victoria",
+      "slug": "victoria",
+      "name": "Victoria",
+      "region": "Greater Victoria",
+      "aliases": [],
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "area.vancouver",
+      "slug": null,
+      "name": "Vancouver",
+      "region": "Mainland",
+      "aliases": [],
+      "status": "rejected",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": null,
+      "notes": null
+    }
+  ]
+}

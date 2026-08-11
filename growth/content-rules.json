@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-10",
+  "summaryMaxChars": 1500,
+  "summaryMinChars": 20,
+  "allowedTopicTypes": ["STANDARD"],
+  "allowedCtaActionTypes": ["LEARN_MORE", "BOOK", "CALL", "ORDER", "SHOP", "SIGN_UP"],
+  "approvedHosts": ["maestrosservices.com", "www.maestrosservices.com"],
+  "approvedPathPrefixes": ["/", "/quote", "/review", "/services", "/areas", "/blog", "/projects", "/service-area", "/services-by-area", "/driveway-faq"],
+  "requiredUtm": {
+    "utm_source": "google_business_profile",
+    "utm_medium": "organic"
+  },
+  "allowedUtmCampaigns": ["gbp_posts", "gbp_profile", "gbp_growth_ops"],
+  "requireHttps": true,
+  "preserveHash": true,
+  "duplicate": {
+    "nearDuplicateThreshold": 0.82,
+    "algorithm": "jaccard_word_bigrams",
+    "normalize": ["lowercase", "collapse_whitespace", "strip_punctuation"]
+  },
+  "forbiddenBodyPatterns": {
+    "phone": [
+      "\\+?1?[\\s.-]?\\(?250\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}",
+      "\\b250[\\s.-]?\\d{3}[\\s.-]?\\d{4}\\b",
+      "\\+12508581781",
+      "sms:\\+?\\d+"
+    ],
+    "priceOrDiscount": [
+      "\\$\\s?\\d+",
+      "\\b\\d+\\s?%\\s?(off|discount)\\b",
+      "\\b(discount|special offer|limited.time offer|coupon)\\b"
+    ],
+    "availability": [
+      "\\b(openings?|slots?)\\s+(this|next)\\s+(week|weekend)\\b",
+      "\\bavailable\\s+(now|today|this week|immediately)\\b",
+      "\\bbooking\\s+(now|this week)\\b",
+      "\\bfew\\s+(residential\\s+)?openings\\b"
+    ],
+    "guaranteeOrSuperlative": [
+      "\\b(guaranteed?|warranty|warranties)\\b",
+      "\\b(best|cheapest|#1|number one|top[- ]rated)\\b",
+      "\\b(licensed|bonded|insured|certified)\\b",
+      "\\b\\d+\\+?\\s*years?(\\s+of)?\\s+(experience|service)\\b",
+      "\\byears?\\s+in\\s+business\\b"
+    ],
+    "testimonialLanguage": [
+      "\\bour customers? say\\b",
+      "\\b5[- ]star review\\b",
+      "\\bclient testimonial\\b",
+      "\\b\"[^\"]{20,}\"\\s*(-|—)?\\s*(customer|client|homeowner)\\b"
+    ]
+  },
+  "failClosed": true,
+  "notes": "Unverified or ambiguous claims fail closed. Passing validation does not publish."
+}

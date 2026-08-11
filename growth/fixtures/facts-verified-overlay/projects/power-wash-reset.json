@@ -1,0 +1,17 @@
+{
+  "id": "proj.power-wash-reset",
+  "title": "Driveway power wash refresh",
+  "status": "verified",
+  "serviceIds": [
+    "svc.power-washing"
+  ],
+  "areaIds": [
+    "area.shawnigan-lake"
+  ],
+  "summary": "Residential driveway and walkway power wash with algae cleanup.",
+  "source": "fixture",
+  "sourceReference": "overlay",
+  "verifiedAt": "2026-08-10",
+  "permissionGranted": true,
+  "notes": "Fixture-only project evidence for positive tests."
+}

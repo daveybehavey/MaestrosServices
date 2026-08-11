@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-10",
+  "notes": "Test-only overlay. Marks a minimal allowlist verified so positive fixtures can pass without weakening production candidate defaults.",
+  "facts": [
+    {
+      "id": "biz.name",
+      "kind": "business_name",
+      "value": "Maestros Services",
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "biz.phone",
+      "kind": "phone",
+      "value": "250-858-1781",
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    },
+    {
+      "id": "biz.siteUrl",
+      "kind": "website",
+      "value": "https://maestrosservices.com",
+      "status": "verified",
+      "source": "fixture",
+      "sourceReference": "overlay",
+      "verifiedAt": "2026-08-10",
+      "notes": null
+    }
+  ]
+}
