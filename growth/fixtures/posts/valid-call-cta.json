@@ -4,5 +4,12 @@
   "languageCode": "en-US",
   "callToAction": {
     "actionType": "CALL"
-  }
+  },
+  "contentIntent": "service",
+  "serviceRefs": [
+    "svc.power-washing"
+  ],
+  "areaRefs": [
+    "area.shawnigan-lake"
+  ]
 }

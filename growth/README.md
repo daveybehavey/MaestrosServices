@@ -38,7 +38,59 @@ Latest operating-catalog evidence pass: `growth/evidence/operating-catalog-2026-
 
 Sensitive language must cite **explicit evidence IDs** on the draft. The validator does **not** accept a claim just because some other verified fact in the same broad category exists.
 
-Draft fields:
+### Service / area refs (required commercial topic contract)
+
+`serviceRefs[]` / `areaRefs[]` are the **authoritative declarations** of intended commercial topics for a draft. Automation must declare what it intends to market; the validator then checks those declarations against the verified catalog and known catalog mentions in the summary.
+
+| Field | Rule |
+| --- | --- |
+| `contentIntent` | `service` (default) \| `reputation` \| `general` |
+| `serviceRefs[]` | Required for `contentIntent: "service"` (>=1). Each ID must exist and be `verified`. |
+| `areaRefs[]` | Required whenever the summary claims a **known catalog** locality. Each ID must exist and be `verified`. |
+
+What this gate fail-closes today:
+
+- Candidate / rejected / unknown **ref IDs** fail
+- Recognized catalog service/area mentions omitted from the matching refs array fail
+- Declared refs that never appear in the summary fail
+- Duplicate refs are deduplicated with a warning
+- `contentIntent: "reputation"` / `"general"` forbid catalog service/area marketing and service-marketing language
+- Passing validation still **never publishes**
+
+What this gate does **not** claim:
+
+- Deterministic validation does **not** semantically recognize arbitrary out-of-catalog free-text services or locations (example: an undeclared "roof replacement" phrase may not be detected if it is not in `services.json`)
+- A PASS means the draft cleared catalog-ref / known-mention / evidence gates for **human-reviewed shadow mode**
+- A PASS does **not** imply unattended auto-publish eligibility
+- Future P3 auto-publish requires controlled rendering from verified structured facts, or another explicitly reviewed semantic-coverage gate
+
+Every validation result therefore includes:
+
+- `requiresHumanReview: true`
+- `autoPublishEligible: false`
+- `semanticCoverage: "catalog_refs_and_known_mentions"`
+
+Examples:
+
+```json
+{
+  "contentIntent": "service",
+  "summary": "Power Washing around Shawnigan Lake...",
+  "serviceRefs": ["svc.power-washing"],
+  "areaRefs": ["area.shawnigan-lake"]
+}
+```
+
+```json
+{
+  "contentIntent": "reputation",
+  "summary": "Thank you to homeowners who leave thoughtful Google reviews..."
+}
+```
+
+Cordova Bay may be declared via `area.cordova-bay`; municipality-wide `area.saanich` remains candidate and fails.
+
+### Evidence ref fields
 
 | Field | When required |
 | --- | --- |
@@ -53,12 +105,12 @@ Binding rules:
 - Evidence id must exist, `status=verified`, kind must match the claim family
 - Expired `validUntil` / future `validFrom` fails
 - Dollar amounts and discount percents must match the referenced offer record
-- Availability service/area scope must cover mentions in the draft
+- Availability / project scope must cover declared `serviceRefs` / `areaRefs` when scoped
 - Unrelated verified `kind=claim` does **not** authorize insured/certified/best/#1/years
 - Testimonials require approved quote text to appear in the draft (no invented paraphrase)
-- Projects require that mentioned services/areas appear on that project record
+- Projects require that mentioned and declared services/areas appear on that project record
 
-Audit fields on every result: `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`.
+Audit fields on every result include: `contentIntent`, `requestedServiceIds`, `matchedServiceIds`, `rejectedServiceRefs`, `requestedAreaIds`, `matchedAreaIds`, `rejectedAreaRefs`, `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`, `requiresHumanReview`, `autoPublishEligible`, `semanticCoverage`, plus `publishes: false` and `contactsGoogle: false`.
 
 ## Project evidence
 
@@ -114,4 +166,4 @@ npm run growth:validate-post -- growth/fixtures/posts/valid-power-washing.json
 npm run test:growth
 ```
 
-Exit `0` only when gates pass. Exit non-zero on validation failure. Never publishes.
+Exit `0` only when gates pass. Exit non-zero on validation failure. Never publishes. Human review remains mandatory; auto-publish eligible is always no.

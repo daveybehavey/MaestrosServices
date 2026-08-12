@@ -5,5 +5,12 @@
   "callToAction": {
     "actionType": "LEARN_MORE",
     "url": "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_growth_ops#quote"
-  }
+  },
+  "contentIntent": "service",
+  "serviceRefs": [
+    "svc.gravel-driveway-installation"
+  ],
+  "areaRefs": [
+    "area.shawnigan-lake"
+  ]
 }
