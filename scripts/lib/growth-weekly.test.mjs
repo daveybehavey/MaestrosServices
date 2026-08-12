@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -13,17 +14,16 @@ import {
   buildPostOpportunity,
   buildReviewOpportunity,
   buildWeeklyIntelligence,
+  prepareWeeklyInputs,
 } from "./growth-weekly.mjs";
 import { formatWeeklyConsoleSummary, runGrowthWeekly } from "../growth-weekly.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
-const fixtureRoot = path.join(root, "growth/fixtures/weekly");
 const now = new Date("2026-08-12T15:00:00.000Z");
 
-const writeCase = (name, files) => {
-  const dir = path.join(fixtureRoot, name);
-  fs.mkdirSync(dir, { recursive: true });
+const writeTempCase = (files) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "growth-weekly-"));
   for (const [fileName, data] of Object.entries(files)) {
     fs.writeFileSync(path.join(dir, fileName), `${JSON.stringify(data, null, 2)}\n`, "utf8");
   }
@@ -63,7 +63,7 @@ const baseReports = (overrides = {}) => ({
     comparison: {
       lagDays: 3,
       recent28: {
-        dateRange: { startDate: "2026-07-12", endDate: "2026-08-08" },
+        dateRange: { startDate: "2026-07-13", endDate: "2026-08-09" },
         topQueries: [
           {
             keys: ["power washing shawnigan lake"],
@@ -92,7 +92,7 @@ const baseReports = (overrides = {}) => ({
         ],
       },
       prior28: {
-        dateRange: { startDate: "2026-06-14", endDate: "2026-07-11" },
+        dateRange: { startDate: "2026-06-15", endDate: "2026-07-12" },
         topQueries: [],
         topPages: [],
       },
@@ -139,25 +139,22 @@ const baseReports = (overrides = {}) => ({
 
 test("unreplied reviews produce a high-priority reputation action", () => {
   const report = buildWeeklyIntelligence({
-    reports: baseReports(),
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+        prior: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+      }),
+    }),
     catalog: VERIFIED_CATALOG,
     now,
   });
   assert.equal(report.reviewOpportunity.actionRecommended, true);
-  assert.equal(report.actions[0].type, "review_reply");
-  assert.equal(report.actions[0].priority, 1);
+  assert.ok(report.actions.some((a) => a.type === "review_reply"));
 });
 
-test("meaningful lead decline produces a conversion investigation action", () => {
+test("meaningful lead decline outranks routine review-response work", () => {
   const report = buildWeeklyIntelligence({
     reports: baseReports({
-      gbpReviews: {
-        generatedAt: "2026-08-12T12:00:00.000Z",
-        unrepliedCount: 0,
-        unrepliedReviewIds: [],
-        totalReviewCount: 2,
-        averageRating: 5,
-      },
       ga4: buildGa4WithWindows({
         recent: { generate_lead: 2, phone_click: 0, sms_click: 0, quote_form_start: 3 },
         prior: { generate_lead: 8, phone_click: 1, sms_click: 0, quote_form_start: 5 },
@@ -166,7 +163,8 @@ test("meaningful lead decline produces a conversion investigation action", () =>
     catalog: VERIFIED_CATALOG,
     now,
   });
-  assert.ok(report.actions.some((a) => a.id === "action.lead_decline_investigate"));
+  assert.equal(report.actions[0].id, "action.lead_decline_investigate");
+  assert.ok(report.actions.some((a) => a.id === "action.review_reply"));
 });
 
 test("lead improvement is represented correctly", () => {
@@ -295,13 +293,21 @@ test("trivial low-volume GSC noise does not create an exaggerated action", () =>
   assert.equal(report.signals.some((s) => s.type === "organic"), false);
 });
 
-test("verified GBP service-demand signal can produce a structured post opportunity", () => {
-  const opportunity = buildPostOpportunity({
+test("verified GBP service-demand can draft with locality only when evidenced", () => {
+  const withArea = buildPostOpportunity({
     catalog: VERIFIED_CATALOG,
     gbpKeywords: {
-      keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      keywords: [
+        {
+          searchKeyword: "power washing shawnigan lake",
+          impressions: 40,
+          belowThreshold: false,
+        },
+      ],
     },
     gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
       localPosts: [
         {
           createTime: "2026-06-01T00:00:00.000Z",
@@ -311,18 +317,41 @@ test("verified GBP service-demand signal can produce a structured post opportuni
     },
     now,
   });
-  assert.equal(opportunity.shouldDraft, true);
-  assert.deepEqual(opportunity.serviceRefs, ["svc.power-washing"]);
-  assert.ok(opportunity.areaRefs.includes("area.shawnigan-lake"));
+  assert.equal(withArea.shouldDraft, true);
+  assert.deepEqual(withArea.serviceRefs, ["svc.power-washing"]);
+  assert.deepEqual(withArea.areaRefs, ["area.shawnigan-lake"]);
+
+  const serviceOnly = buildPostOpportunity({
+    catalog: VERIFIED_CATALOG,
+    gbpKeywords: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
+    },
+    gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      localPosts: [
+        {
+          createTime: "2026-06-01T00:00:00.000Z",
+          summary: "Gravel driveway tips for wet season.",
+        },
+      ],
+    },
+    now,
+  });
+  assert.equal(serviceOnly.shouldDraft, true);
+  assert.deepEqual(serviceOnly.serviceRefs, ["svc.power-washing"]);
+  assert.deepEqual(serviceOnly.areaRefs, []);
 });
 
 test("recent duplicate/stale topic suppresses a post opportunity", () => {
   const opportunity = buildPostOpportunity({
     catalog: VERIFIED_CATALOG,
     gbpKeywords: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
       keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
     },
     gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
       localPosts: [
         {
           createTime: "2026-08-01T00:00:00.000Z",
@@ -337,14 +366,38 @@ test("recent duplicate/stale topic suppresses a post opportunity", () => {
     now,
   });
   assert.equal(opportunity.shouldDraft, false);
-  assert.match(opportunity.reason, /duplicate|already cover/i);
+  assert.match(opportunity.reason, /already cover/i);
+});
+
+test("stale posts without service demand do not invent serviceRefs or areaRefs", () => {
+  const opportunity = buildPostOpportunity({
+    catalog: VERIFIED_CATALOG,
+    gbpKeywords: { generatedAt: "2026-08-12T12:00:00.000Z", keywords: [] },
+    gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      localPosts: [
+        {
+          createTime: "2026-05-01T00:00:00.000Z",
+          summary: "Thanks for the kind notes this week.",
+        },
+      ],
+    },
+    now,
+  });
+  assert.equal(opportunity.shouldDraft, false);
+  assert.deepEqual(opportunity.serviceRefs, []);
+  assert.deepEqual(opportunity.areaRefs, []);
+  assert.equal(opportunity.maintenanceSignal, true);
+  assert.match(opportunity.reason, /stale/i);
+  assert.match(opportunity.reason, /no strong verified topic/i);
 });
 
 test("no verified evidence yields no post opportunity", () => {
   const opportunity = buildPostOpportunity({
     catalog: VERIFIED_CATALOG,
-    gbpKeywords: { keywords: [] },
+    gbpKeywords: { generatedAt: "2026-08-12T12:00:00.000Z", keywords: [] },
     gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
       localPosts: [
         {
           createTime: "2026-08-10T00:00:00.000Z",
@@ -355,6 +408,7 @@ test("no verified evidence yields no post opportunity", () => {
     now,
   });
   assert.equal(opportunity.shouldDraft, false);
+  assert.deepEqual(opportunity.serviceRefs, []);
 });
 
 test("missing input is not interpreted as zero", () => {
@@ -448,7 +502,7 @@ test("customer PII is absent from sanitized weekly output", () => {
 });
 
 test("from-reports CLI mode writes shadow-mode artifacts without collecting", () => {
-  const caseDir = writeCase("case-cli-smoke", {
+  const caseDir = writeTempCase({
     "ga4-summary.json": buildGa4WithWindows(),
     "search-console-summary.json": baseReports().gsc,
     "gbp-performance.json": buildGbpPerformance(),
@@ -462,25 +516,131 @@ test("from-reports CLI mode writes shadow-mode artifacts without collecting", ()
     },
     "gbp-list-posts.json": baseReports().gbpPosts,
   });
-  const outDir = path.join(fixtureRoot, "case-cli-smoke-out");
-  fs.rmSync(outDir, { recursive: true, force: true });
-  const { report, paths } = runGrowthWeekly({
-    fromReports: caseDir,
-    factsDir: path.join(root, "growth"),
-    outDir,
-    now,
-    collectFn: () => {
-      throw new Error("collectFn should not run in from-reports mode");
-    },
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "growth-weekly-out-"));
+  try {
+    const { report, paths } = runGrowthWeekly({
+      fromReports: caseDir,
+      factsDir: path.join(root, "growth"),
+      outDir,
+      now,
+      collectFn: () => {
+        throw new Error("collectFn should not run in from-reports mode");
+      },
+    });
+    assert.equal(report.collection.attempted, false);
+    assert.equal(report.safety.requiresHumanReview, true);
+    assert.ok(fs.existsSync(paths.jsonPath));
+    assert.ok(fs.existsSync(paths.mdPath));
+    const summary = formatWeeklyConsoleSummary(report);
+    assert.match(summary, /Human review required: yes/);
+    assert.match(summary, /Auto-publish eligible: no/);
+    assert.match(summary, /Publishes: no/);
+  } finally {
+    fs.rmSync(caseDir, { recursive: true, force: true });
+    fs.rmSync(outDir, { recursive: true, force: true });
+  }
+});
+
+test("failed collector suppresses stale on-disk report for that source", () => {
+  const reports = baseReports({
+    ga4: buildGa4WithWindows({
+      recent: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+      prior: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+    }),
   });
-  assert.equal(report.collection.attempted, false);
-  assert.equal(report.safety.requiresHumanReview, true);
-  assert.ok(fs.existsSync(paths.jsonPath));
-  assert.ok(fs.existsSync(paths.mdPath));
-  const summary = formatWeeklyConsoleSummary(report);
-  assert.match(summary, /Human review required: yes/);
-  assert.match(summary, /Auto-publish eligible: no/);
-  assert.match(summary, /Publishes: no/);
+  const prepared = prepareWeeklyInputs(reports, {
+    now,
+    collectorResults: [{ script: "gbp:reviews", ok: false, status: 1 }],
+  });
+  assert.equal(prepared.usableReports.gbpReviews, null);
+  assert.ok(
+    prepared.dataQuality.issues.some(
+      (i) => i.source === "gbpReviews" && i.code === "collector_failed"
+    )
+  );
+
+  const report = buildWeeklyIntelligence({
+    reports,
+    catalog: VERIFIED_CATALOG,
+    now,
+    collectorResults: [{ script: "gbp:reviews", ok: false, status: 1 }],
+  });
+  assert.equal(report.reviewOpportunity.actionRecommended, false);
+  assert.equal(report.actions.some((a) => a.type === "review_reply"), false);
+  // Other valid sources can still produce actions (organic page opportunity).
+  assert.ok(report.actions.some((a) => a.type === "organic_opportunity"));
+});
+
+test("stale reviews report does not create a current unreplied-review action", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+        prior: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+      }),
+      gbpReviews: {
+        generatedAt: "2026-08-01T12:00:00.000Z",
+        unrepliedCount: 5,
+        unrepliedReviewIds: ["rev_old_1"],
+        totalReviewCount: 5,
+        averageRating: 5,
+      },
+      gbpKeywords: { generatedAt: "2026-08-12T12:00:00.000Z", keywords: [] },
+      gbpPosts: {
+        generatedAt: "2026-08-12T12:00:00.000Z",
+        localPosts: [
+          {
+            createTime: "2026-08-10T12:00:00.000Z",
+            summary: "Fresh seasonal cleanup note.",
+          },
+        ],
+      },
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.ok(report.dataQuality.issues.some((i) => i.source === "gbpReviews" && i.code === "stale"));
+  assert.equal(report.reviewOpportunity.actionRecommended, false);
+  assert.equal(report.actions.some((a) => a.type === "review_reply"), false);
+});
+
+test("stale keyword/post data does not create a current post opportunity", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+        prior: { generate_lead: 4, phone_click: 1, sms_click: 0, quote_form_start: 4 },
+      }),
+      gbpReviews: {
+        generatedAt: "2026-08-12T12:00:00.000Z",
+        unrepliedCount: 0,
+        unrepliedReviewIds: [],
+        totalReviewCount: 1,
+        averageRating: 5,
+      },
+      gbpKeywords: {
+        generatedAt: "2026-07-01T12:00:00.000Z",
+        keywords: [
+          { searchKeyword: "power washing", impressions: 99, belowThreshold: false },
+        ],
+      },
+      gbpPosts: {
+        generatedAt: "2026-07-01T12:00:00.000Z",
+        localPosts: [
+          {
+            createTime: "2026-01-01T00:00:00.000Z",
+            summary: "Old note.",
+          },
+        ],
+      },
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.equal(report.postOpportunity.shouldDraft, false);
+  assert.deepEqual(report.postOpportunity.serviceRefs, []);
+  assert.ok(report.dataQuality.issues.some((i) => i.source === "gbpKeywords" && i.code === "stale"));
+  assert.ok(report.dataQuality.issues.some((i) => i.source === "gbpPosts" && i.code === "stale"));
 });
 
 test("weekly engine source has no mutation / create-post paths", () => {

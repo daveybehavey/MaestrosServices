@@ -16,6 +16,22 @@ export const WEEKLY_SAFETY = Object.freeze({
 
 export const SEMANTIC_COVERAGE = "catalog_refs_and_known_mentions";
 
+/** Collector script -> decision-engine report key / filename. */
+export const COLLECTOR_REPORT_MAP = Object.freeze({
+  "gbp:performance": { key: "gbpPerformance", file: "gbp-performance.json" },
+  "gbp:search-keywords": { key: "gbpKeywords", file: "gbp-search-keywords.json" },
+  "gbp:reviews": { key: "gbpReviews", file: "gbp-reviews.json" },
+  "gbp:list-posts": { key: "gbpPosts", file: "gbp-list-posts.json" },
+  "reporting:ga4": { key: "ga4", file: "ga4-summary.json" },
+  "reporting:gsc": { key: "gsc", file: "search-console-summary.json" },
+});
+
+export const GSC_LAG_DAYS = 3;
+/** Weekly live reports older than this are treated as stale (timezone-tolerant). */
+export const MAX_REPORT_AGE_HOURS = 72;
+/** Allowed skew between expected complete-day window end and report window end. */
+export const MAX_WINDOW_END_SKEW_DAYS = 2;
+
 const LEAD_EVENTS = ["generate_lead", "phone_click", "sms_click", "quote_form_start"];
 
 const ACTION_TYPE_RANK = Object.freeze({
@@ -122,38 +138,192 @@ const eventMap = (rows = [], { absentAsZero = false } = {}) => {
 
 const qualityIssue = (source, code, detail) => ({ source, code, detail });
 
-export const assessInputQuality = (reports = {}) => {
-  const issues = [];
-  const available = {};
+const parseIsoDateOnly = (value) => {
+  if (!value || typeof value !== "string") return null;
+  const day = value.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  const ms = Date.parse(`${day}T00:00:00Z`);
+  return Number.isFinite(ms) ? new Date(ms) : null;
+};
 
-  const check = (key, value, { requireGeneratedAt = true } = {}) => {
-    if (value == null) {
-      available[key] = false;
-      issues.push(qualityIssue(key, "missing", "Report not provided."));
-      return;
-    }
-    available[key] = true;
-    if (requireGeneratedAt && !value.generatedAt && !value.dateRange) {
-      issues.push(qualityIssue(key, "stale_or_incomplete", "Missing generatedAt/dateRange metadata."));
-    }
+const utcDayNumber = (date) =>
+  Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86400000);
+
+const absDaySkew = (left, right) => {
+  if (!left || !right) return null;
+  return Math.abs(utcDayNumber(left) - utcDayNumber(right));
+};
+
+const shiftUtcDays = (date, days) => {
+  const next = new Date(date.getTime());
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+};
+
+const reportAgeHours = (generatedAt, now) => {
+  const ms = Date.parse(generatedAt);
+  if (!Number.isFinite(ms)) return null;
+  return (now.getTime() - ms) / 3600000;
+};
+
+/**
+ * Fail-closed input preparation:
+ * - collector failures suppress that source even if an old file remains on disk
+ * - freshness checks suppress clearly stale sources
+ */
+export const prepareWeeklyInputs = (
+  reports = {},
+  { now = new Date(), collectorResults = [] } = {}
+) => {
+  const usable = {
+    ga4: reports.ga4 ?? null,
+    gsc: reports.gsc ?? null,
+    gbpPerformance: reports.gbpPerformance ?? null,
+    gbpKeywords: reports.gbpKeywords ?? null,
+    gbpReviews: reports.gbpReviews ?? null,
+    gbpPosts: reports.gbpPosts ?? null,
+  };
+  const issues = [];
+  const available = {
+    ga4: false,
+    gsc: false,
+    gbpPerformance: false,
+    gbpKeywords: false,
+    gbpReviews: false,
+    gbpPosts: false,
   };
 
-  check("ga4", reports.ga4, { requireGeneratedAt: false });
-  check("gsc", reports.gsc, { requireGeneratedAt: false });
-  check("gbpPerformance", reports.gbpPerformance);
-  check("gbpKeywords", reports.gbpKeywords);
-  check("gbpReviews", reports.gbpReviews);
-  check("gbpPosts", reports.gbpPosts, { requireGeneratedAt: false });
+  const suppress = (key, code, detail) => {
+    usable[key] = null;
+    available[key] = false;
+    issues.push(qualityIssue(key, code, detail));
+  };
 
-  if (reports.ga4 && !reports.ga4.leadEventsByWindow && !reports.ga4.leadEvents) {
-    issues.push(qualityIssue("ga4", "incomplete", "No leadEvents present."));
-  }
-  if (reports.gbpPerformance && !Array.isArray(reports.gbpPerformance.series)) {
-    issues.push(qualityIssue("gbpPerformance", "incomplete", "No daily series present."));
+  for (const result of collectorResults ?? []) {
+    const mapping = COLLECTOR_REPORT_MAP[result?.script];
+    if (!mapping) continue;
+    if (result.ok === false) {
+      suppress(
+        mapping.key,
+        "collector_failed",
+        `Collector ${result.script} failed; ignoring any on-disk report for this run.`
+      );
+    }
   }
 
-  return { available, issues };
+  const markPresent = (key) => {
+    if (usable[key] != null) available[key] = true;
+  };
+
+  // GBP generatedAt freshness (reviews/keywords/posts/performance).
+  for (const key of ["gbpReviews", "gbpKeywords", "gbpPosts", "gbpPerformance"]) {
+    if (usable[key] == null) {
+      if (!issues.some((i) => i.source === key && i.code === "collector_failed")) {
+        issues.push(qualityIssue(key, "missing", "Report not provided."));
+      }
+      continue;
+    }
+    const generatedAt = usable[key].generatedAt;
+    if (!generatedAt) {
+      suppress(key, "stale_or_incomplete", "Missing generatedAt metadata.");
+      continue;
+    }
+    const age = reportAgeHours(generatedAt, now);
+    if (age == null || age > MAX_REPORT_AGE_HOURS || age < -MAX_REPORT_AGE_HOURS) {
+      suppress(
+        key,
+        "stale",
+        `Report generatedAt is outside the ${MAX_REPORT_AGE_HOURS}h freshness window.`
+      );
+      continue;
+    }
+    markPresent(key);
+  }
+
+  // GBP performance dateRange end must be recent enough for a weekly run.
+  if (usable.gbpPerformance) {
+    const end = parseIsoDateOnly(usable.gbpPerformance.dateRange?.endDate);
+    const expectedEnd = shiftUtcDays(now, -1);
+    const skew = absDaySkew(end, expectedEnd);
+    if (end == null || skew == null || skew > MAX_WINDOW_END_SKEW_DAYS) {
+      suppress(
+        "gbpPerformance",
+        "stale",
+        "GBP performance dateRange.endDate is not recent enough for weekly comparison."
+      );
+    } else if (!Array.isArray(usable.gbpPerformance.series)) {
+      suppress("gbpPerformance", "incomplete", "No daily series present.");
+    }
+  }
+
+  // GA4
+  if (usable.ga4 == null) {
+    if (!issues.some((i) => i.source === "ga4" && i.code === "collector_failed")) {
+      issues.push(qualityIssue("ga4", "missing", "Report not provided."));
+    }
+  } else if (!usable.ga4.leadEventsByWindow && !usable.ga4.leadEvents) {
+    suppress("ga4", "incomplete", "No leadEvents present.");
+  } else {
+    const recentEnd = parseIsoDateOnly(usable.ga4.leadEventsByWindow?.windows?.recent7?.endDate);
+    const expectedEnd = shiftUtcDays(now, -1);
+    if (usable.ga4.leadEventsByWindow?.windows?.recent7) {
+      const skew = absDaySkew(recentEnd, expectedEnd);
+      if (recentEnd == null || skew == null || skew > MAX_WINDOW_END_SKEW_DAYS) {
+        suppress(
+          "ga4",
+          "stale",
+          "GA4 recent7 window does not end at the expected latest complete day."
+        );
+      } else {
+        available.ga4 = true;
+      }
+    } else {
+      // Legacy single-window reports remain usable but flagged.
+      available.ga4 = true;
+      issues.push(
+        qualityIssue("ga4", "no_prior_period_comparator", "Comparable recent7/prior7 windows absent.")
+      );
+    }
+  }
+
+  // GSC
+  if (usable.gsc == null) {
+    if (!issues.some((i) => i.source === "gsc" && i.code === "collector_failed")) {
+      issues.push(qualityIssue("gsc", "missing", "Report not provided."));
+    }
+  } else {
+    const lag = usable.gsc.comparison?.lagDays ?? GSC_LAG_DAYS;
+    const recentEnd = parseIsoDateOnly(usable.gsc.comparison?.recent28?.dateRange?.endDate);
+    const expectedEnd = shiftUtcDays(now, -Number(lag) || -GSC_LAG_DAYS);
+    if (usable.gsc.comparison?.recent28?.dateRange) {
+      const skew = absDaySkew(recentEnd, expectedEnd);
+      if (recentEnd == null || skew == null || skew > MAX_WINDOW_END_SKEW_DAYS) {
+        suppress(
+          "gsc",
+          "stale",
+          `GSC recent28 window does not respect the configured lag (${lag}d).`
+        );
+      } else {
+        available.gsc = true;
+      }
+    } else if (usable.gsc.topQueries || usable.gsc.topPages) {
+      available.gsc = true;
+      issues.push(
+        qualityIssue("gsc", "no_prior_period_comparator", "Lag-safe comparison windows absent.")
+      );
+    } else {
+      suppress("gsc", "incomplete", "No Search Console rows present.");
+    }
+  }
+
+  return {
+    usableReports: usable,
+    dataQuality: { available, issues },
+  };
 };
+
+export const assessInputQuality = (reports = {}, options = {}) =>
+  prepareWeeklyInputs(reports, options).dataQuality;
 
 export const computeGbpKpis = (performance, { now = new Date() } = {}) => {
   if (!performance?.series) {
@@ -299,6 +469,24 @@ const matchVerifiedService = (text, services = []) => {
   return hits;
 };
 
+const matchVerifiedArea = (text, areas = []) => {
+  const normalized = ` ${normalizePostText(text)} `;
+  const hits = [];
+  for (const area of areas) {
+    const aliases = [area.name, area.slug, ...(area.aliases ?? [])]
+      .filter(Boolean)
+      .map((alias) => normalizePostText(alias))
+      .filter((alias) => alias.length >= 3);
+    for (const alias of aliases) {
+      if (normalized.includes(` ${alias} `) || normalized.includes(` ${alias}`)) {
+        hits.push(area);
+        break;
+      }
+    }
+  }
+  return hits;
+};
+
 const isProgrammaticLocationPage = (url = "") =>
   /\/services\/[^/]+\/[^/]+\/?$/i.test(String(url)) || /\/areas\/[^/]+\/?$/i.test(String(url));
 
@@ -410,11 +598,10 @@ const hasNearDuplicateTopic = (postsReport, serviceId, services) => {
   const posts = postsReport?.localPosts ?? postsReport?.recentPosts ?? [];
   const service = services.find((s) => s.id === serviceId);
   if (!service) return false;
-  const probe = `${service.name} ${service.aliases?.[0] ?? ""} around Shawnigan Lake`;
+  const probe = `${service.name} ${service.aliases?.[0] ?? ""}`.trim();
   for (const post of posts.slice(0, 10)) {
     const score = scorePostSimilarity(probe, post.summary ?? "");
     if (score.score >= NEAR_DUPLICATE_THRESHOLD || score.exact) return true;
-    // Also suppress if the same verified service dominated recent posts.
   }
   const recentSame = posts.slice(0, 5).filter((post) =>
     matchVerifiedService(post.summary ?? "", services).some((s) => s.id === serviceId)
@@ -422,7 +609,7 @@ const hasNearDuplicateTopic = (postsReport, serviceId, services) => {
   return recentSame.length >= 2;
 };
 
-const pickGbpDemandService = (keywordsReport, services) => {
+const pickGbpDemandService = (keywordsReport, services, areas = []) => {
   const keywords = keywordsReport?.keywords ?? [];
   const scored = [];
   for (const row of keywords) {
@@ -431,11 +618,13 @@ const pickGbpDemandService = (keywordsReport, services) => {
     if (impressions == null || impressions < 5) continue;
     const matched = matchVerifiedService(row.searchKeyword ?? "", services);
     if (!matched.length) continue;
+    const matchedAreas = matchVerifiedArea(row.searchKeyword ?? "", areas);
     for (const service of matched) {
       scored.push({
         serviceId: service.id,
         keyword: row.searchKeyword,
         impressions,
+        areaIds: matchedAreas.map((area) => area.id),
       });
     }
   }
@@ -491,6 +680,11 @@ export const buildPostOpportunity = ({
 } = {}) => {
   const services = catalog?.services ?? [];
   const areas = catalog?.areas ?? [];
+  const freshness = daysSinceLatestPost(gbpPosts, now);
+  const avoidTopics = recentTopics(gbpPosts, services)
+    .flatMap((t) => t.serviceIds)
+    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+
   if (!services.length) {
     return {
       shouldDraft: false,
@@ -498,96 +692,71 @@ export const buildPostOpportunity = ({
       serviceRefs: [],
       areaRefs: [],
       evidence: [],
-      avoidTopics: [],
+      avoidTopics,
     };
   }
 
-  const freshness = daysSinceLatestPost(gbpPosts, now);
-  const demand = pickGbpDemandService(gbpKeywords, services);
-  const avoidTopics = recentTopics(gbpPosts, services)
-    .flatMap((t) => t.serviceIds)
-    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+  const demand = pickGbpDemandService(gbpKeywords, services, areas);
+  const stale =
+    freshness.days != null && freshness.days >= POST_STALE_DAYS
+      ? {
+          source: "gbpPosts",
+          daysSinceLatestPost: freshness.days,
+          latestAt: freshness.latestAt,
+        }
+      : null;
 
-  if (!demand && (freshness.days == null || freshness.days < POST_STALE_DAYS)) {
+  // Stale posts alone may signal maintenance need, but never invent a topic.
+  if (!demand) {
     return {
       shouldDraft: false,
-      reason:
-        freshness.count === 0
+      reason: stale
+        ? `GBP posts are stale (${freshness.days} days), but no strong verified topic demand was found.`
+        : freshness.count === 0
           ? "No verified GBP demand signal and no recent-post baseline to justify a draft."
           : `Posts are recent (${freshness.days} days) and no verified keyword demand signal is available.`,
       serviceRefs: [],
       areaRefs: [],
-      evidence: [
-        {
-          source: "gbpPosts",
-          daysSinceLatestPost: freshness.days,
-          latestAt: freshness.latestAt,
-        },
-      ],
+      evidence: stale ? [stale] : [{ source: "gbpPosts", daysSinceLatestPost: freshness.days, latestAt: freshness.latestAt }],
       avoidTopics,
+      maintenanceSignal: Boolean(stale),
     };
   }
 
-  const recentServiceIds = new Set(
-    recentTopics(gbpPosts, services)
-      .slice(0, 5)
-      .flatMap((topic) => topic.serviceIds)
-  );
-
-  const rankedServiceIds = [];
-  if (demand?.serviceId) rankedServiceIds.push(demand.serviceId);
-  if (freshness.days != null && freshness.days >= POST_STALE_DAYS) {
-    for (const service of services.slice().sort((a, b) => String(a.id).localeCompare(String(b.id)))) {
-      if (!rankedServiceIds.includes(service.id)) rankedServiceIds.push(service.id);
-    }
-  }
-
-  let serviceId = null;
-  for (const candidateId of rankedServiceIds) {
-    if (hasNearDuplicateTopic(gbpPosts, candidateId, services)) continue;
-    if (!demand || candidateId !== demand.serviceId) {
-      if (recentServiceIds.has(candidateId)) continue;
-    }
-    serviceId = candidateId;
-    break;
-  }
-
-  if (!serviceId) {
+  if (hasNearDuplicateTopic(gbpPosts, demand.serviceId, services)) {
     return {
       shouldDraft: false,
-      reason: rankedServiceIds.length
-        ? "Verified post candidates were suppressed by recent duplicate/stale topics."
-        : "No verified evidence supporting a GBP post draft this week.",
+      reason: `Verified demand for ${demand.serviceId} exists, but recent posts already cover that topic.`,
       serviceRefs: [],
       areaRefs: [],
-      evidence: demand
-        ? [{ source: "gbpKeywords", keyword: demand.keyword, impressions: demand.impressions }]
-        : [],
+      evidence: [
+        {
+          source: "gbpKeywords",
+          keyword: demand.keyword,
+          impressions: demand.impressions,
+          serviceId: demand.serviceId,
+        },
+        ...(stale ? [stale] : []),
+      ],
       avoidTopics,
+      maintenanceSignal: Boolean(stale),
     };
   }
 
-  const areaId =
-    areas.find((a) => a.id === "area.shawnigan-lake")?.id ??
-    areas.slice().sort((a, b) => String(a.id).localeCompare(String(b.id)))[0]?.id ??
-    null;
+  const evidencedAreaIds = (demand.areaIds ?? []).filter((id) =>
+    areas.some((area) => area.id === id)
+  );
 
-  const evidence = [];
-  if (demand) {
-    evidence.push({
+  const evidence = [
+    {
       source: "gbpKeywords",
       keyword: demand.keyword,
       impressions: demand.impressions,
-      serviceId,
-    });
-  }
-  if (freshness.days != null) {
-    evidence.push({
-      source: "gbpPosts",
-      daysSinceLatestPost: freshness.days,
-      latestAt: freshness.latestAt,
-    });
-  }
+      serviceId: demand.serviceId,
+      areaIds: evidencedAreaIds,
+    },
+  ];
+  if (stale) evidence.push(stale);
   if (gbpKpis?.metrics?.CALL_CLICKS) {
     evidence.push({
       source: "gbpPerformance",
@@ -598,13 +767,12 @@ export const buildPostOpportunity = ({
 
   return {
     shouldDraft: true,
-    reason: demand
-      ? `Verified service demand for ${serviceId} via GBP keyword "${demand.keyword}".`
-      : `GBP posts are stale (${freshness.days} days); draft a verified-catalog topic for human review.`,
-    serviceRefs: [serviceId],
-    areaRefs: areaId ? [areaId] : [],
+    reason: `Verified service demand for ${demand.serviceId} via GBP keyword "${demand.keyword}".`,
+    serviceRefs: [demand.serviceId],
+    areaRefs: evidencedAreaIds.slice(0, 1),
     evidence,
     avoidTopics,
+    maintenanceSignal: Boolean(stale),
   };
 };
 
@@ -752,6 +920,14 @@ export const collectSignals = ({
       summary: postOpportunity.reason,
       evidence: postOpportunity.evidence,
     });
+  } else if (postOpportunity.maintenanceSignal) {
+    signals.push({
+      id: "signal.gbp.posts_stale",
+      type: "gbp_post",
+      severity: "low",
+      summary: postOpportunity.reason,
+      evidence: postOpportunity.evidence,
+    });
   }
 
   if (gbpKpis?.metrics?.CALL_CLICKS?.windowOk) {
@@ -783,7 +959,7 @@ export const selectActions = ({ signals, reviewOpportunity, postOpportunity, ga4
           "Human-review unreplied reviews and draft owner replies offline. Do not auto-publish.",
         targetKpi: "review_response_coverage",
         confidence: "high",
-        impact: 90,
+        impact: 80,
       })
     );
   }
@@ -801,7 +977,7 @@ export const selectActions = ({ signals, reviewOpportunity, postOpportunity, ga4
           "Compare quote-form funnel, phone/SMS clicks, and GBP call clicks for the same windows before changing offers.",
         targetKpi: "generate_lead",
         confidence: "medium",
-        impact: 85,
+        impact: 95,
       })
     );
   }
@@ -995,24 +1171,32 @@ export const formatWeeklyMarkdown = (report) => {
 
 /**
  * Pure weekly decision entrypoint.
- * @param {{ reports: object, catalog: { services: object[], areas: object[] }, now?: Date }} input
+ * @param {{ reports: object, catalog: { services: object[], areas: object[] }, now?: Date, collectorResults?: object[] }} input
  */
-export const buildWeeklyIntelligence = ({ reports = {}, catalog = {}, now = new Date() } = {}) => {
-  const dataQuality = assessInputQuality(reports);
-  const ga4Kpis = computeGa4LeadKpis(reports.ga4);
-  const gbpKpis = computeGbpKpis(reports.gbpPerformance, { now });
-  const reviewOpportunity = buildReviewOpportunity(reports.gbpReviews);
+export const buildWeeklyIntelligence = ({
+  reports = {},
+  catalog = {},
+  now = new Date(),
+  collectorResults = [],
+} = {}) => {
+  const prepared = prepareWeeklyInputs(reports, { now, collectorResults });
+  const usable = prepared.usableReports;
+  const dataQuality = prepared.dataQuality;
+
+  const ga4Kpis = computeGa4LeadKpis(usable.ga4);
+  const gbpKpis = computeGbpKpis(usable.gbpPerformance, { now });
+  const reviewOpportunity = buildReviewOpportunity(usable.gbpReviews);
   const postOpportunity = buildPostOpportunity({
     catalog,
-    gbpKeywords: reports.gbpKeywords,
-    gbpPosts: reports.gbpPosts,
+    gbpKeywords: usable.gbpKeywords,
+    gbpPosts: usable.gbpPosts,
     gbpKpis,
     now,
   });
   const signals = collectSignals({
     ga4Kpis,
     gbpKpis,
-    gsc: reports.gsc,
+    gsc: usable.gsc,
     catalog,
     reviewOpportunity,
     postOpportunity,
@@ -1027,10 +1211,10 @@ export const buildWeeklyIntelligence = ({ reports = {}, catalog = {}, now = new 
 
   const period = {
     asOf: isoDate(now),
-    ga4: reports.ga4?.leadEventsByWindow?.windows ?? reports.ga4?.dateRange ?? null,
-    gsc: reports.gsc?.comparison?.recent28?.dateRange ?? reports.gsc?.dateRange ?? null,
-    gbpPerformance: reports.gbpPerformance?.dateRange ?? null,
-    gbpKeywords: reports.gbpKeywords?.monthlyRange ?? null,
+    ga4: usable.ga4?.leadEventsByWindow?.windows ?? usable.ga4?.dateRange ?? null,
+    gsc: usable.gsc?.comparison?.recent28?.dateRange ?? usable.gsc?.dateRange ?? null,
+    gbpPerformance: usable.gbpPerformance?.dateRange ?? null,
+    gbpKeywords: usable.gbpKeywords?.monthlyRange ?? null,
   };
 
   return {

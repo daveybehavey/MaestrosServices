@@ -16,6 +16,7 @@ import { spawnSync } from "node:child_process";
 
 import { loadGrowthFacts, verifiedOnly } from "./lib/growth-facts.mjs";
 import {
+  COLLECTOR_REPORT_MAP,
   WEEKLY_SAFETY,
   buildWeeklyIntelligence,
   formatWeeklyMarkdown,
@@ -99,14 +100,7 @@ const runNpmScript = (scriptName) => {
 };
 
 export const collectReadOnlyReports = () => {
-  const collectors = [
-    "gbp:performance",
-    "gbp:search-keywords",
-    "gbp:reviews",
-    "gbp:list-posts",
-    "reporting:ga4",
-    "reporting:gsc",
-  ];
+  const collectors = Object.keys(COLLECTOR_REPORT_MAP);
   const results = [];
   for (const script of collectors) {
     results.push(runNpmScript(script));
@@ -117,12 +111,16 @@ export const collectReadOnlyReports = () => {
 export const loadWeeklyReportsFromDir = (reportsDir) => {
   const dir = path.resolve(reportsDir);
   return {
-    ga4: readJsonIfExists(path.join(dir, "ga4-summary.json")),
-    gsc: readJsonIfExists(path.join(dir, "search-console-summary.json")),
-    gbpPerformance: readJsonIfExists(path.join(dir, "gbp-performance.json")),
-    gbpKeywords: readJsonIfExists(path.join(dir, "gbp-search-keywords.json")),
-    gbpReviews: readJsonIfExists(path.join(dir, "gbp-reviews.json")),
-    gbpPosts: readJsonIfExists(path.join(dir, "gbp-list-posts.json")),
+    ga4: readJsonIfExists(path.join(dir, COLLECTOR_REPORT_MAP["reporting:ga4"].file)),
+    gsc: readJsonIfExists(path.join(dir, COLLECTOR_REPORT_MAP["reporting:gsc"].file)),
+    gbpPerformance: readJsonIfExists(
+      path.join(dir, COLLECTOR_REPORT_MAP["gbp:performance"].file)
+    ),
+    gbpKeywords: readJsonIfExists(
+      path.join(dir, COLLECTOR_REPORT_MAP["gbp:search-keywords"].file)
+    ),
+    gbpReviews: readJsonIfExists(path.join(dir, COLLECTOR_REPORT_MAP["gbp:reviews"].file)),
+    gbpPosts: readJsonIfExists(path.join(dir, COLLECTOR_REPORT_MAP["gbp:list-posts"].file)),
   };
 };
 
@@ -180,7 +178,12 @@ export const runGrowthWeekly = ({
   const reportsDir = fromReports ? path.resolve(fromReports) : defaultReportsDir;
   const reports = loadWeeklyReportsFromDir(reportsDir);
   const catalog = loadWeeklyCatalog(factsDir);
-  const report = buildWeeklyIntelligence({ reports, catalog, now });
+  const report = buildWeeklyIntelligence({
+    reports,
+    catalog,
+    now,
+    collectorResults: collection.attempted ? collection.results : [],
+  });
 
   // Attach collector status without implying missing==zero.
   report.collection = {

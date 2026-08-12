@@ -182,7 +182,11 @@ npm run test:growth-weekly
 - Emits ignored `qa-reports/growth-weekly.json` + `growth-weekly.md`
 - Returns at most 3 evidence-backed actions
 - May emit structured `postOpportunity` / `reviewOpportunity` for later human-reviewed shadow drafting
+- `postOpportunity.shouldDraft=true` requires positive verified topic evidence (for example GBP keyword demand). Stale posts alone never invent `serviceRefs` / `areaRefs`.
+- `areaRefs` are included only when locality is evidenced; otherwise service-only drafts are allowed
 - Never publishes, never mutates Google, never deploys
+- Failed collectors suppress that source for the run even if an older `qa-reports/` file remains on disk
+- Stale inputs are fail-closed via `dataQuality` (`collector_failed` / `stale`)
 - Every result sets `requiresHumanReview: true` and `autoPublishEligible: false`
 
 Missing inputs reduce confidence or suppress recommendations; they are **not** treated as zero.
