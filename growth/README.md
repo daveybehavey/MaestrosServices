@@ -40,26 +40,35 @@ Sensitive language must cite **explicit evidence IDs** on the draft. The validat
 
 ### Service / area refs (required commercial topic contract)
 
-Automation drafts must declare the commercial topics they intend:
+`serviceRefs[]` / `areaRefs[]` are the **authoritative declarations** of intended commercial topics for a draft. Automation must declare what it intends to market; the validator then checks those declarations against the verified catalog and known catalog mentions in the summary.
 
 | Field | Rule |
 | --- | --- |
 | `contentIntent` | `service` (default) \| `reputation` \| `general` |
 | `serviceRefs[]` | Required for `contentIntent: "service"` (>=1). Each ID must exist and be `verified`. |
-| `areaRefs[]` | Required whenever the summary claims a catalog locality. Each ID must exist and be `verified`. |
+| `areaRefs[]` | Required whenever the summary claims a **known catalog** locality. Each ID must exist and be `verified`. |
 
-Invariant:
+What this gate fail-closes today:
 
-**Every service/location the automation intends to market must be explicitly declared and verified.**
-
-Also:
-
-- Catalog aliases mentioned in the summary must appear in the matching refs array
-- Declared refs must appear in the summary (unused refs fail)
-- Candidate / rejected / unknown refs fail
+- Candidate / rejected / unknown **ref IDs** fail
+- Recognized catalog service/area mentions omitted from the matching refs array fail
+- Declared refs that never appear in the summary fail
 - Duplicate refs are deduplicated with a warning
 - `contentIntent: "reputation"` / `"general"` forbid catalog service/area marketing and service-marketing language
 - Passing validation still **never publishes**
+
+What this gate does **not** claim:
+
+- Deterministic validation does **not** semantically recognize arbitrary out-of-catalog free-text services or locations (example: an undeclared "roof replacement" phrase may not be detected if it is not in `services.json`)
+- A PASS means the draft cleared catalog-ref / known-mention / evidence gates for **human-reviewed shadow mode**
+- A PASS does **not** imply unattended auto-publish eligibility
+- Future P3 auto-publish requires controlled rendering from verified structured facts, or another explicitly reviewed semantic-coverage gate
+
+Every validation result therefore includes:
+
+- `requiresHumanReview: true`
+- `autoPublishEligible: false`
+- `semanticCoverage: "catalog_refs_and_known_mentions"`
 
 Examples:
 
@@ -101,7 +110,7 @@ Binding rules:
 - Testimonials require approved quote text to appear in the draft (no invented paraphrase)
 - Projects require that mentioned and declared services/areas appear on that project record
 
-Audit fields on every result include: `contentIntent`, `requestedServiceIds`, `matchedServiceIds`, `rejectedServiceRefs`, `requestedAreaIds`, `matchedAreaIds`, `rejectedAreaRefs`, `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`.
+Audit fields on every result include: `contentIntent`, `requestedServiceIds`, `matchedServiceIds`, `rejectedServiceRefs`, `requestedAreaIds`, `matchedAreaIds`, `rejectedAreaRefs`, `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`, `requiresHumanReview`, `autoPublishEligible`, `semanticCoverage`, plus `publishes: false` and `contactsGoogle: false`.
 
 ## Project evidence
 
@@ -157,4 +166,4 @@ npm run growth:validate-post -- growth/fixtures/posts/valid-power-washing.json
 npm run test:growth
 ```
 
-Exit `0` only when gates pass. Exit non-zero on validation failure. Never publishes.
+Exit `0` only when gates pass. Exit non-zero on validation failure. Never publishes. Human review remains mandatory; auto-publish eligible is always no.

@@ -862,6 +862,37 @@ test("audit includes service and area ref fields", () => {
   assert.equal(pass.audit.contentIntent, "service");
 });
 
+test("valid and invalid results require human review and are not auto-publish eligible", () => {
+  const facts = loadGrowthFacts(productionFactsDir);
+  const pass = validateGbpPost({
+    draft: readJson(path.join(postsDir, "production-power-washing-shawnigan.json")),
+    facts,
+  });
+  assert.equal(pass.valid, true, pass.errors.join("; "));
+  assert.equal(pass.audit.requiresHumanReview, true);
+  assert.equal(pass.audit.autoPublishEligible, false);
+  assert.equal(pass.audit.semanticCoverage, "catalog_refs_and_known_mentions");
+  assert.equal(pass.audit.publishes, false);
+  assert.equal(pass.audit.contactsGoogle, false);
+
+  const fail = validateGbpPost({
+    draft: readJson(path.join(postsDir, "production-candidate-gutter-highlands.json")),
+    facts,
+  });
+  assert.equal(fail.valid, false);
+  assert.equal(fail.audit.requiresHumanReview, true);
+  assert.equal(fail.audit.autoPublishEligible, false);
+  assert.equal(fail.audit.semanticCoverage, "catalog_refs_and_known_mentions");
+  assert.equal(fail.audit.publishes, false);
+  assert.equal(fail.audit.contactsGoogle, false);
+
+  const early = validateGbpPost({ draft: null, facts });
+  assert.equal(early.valid, false);
+  assert.equal(early.audit.requiresHumanReview, true);
+  assert.equal(early.audit.autoPublishEligible, false);
+  assert.equal(early.audit.semanticCoverage, "catalog_refs_and_known_mentions");
+});
+
 test("candidate services/areas in production facts still fail closed", () => {
   const facts = loadGrowthFacts(productionFactsDir);
   const draft = readJson(path.join(postsDir, "production-candidate-gutter-highlands.json"));
@@ -885,13 +916,21 @@ test("dry-run CLI reports PASS/FAIL and never claims publish", () => {
   const report = formatValidationReport(pass.result, pass.meta);
   assert.match(report, /PASS/);
   assert.match(report, /Publishes: no/);
+  assert.match(report, /Contacts Google: no/);
+  assert.match(report, /Human review required: yes/);
+  assert.match(report, /Auto-publish eligible: no/);
+  assert.match(report, /Semantic coverage: catalog refs and known mentions only/);
 
   const fail = runValidatePostCli({
     draftPath: path.join(postsDir, "production-candidate-gutter-highlands.json"),
     factsDir: productionFactsDir,
   });
   assert.equal(fail.result.valid, false);
-  assert.match(formatValidationReport(fail.result, fail.meta), /FAIL/);
+  const failReport = formatValidationReport(fail.result, fail.meta);
+  assert.match(failReport, /FAIL/);
+  assert.match(failReport, /Human review required: yes/);
+  assert.match(failReport, /Auto-publish eligible: no/);
+  assert.match(failReport, /Semantic coverage: catalog refs and known mentions only/);
 });
 
 test("validator module source has no GBP create-post API path", () => {

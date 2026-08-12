@@ -66,6 +66,9 @@ export const formatValidationReport = (result, meta = {}) => {
   lines.push(`Growth Ops GBP post validation: ${result.valid ? "PASS" : "FAIL"}`);
   lines.push(`Publishes: no`);
   lines.push(`Contacts Google: no`);
+  lines.push(`Human review required: yes`);
+  lines.push(`Auto-publish eligible: no`);
+  lines.push(`Semantic coverage: catalog refs and known mentions only`);
   if (meta.draftPath) lines.push(`Draft: ${meta.draftPath}`);
   if (meta.factsDir) lines.push(`Facts dir: ${meta.factsDir}`);
   if (result.normalizedCta) lines.push(`Normalized CTA: ${result.normalizedCta}`);

@@ -21,6 +21,9 @@ const matchesAny = (text, regexes) => {
 
 const todayIso = (now) => now.toISOString().slice(0, 10);
 
+/** Shadow-mode safety contract: PASS never implies unattended auto-publish. */
+export const SEMANTIC_COVERAGE_CATALOG_REFS = "catalog_refs_and_known_mentions";
+
 const emptyAudit = () => ({
   requestedEvidenceIds: [],
   matchedEvidenceIds: [],
@@ -37,6 +40,9 @@ const emptyAudit = () => ({
   failClosed: true,
   publishes: false,
   contactsGoogle: false,
+  requiresHumanReview: true,
+  autoPublishEligible: false,
+  semanticCoverage: SEMANTIC_COVERAGE_CATALOG_REFS,
 });
 
 const ALLOWED_CONTENT_INTENTS = ["service", "reputation", "general"];
