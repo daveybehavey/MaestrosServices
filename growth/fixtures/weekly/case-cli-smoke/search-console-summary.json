@@ -1,0 +1,103 @@
+{
+  "dateRange": {
+    "startDate": "2026-07-15",
+    "endDate": "2026-08-12"
+  },
+  "topQueries": [
+    {
+      "keys": [
+        "power washing shawnigan lake"
+      ],
+      "clicks": 0,
+      "impressions": 55,
+      "ctr": 0,
+      "position": 12
+    },
+    {
+      "keys": [
+        "noise query"
+      ],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 40
+    }
+  ],
+  "topPages": [
+    {
+      "keys": [
+        "https://maestrosservices.com/"
+      ],
+      "clicks": 1,
+      "impressions": 80,
+      "ctr": 0.0125,
+      "position": 20
+    },
+    {
+      "keys": [
+        "https://maestrosservices.com/services/power-washing/victoria/"
+      ],
+      "clicks": 0,
+      "impressions": 90,
+      "ctr": 0,
+      "position": 15
+    }
+  ],
+  "comparison": {
+    "lagDays": 3,
+    "recent28": {
+      "dateRange": {
+        "startDate": "2026-07-12",
+        "endDate": "2026-08-08"
+      },
+      "topQueries": [
+        {
+          "keys": [
+            "power washing shawnigan lake"
+          ],
+          "clicks": 0,
+          "impressions": 55,
+          "ctr": 0,
+          "position": 12
+        },
+        {
+          "keys": [
+            "noise query"
+          ],
+          "clicks": 0,
+          "impressions": 2,
+          "ctr": 0,
+          "position": 40
+        }
+      ],
+      "topPages": [
+        {
+          "keys": [
+            "https://maestrosservices.com/"
+          ],
+          "clicks": 1,
+          "impressions": 80,
+          "ctr": 0.0125,
+          "position": 20
+        },
+        {
+          "keys": [
+            "https://maestrosservices.com/services/power-washing/victoria/"
+          ],
+          "clicks": 0,
+          "impressions": 90,
+          "ctr": 0,
+          "position": 15
+        }
+      ]
+    },
+    "prior28": {
+      "dateRange": {
+        "startDate": "2026-06-14",
+        "endDate": "2026-07-11"
+      },
+      "topQueries": [],
+      "topPages": []
+    }
+  }
+}

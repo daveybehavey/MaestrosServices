@@ -339,7 +339,15 @@ const main = async () => {
   if (command === "list-posts") {
     requireLocationName();
     const result = await listLocalPosts(accessToken, locationName);
-    console.log(JSON.stringify(result, null, 2));
+    const report = {
+      generatedAt: new Date().toISOString(),
+      location: toLocationResourceName(locationName),
+      localPosts: result?.localPosts ?? [],
+      auth: describeGbpAuthSources(oauthConfig),
+    };
+    const reportPath = writeReport("gbp-list-posts.json", report);
+    console.log(`Wrote GBP list-posts report to ${reportPath}`);
+    console.log(JSON.stringify(report, null, 2));
     return;
   }
 

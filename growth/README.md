@@ -167,3 +167,22 @@ npm run test:growth
 ```
 
 Exit `0` only when gates pass. Exit non-zero on validation failure. Never publishes. Human review remains mandatory; auto-publish eligible is always no.
+
+## Weekly intelligence (P1 shadow mode)
+
+```sh
+npm run growth:weekly
+npm run growth:weekly -- --from-reports qa-reports
+npm run test:growth-weekly
+```
+
+`growth:weekly` is a **read-only decision engine**:
+
+- Collects existing GBP / GA4 / GSC read-only reports (or loads `--from-reports`)
+- Emits ignored `qa-reports/growth-weekly.json` + `growth-weekly.md`
+- Returns at most 3 evidence-backed actions
+- May emit structured `postOpportunity` / `reviewOpportunity` for later human-reviewed shadow drafting
+- Never publishes, never mutates Google, never deploys
+- Every result sets `requiresHumanReview: true` and `autoPublishEligible: false`
+
+Missing inputs reduce confidence or suppress recommendations; they are **not** treated as zero.

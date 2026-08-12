@@ -1,0 +1,94 @@
+{
+  "dateRange": {
+    "startDate": "2026-07-15",
+    "endDate": "2026-08-12"
+  },
+  "leadEvents": [
+    {
+      "eventName": "generate_lead",
+      "eventCount": "7"
+    },
+    {
+      "eventName": "phone_click",
+      "eventCount": "3"
+    },
+    {
+      "eventName": "sms_click",
+      "eventCount": "0"
+    },
+    {
+      "eventName": "quote_form_start",
+      "eventCount": "10"
+    }
+  ],
+  "leadEventsByWindow": {
+    "windows": {
+      "recent7": {
+        "startDate": "2026-08-05",
+        "endDate": "2026-08-11"
+      },
+      "prior7": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-08-04"
+      },
+      "days28": {
+        "startDate": "2026-07-15",
+        "endDate": "2026-08-11"
+      }
+    },
+    "recent7": [
+      {
+        "eventName": "generate_lead",
+        "eventCount": "2"
+      },
+      {
+        "eventName": "phone_click",
+        "eventCount": "1"
+      },
+      {
+        "eventName": "sms_click",
+        "eventCount": "0"
+      },
+      {
+        "eventName": "quote_form_start",
+        "eventCount": "4"
+      }
+    ],
+    "prior7": [
+      {
+        "eventName": "generate_lead",
+        "eventCount": "5"
+      },
+      {
+        "eventName": "phone_click",
+        "eventCount": "2"
+      },
+      {
+        "eventName": "sms_click",
+        "eventCount": "0"
+      },
+      {
+        "eventName": "quote_form_start",
+        "eventCount": "6"
+      }
+    ],
+    "days28": [
+      {
+        "eventName": "generate_lead",
+        "eventCount": "7"
+      },
+      {
+        "eventName": "phone_click",
+        "eventCount": "3"
+      },
+      {
+        "eventName": "sms_click",
+        "eventCount": "0"
+      },
+      {
+        "eventName": "quote_form_start",
+        "eventCount": "10"
+      }
+    ]
+  }
+}
