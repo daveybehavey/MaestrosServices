@@ -38,7 +38,50 @@ Latest operating-catalog evidence pass: `growth/evidence/operating-catalog-2026-
 
 Sensitive language must cite **explicit evidence IDs** on the draft. The validator does **not** accept a claim just because some other verified fact in the same broad category exists.
 
-Draft fields:
+### Service / area refs (required commercial topic contract)
+
+Automation drafts must declare the commercial topics they intend:
+
+| Field | Rule |
+| --- | --- |
+| `contentIntent` | `service` (default) \| `reputation` \| `general` |
+| `serviceRefs[]` | Required for `contentIntent: "service"` (>=1). Each ID must exist and be `verified`. |
+| `areaRefs[]` | Required whenever the summary claims a catalog locality. Each ID must exist and be `verified`. |
+
+Invariant:
+
+**Every service/location the automation intends to market must be explicitly declared and verified.**
+
+Also:
+
+- Catalog aliases mentioned in the summary must appear in the matching refs array
+- Declared refs must appear in the summary (unused refs fail)
+- Candidate / rejected / unknown refs fail
+- Duplicate refs are deduplicated with a warning
+- `contentIntent: "reputation"` / `"general"` forbid catalog service/area marketing and service-marketing language
+- Passing validation still **never publishes**
+
+Examples:
+
+```json
+{
+  "contentIntent": "service",
+  "summary": "Power Washing around Shawnigan Lake...",
+  "serviceRefs": ["svc.power-washing"],
+  "areaRefs": ["area.shawnigan-lake"]
+}
+```
+
+```json
+{
+  "contentIntent": "reputation",
+  "summary": "Thank you to homeowners who leave thoughtful Google reviews..."
+}
+```
+
+Cordova Bay may be declared via `area.cordova-bay`; municipality-wide `area.saanich` remains candidate and fails.
+
+### Evidence ref fields
 
 | Field | When required |
 | --- | --- |
@@ -53,12 +96,12 @@ Binding rules:
 - Evidence id must exist, `status=verified`, kind must match the claim family
 - Expired `validUntil` / future `validFrom` fails
 - Dollar amounts and discount percents must match the referenced offer record
-- Availability service/area scope must cover mentions in the draft
+- Availability / project scope must cover declared `serviceRefs` / `areaRefs` when scoped
 - Unrelated verified `kind=claim` does **not** authorize insured/certified/best/#1/years
 - Testimonials require approved quote text to appear in the draft (no invented paraphrase)
-- Projects require that mentioned services/areas appear on that project record
+- Projects require that mentioned and declared services/areas appear on that project record
 
-Audit fields on every result: `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`.
+Audit fields on every result include: `contentIntent`, `requestedServiceIds`, `matchedServiceIds`, `rejectedServiceRefs`, `requestedAreaIds`, `matchedAreaIds`, `rejectedAreaRefs`, `requestedEvidenceIds`, `matchedEvidenceIds`, `rejectedEvidence`, `unsupportedClaims`, `evidenceBindings`.
 
 ## Project evidence
 

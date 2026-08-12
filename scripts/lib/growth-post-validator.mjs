@@ -27,15 +27,25 @@ const emptyAudit = () => ({
   rejectedEvidence: [],
   unsupportedClaims: [],
   evidenceBindings: [],
+  requestedServiceIds: [],
+  matchedServiceIds: [],
+  rejectedServiceRefs: [],
+  requestedAreaIds: [],
+  matchedAreaIds: [],
+  rejectedAreaRefs: [],
+  contentIntent: null,
   failClosed: true,
   publishes: false,
   contactsGoogle: false,
 });
 
+const ALLOWED_CONTENT_INTENTS = ["service", "reputation", "general"];
+
 const collectMentions = (text, catalog, { requireVerified = true } = {}) => {
   const normalized = ` ${normalizePostText(text)} `;
   const matched = [];
   const blocked = [];
+  const allHits = [];
 
   for (const item of catalog) {
     const labels = [item.name, item.slug, ...(item.aliases ?? [])]
@@ -44,6 +54,8 @@ const collectMentions = (text, catalog, { requireVerified = true } = {}) => {
       .filter((label) => label.length >= 3);
     const hit = labels.some((label) => normalized.includes(` ${label} `));
     if (!hit) continue;
+
+    allHits.push(item);
 
     if (item.status === "verified") {
       matched.push(item);
@@ -54,8 +66,79 @@ const collectMentions = (text, catalog, { requireVerified = true } = {}) => {
     }
   }
 
-  return { matched, blocked };
+  return { matched, blocked, allHits };
 };
+
+const catalogItemAppearsInSummary = (summary, item) => {
+  const normalized = ` ${normalizePostText(summary)} `;
+  const labels = [item.name, item.slug, ...(item.aliases ?? [])]
+    .filter(Boolean)
+    .map((label) => normalizePostText(label))
+    .filter((label) => label.length >= 3);
+  return labels.some((label) => normalized.includes(` ${label} `));
+};
+
+const normalizeIdList = (raw) => {
+  if (raw == null) return { ids: [], hadDuplicates: false, invalid: false };
+  if (!Array.isArray(raw)) return { ids: [], hadDuplicates: false, invalid: true };
+  const ids = [];
+  let hadDuplicates = false;
+  for (const value of raw) {
+    if (typeof value !== "string" || !value.trim()) {
+      return { ids: [], hadDuplicates: false, invalid: true };
+    }
+    const id = value.trim();
+    if (ids.includes(id)) {
+      hadDuplicates = true;
+      continue;
+    }
+    ids.push(id);
+  }
+  return { ids, hadDuplicates, invalid: false };
+};
+
+const resolveCatalogRefs = ({
+  ids,
+  catalog,
+  audit,
+  errors,
+  kindLabel,
+  requestedKey,
+  matchedKey,
+  rejectedKey,
+}) => {
+  const byId = new Map((catalog ?? []).map((item) => [item.id, item]));
+  const matched = [];
+
+  for (const id of ids) {
+    audit[requestedKey].push(id);
+    const item = byId.get(id);
+    if (!item) {
+      audit[rejectedKey].push({ id, reason: "unknown_id" });
+      errors.push(`Unknown ${kindLabel} ref "${id}".`);
+      continue;
+    }
+    if (item.status !== "verified") {
+      audit[rejectedKey].push({
+        id,
+        reason: `status:${item.status ?? "missing"}`,
+      });
+      errors.push(
+        `${kindLabel} ref "${id}" is not verified (status=${item.status ?? "missing"}).`
+      );
+      continue;
+    }
+    matched.push(item);
+    pushUnique(audit[matchedKey], id);
+  }
+
+  return matched;
+};
+
+const looksLikeServiceMarketing = (summary) =>
+  /\b(quote|send (a |some )?photos?|book(ing)?|schedule|scheduling|hire|hiring|available for|openings?|service(s)? available|starting at|call or text)\b/i.test(
+    summary
+  );
 
 const indexEvidence = (facts) => {
   const byId = new Map();
@@ -322,6 +405,21 @@ export const validateGbpPost = ({
     errors.push(`topicType "${topicType}" is not allowed.`);
   }
 
+  const rawIntent = draft.contentIntent;
+  let contentIntent = "service";
+  if (rawIntent == null || rawIntent === "") {
+    contentIntent = "service";
+  } else if (typeof rawIntent !== "string") {
+    errors.push("contentIntent must be a string.");
+  } else if (!ALLOWED_CONTENT_INTENTS.includes(rawIntent)) {
+    errors.push(
+      `contentIntent "${rawIntent}" is not allowed (expected service|reputation|general).`
+    );
+  } else {
+    contentIntent = rawIntent;
+  }
+  audit.contentIntent = contentIntent;
+
   const cta = draft.callToAction ?? {};
   const actionType = cta.actionType ?? "LEARN_MORE";
   const allowedActions = rules.allowedCtaActionTypes ?? ["LEARN_MORE"];
@@ -556,7 +654,9 @@ export const validateGbpPost = ({
             }
           }
 
+          // Consistency with later-declared draft refs is enforced after service/area ref resolution.
           if (bindingOk) {
+            audit._pendingAvailability = availability;
             markMatched(audit, availability, "availability", {
               claimKey: claimKey ?? null,
             });
@@ -715,7 +815,46 @@ export const validateGbpPost = ({
     );
   }
 
-  // --- Service / area mentions ---
+  // --- Service / area refs (authoritative commercial topics) ---
+  const serviceRefParse = normalizeIdList(draft.serviceRefs);
+  const areaRefParse = normalizeIdList(draft.areaRefs);
+  if (draft.serviceRefs !== undefined && serviceRefParse.invalid) {
+    errors.push("serviceRefs must be an array of non-empty string IDs.");
+  }
+  if (draft.areaRefs !== undefined && areaRefParse.invalid) {
+    errors.push("areaRefs must be an array of non-empty string IDs.");
+  }
+  if (serviceRefParse.hadDuplicates) {
+    warnings.push("Duplicate serviceRefs were normalized (deduplicated).");
+  }
+  if (areaRefParse.hadDuplicates) {
+    warnings.push("Duplicate areaRefs were normalized (deduplicated).");
+  }
+
+  const declaredServices = resolveCatalogRefs({
+    ids: serviceRefParse.invalid ? [] : serviceRefParse.ids,
+    catalog: facts.services ?? [],
+    audit,
+    errors,
+    kindLabel: "Service",
+    requestedKey: "requestedServiceIds",
+    matchedKey: "matchedServiceIds",
+    rejectedKey: "rejectedServiceRefs",
+  });
+  const declaredServiceIds = declaredServices.map((s) => s.id);
+
+  const declaredAreas = resolveCatalogRefs({
+    ids: areaRefParse.invalid ? [] : areaRefParse.ids,
+    catalog: facts.areas ?? [],
+    audit,
+    errors,
+    kindLabel: "Area",
+    requestedKey: "requestedAreaIds",
+    matchedKey: "matchedAreaIds",
+    rejectedKey: "rejectedAreaRefs",
+  });
+  const declaredAreaIds = declaredAreas.map((a) => a.id);
+
   const serviceMentions = collectMentions(summary, facts.services ?? [], {
     requireVerified: true,
   });
@@ -723,9 +862,6 @@ export const validateGbpPost = ({
     errors.push(
       `Service mention "${blocked.item.name}" is not verified for automation (${blocked.reason}).`
     );
-  }
-  for (const service of serviceMentions.matched) {
-    pushUnique(matchedFactIds, service.id);
   }
 
   const areaMentions = collectMentions(summary, facts.areas ?? [], {
@@ -736,8 +872,120 @@ export const validateGbpPost = ({
       `Service-area mention "${blocked.item.name}" is not verified for automation (${blocked.reason}).`
     );
   }
+
+  // Mentions must be declared in refs.
+  for (const service of serviceMentions.matched) {
+    if (!declaredServiceIds.includes(service.id)) {
+      audit.unsupportedClaims.push({
+        claim: service.name,
+        reason: "service_mentioned_without_serviceRef",
+        serviceId: service.id,
+      });
+      errors.push(
+        `Summary mentions verified service "${service.name}" but serviceRefs does not include "${service.id}".`
+      );
+    } else {
+      pushUnique(matchedFactIds, service.id);
+    }
+  }
   for (const area of areaMentions.matched) {
-    pushUnique(matchedFactIds, area.id);
+    if (!declaredAreaIds.includes(area.id)) {
+      audit.unsupportedClaims.push({
+        claim: area.name,
+        reason: "area_mentioned_without_areaRef",
+        areaId: area.id,
+      });
+      errors.push(
+        `Summary mentions verified area "${area.name}" but areaRefs does not include "${area.id}".`
+      );
+    } else {
+      pushUnique(matchedFactIds, area.id);
+    }
+  }
+
+  // Declared refs must appear in the summary (fail closed; no silent unused refs).
+  for (const service of declaredServices) {
+    if (!catalogItemAppearsInSummary(summary, service)) {
+      errors.push(
+        `serviceRef "${service.id}" is declared but the summary does not reference that service.`
+      );
+    } else {
+      pushUnique(matchedFactIds, service.id);
+    }
+  }
+  for (const area of declaredAreas) {
+    if (!catalogItemAppearsInSummary(summary, area)) {
+      errors.push(
+        `areaRef "${area.id}" is declared but the summary does not reference that area.`
+      );
+    } else {
+      pushUnique(matchedFactIds, area.id);
+    }
+  }
+
+  if (contentIntent === "service") {
+    if (declaredServiceIds.length === 0) {
+      audit.unsupportedClaims.push({
+        claim: "service",
+        reason: "missing_serviceRefs",
+      });
+      errors.push(
+        'contentIntent "service" requires at least one verified serviceRef (automation must declare the commercial topic).'
+      );
+    }
+  } else if (contentIntent === "reputation" || contentIntent === "general") {
+    if (declaredServiceIds.length > 0 || declaredAreaIds.length > 0) {
+      errors.push(
+        `contentIntent "${contentIntent}" must not declare serviceRefs/areaRefs; use contentIntent "service" for commercial marketing.`
+      );
+    }
+    if (
+      serviceMentions.matched.length ||
+      serviceMentions.blocked.length ||
+      (serviceMentions.allHits?.length ?? 0)
+    ) {
+      errors.push(
+        `contentIntent "${contentIntent}" must not mention catalog services; use contentIntent "service" with serviceRefs.`
+      );
+    }
+    if (
+      areaMentions.matched.length ||
+      areaMentions.blocked.length ||
+      (areaMentions.allHits?.length ?? 0)
+    ) {
+      errors.push(
+        `contentIntent "${contentIntent}" must not mention catalog service areas; use contentIntent "service" with areaRefs for location-targeted marketing.`
+      );
+    }
+    if (looksLikeServiceMarketing(summary)) {
+      errors.push(
+        `contentIntent "${contentIntent}" has service-marketing language; declare contentIntent "service" with verified serviceRefs.`
+      );
+    }
+  }
+
+  // Availability scope must cover declared refs when evidence has scope arrays.
+  if (audit._pendingAvailability) {
+    const availability = audit._pendingAvailability;
+    delete audit._pendingAvailability;
+    if (availability.serviceIds?.length) {
+      for (const serviceId of declaredServiceIds) {
+        if (!availability.serviceIds.includes(serviceId)) {
+          errors.push(
+            `Availability evidence "${availability.id}" does not cover declared serviceRef "${serviceId}".`
+          );
+        }
+      }
+    }
+    if (availability.areaIds?.length) {
+      for (const areaId of declaredAreaIds) {
+        if (!availability.areaIds.includes(areaId)) {
+          errors.push(
+            `Availability evidence "${availability.id}" does not cover declared areaRef "${areaId}".`
+          );
+        }
+      }
+    }
   }
 
   // --- Project binding ---
@@ -799,6 +1047,23 @@ export const validateGbpPost = ({
               bindingOk = false;
               errors.push(
                 `Project "${project.id}" does not include mentioned area "${areaId}".`
+              );
+            }
+          }
+
+          for (const serviceId of declaredServiceIds) {
+            if (projectServices.length && !projectServices.includes(serviceId)) {
+              bindingOk = false;
+              errors.push(
+                `Project "${project.id}" does not include declared serviceRef "${serviceId}".`
+              );
+            }
+          }
+          for (const areaId of declaredAreaIds) {
+            if (projectAreas.length && !projectAreas.includes(areaId)) {
+              bindingOk = false;
+              errors.push(
+                `Project "${project.id}" does not include declared areaRef "${areaId}".`
               );
             }
           }

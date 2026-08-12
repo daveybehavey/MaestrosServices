@@ -71,12 +71,39 @@ export const formatValidationReport = (result, meta = {}) => {
   if (result.normalizedCta) lines.push(`Normalized CTA: ${result.normalizedCta}`);
   lines.push(`Matched facts: ${result.matchedFactIds.join(", ") || "(none)"}`);
   const audit = result.audit ?? {};
+  if (audit.contentIntent) lines.push(`Content intent: ${audit.contentIntent}`);
+  lines.push(
+    `Requested services: ${(audit.requestedServiceIds ?? []).join(", ") || "(none)"}`
+  );
+  lines.push(
+    `Matched services: ${(audit.matchedServiceIds ?? []).join(", ") || "(none)"}`
+  );
+  lines.push(
+    `Requested areas: ${(audit.requestedAreaIds ?? []).join(", ") || "(none)"}`
+  );
+  lines.push(
+    `Matched areas: ${(audit.matchedAreaIds ?? []).join(", ") || "(none)"}`
+  );
   lines.push(
     `Requested evidence: ${(audit.requestedEvidenceIds ?? []).join(", ") || "(none)"}`
   );
   lines.push(
     `Matched evidence: ${(audit.matchedEvidenceIds ?? []).join(", ") || "(none)"}`
   );
+  if ((audit.rejectedServiceRefs ?? []).length) {
+    lines.push(
+      `Rejected service refs: ${audit.rejectedServiceRefs
+        .map((r) => `${r.id || "?"} (${r.reason})`)
+        .join(", ")}`
+    );
+  }
+  if ((audit.rejectedAreaRefs ?? []).length) {
+    lines.push(
+      `Rejected area refs: ${audit.rejectedAreaRefs
+        .map((r) => `${r.id || "?"} (${r.reason})`)
+        .join(", ")}`
+    );
+  }
   if ((audit.unsupportedClaims ?? []).length) {
     lines.push(
       `Unsupported claims: ${audit.unsupportedClaims

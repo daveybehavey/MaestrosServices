@@ -398,6 +398,9 @@ test("PASS: project claim correctly bound to its project/service/area", () => {
     summary:
       "We just finished a Retaining Walls repair in Sooke. Send photos for a practical quote.",
     topicType: "STANDARD",
+    contentIntent: "service",
+    serviceRefs: ["svc.retaining-walls"],
+    areaRefs: ["area.sooke"],
     projectRef: "proj.sooke-retaining-wall",
     callToAction: validDraft().callToAction,
   };
@@ -513,13 +516,16 @@ test("FAIL: Langford power-washing project must not authorize Sooke retaining-wa
     summary:
       "We just finished a Retaining Walls job in Sooke. Send photos for a practical quote.",
     topicType: "STANDARD",
+    contentIntent: "service",
+    serviceRefs: ["svc.retaining-walls"],
+    areaRefs: ["area.sooke"],
     projectRef: "proj.langford-power-wash",
     callToAction: validDraft().callToAction,
   };
   const result = validateGbpPost({ draft, facts });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /does not include mentioned service/i.test(e)));
-  assert.ok(result.errors.some((e) => /does not include mentioned area/i.test(e)));
+  assert.ok(result.errors.some((e) => /does not include mentioned service|declared serviceRef/i.test(e)));
+  assert.ok(result.errors.some((e) => /does not include mentioned area|declared areaRef/i.test(e)));
 });
 
 test("FAIL: project service mismatch", () => {
@@ -528,12 +534,15 @@ test("FAIL: project service mismatch", () => {
     summary:
       "We just finished Fence Work near Shawnigan Lake. Send photos for a quote.",
     topicType: "STANDARD",
+    contentIntent: "service",
+    serviceRefs: ["svc.fence-work-minor-repairs"],
+    areaRefs: ["area.shawnigan-lake"],
     projectRef: "proj.power-wash-reset",
     callToAction: validDraft().callToAction,
   };
   const result = validateGbpPost({ draft, facts });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /does not include mentioned service/i.test(e)));
+  assert.ok(result.errors.some((e) => /does not include mentioned service|declared serviceRef/i.test(e)));
 });
 
 test("FAIL: project area mismatch", () => {
@@ -542,12 +551,15 @@ test("FAIL: project area mismatch", () => {
     summary:
       "We just finished Power Washing in Victoria. Send photos for a quote.",
     topicType: "STANDARD",
+    contentIntent: "service",
+    serviceRefs: ["svc.power-washing"],
+    areaRefs: ["area.victoria"],
     projectRef: "proj.power-wash-reset",
     callToAction: validDraft().callToAction,
   };
   const result = validateGbpPost({ draft, facts });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /does not include mentioned area/i.test(e)));
+  assert.ok(result.errors.some((e) => /does not include mentioned area|declared areaRef/i.test(e)));
 });
 
 test("FAIL: sensitive claim with no evidence reference", () => {
@@ -651,6 +663,8 @@ test("production verified services/areas can pass dry-run validator drafts", () 
     "production-power-washing-shawnigan.json",
     "production-gravel-driveway-shawnigan.json",
     "production-cleanup-cordova-bay.json",
+    "production-service-only-power-washing.json",
+    "production-reputation-thank-you.json",
   ]) {
     const draft = readJson(path.join(postsDir, file));
     const result = validateGbpPost({ draft, facts, recentPosts: [] });
@@ -663,7 +677,189 @@ test("candidate Saanich claim fails while Cordova Bay remains verified separatel
   const draft = readJson(path.join(postsDir, "production-candidate-cleanup-saanich.json"));
   const result = validateGbpPost({ draft, facts, recentPosts: [] });
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => /Saanich/i.test(e) && /not verified/i.test(e)));
+  assert.ok(
+    result.errors.some(
+      (e) => /Saanich/i.test(e) || /area\.saanich/i.test(e) || /not verified/i.test(e)
+    )
+  );
+});
+
+test("FAIL: verified service mentioned but missing from serviceRefs", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    serviceRefs: [],
+    areaRefs: ["area.shawnigan-lake"],
+    summary:
+      "Power Washing around Shawnigan Lake keeps driveways looking clean. Send photos for a quote.",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /serviceRef|serviceRefs/i.test(e)));
+});
+
+test("FAIL: verified area mentioned but missing from areaRefs", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    serviceRefs: ["svc.power-washing"],
+    areaRefs: [],
+    summary:
+      "Power Washing around Shawnigan Lake keeps driveways looking clean. Send photos for a quote.",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /areaRefs does not include/i.test(e)));
+});
+
+test("FAIL: candidate and rejected serviceRefs", () => {
+  const facts = loadGrowthFacts(productionFactsDir);
+  const candidate = validateGbpPost({
+    draft: {
+      ...readJson(path.join(postsDir, "production-power-washing-shawnigan.json")),
+      serviceRefs: ["svc.gutter-cleaning-ground-access"],
+      summary:
+        "Gutter Cleaning around Shawnigan Lake needs photos for a practical quote.",
+      areaRefs: ["area.shawnigan-lake"],
+    },
+    facts,
+  });
+  assert.equal(candidate.valid, false);
+  assert.ok(
+    candidate.audit.rejectedServiceRefs.some(
+      (r) => r.id === "svc.gutter-cleaning-ground-access"
+    )
+  );
+
+  const rejected = validateGbpPost({
+    draft: {
+      ...readJson(path.join(postsDir, "production-power-washing-shawnigan.json")),
+      serviceRefs: ["svc.large-tree-felling"],
+      summary:
+        "Large Tree Felling around Shawnigan Lake is not offered. Send photos for Power Washing instead.",
+      areaRefs: ["area.shawnigan-lake"],
+    },
+    facts,
+  });
+  assert.equal(rejected.valid, false);
+  assert.ok(
+    rejected.errors.some((e) =>
+      /large-tree-felling|Large Tree Felling|not verified|rejected/i.test(e)
+    )
+  );
+});
+
+test("FAIL: unknown serviceRef and areaRef", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const result = validateGbpPost({
+    draft: {
+      ...validDraft(),
+      serviceRefs: ["svc.does-not-exist"],
+      areaRefs: ["area.does-not-exist"],
+      summary: "Custom clearing around Mystery Town. Send photos for a quote.",
+    },
+    facts,
+  });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /Unknown Service ref/i.test(e)));
+  assert.ok(result.errors.some((e) => /Unknown Area ref/i.test(e)));
+});
+
+test("FAIL: candidate and rejected areaRefs", () => {
+  const facts = loadGrowthFacts(productionFactsDir);
+  const candidate = validateGbpPost({
+    draft: readJson(path.join(postsDir, "production-candidate-cleanup-saanich.json")),
+    facts,
+  });
+  assert.equal(candidate.valid, false);
+  assert.ok(candidate.audit.rejectedAreaRefs.some((r) => r.id === "area.saanich"));
+
+  const rejected = validateGbpPost({
+    draft: {
+      contentIntent: "service",
+      serviceRefs: ["svc.power-washing"],
+      areaRefs: ["area.vancouver"],
+      summary: "Power Washing around Vancouver. Send photos for a quote.",
+      topicType: "STANDARD",
+      callToAction: validDraft().callToAction,
+    },
+    facts,
+  });
+  assert.equal(rejected.valid, false);
+  assert.ok(rejected.errors.some((e) => /vancouver|rejected|not verified/i.test(e)));
+});
+
+test("FAIL: service content with no serviceRefs", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    contentIntent: "service",
+    areaRefs: ["area.shawnigan-lake"],
+    summary:
+      "Outdoor refresh work around Shawnigan Lake. Send photos for a practical quote.",
+  };
+  delete draft.serviceRefs;
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => /serviceRef/i.test(e)));
+});
+
+test("FAIL: serviceRef mismatches unrelated service text", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    serviceRefs: ["svc.power-washing"],
+    areaRefs: ["area.shawnigan-lake"],
+    summary:
+      "Fence Work around Shawnigan Lake keeps gates closing cleanly. Send photos for a quote.",
+  };
+  const result = validateGbpPost({ draft, facts });
+  assert.equal(result.valid, false);
+  assert.ok(
+    result.errors.some(
+      (e) =>
+        /serviceRef "svc.power-washing" is declared but the summary does not reference/i.test(
+          e
+        ) || /serviceRefs does not include "svc.fence/i.test(e)
+    )
+  );
+});
+
+test("FAIL: availability evidence scope conflicts with declared refs", () => {
+  const facts = loadGrowthFacts(overlayFactsDir);
+  const draft = {
+    ...validDraft(),
+    serviceRefs: ["svc.power-washing"],
+    areaRefs: ["area.shawnigan-lake"],
+    availabilityRef: "availability.fence-victoria",
+    claimedAvailability: { key: "openings_this_week" },
+    summary:
+      "We have openings this week for Power Washing around Shawnigan Lake. Send photos for a quote.",
+  };
+  const result = validateGbpPost({
+    draft,
+    facts,
+    now: new Date("2026-08-11T12:00:00Z"),
+  });
+  assert.equal(result.valid, false);
+  assert.ok(
+    result.errors.some((e) => /does not cover (service|area|declared)/i.test(e)),
+    result.errors.join("; ")
+  );
+});
+
+test("audit includes service and area ref fields", () => {
+  const facts = loadGrowthFacts(productionFactsDir);
+  const pass = validateGbpPost({
+    draft: readJson(path.join(postsDir, "production-power-washing-shawnigan.json")),
+    facts,
+  });
+  assert.equal(pass.valid, true, pass.errors.join("; "));
+  assert.deepEqual(pass.audit.requestedServiceIds, ["svc.power-washing"]);
+  assert.deepEqual(pass.audit.matchedServiceIds, ["svc.power-washing"]);
+  assert.deepEqual(pass.audit.requestedAreaIds, ["area.shawnigan-lake"]);
+  assert.deepEqual(pass.audit.matchedAreaIds, ["area.shawnigan-lake"]);
+  assert.equal(pass.audit.contentIntent, "service");
 });
 
 test("candidate services/areas in production facts still fail closed", () => {

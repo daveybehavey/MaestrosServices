@@ -1,0 +1,10 @@
+{
+  "summary": "Thank you to the homeowners who leave thoughtful Google reviews. Owner replies help keep expectations clear for the next project.",
+  "contentIntent": "reputation",
+  "topicType": "STANDARD",
+  "languageCode": "en-US",
+  "callToAction": {
+    "actionType": "LEARN_MORE",
+    "url": "https://maestrosservices.com/review?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_growth_ops"
+  }
+}

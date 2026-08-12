@@ -1,0 +1,11 @@
+{
+  "summary": "Power Washing resets mossy pads and winter grime so hard surfaces look ready again. Send photos for a practical quote.",
+  "contentIntent": "service",
+  "serviceRefs": ["svc.power-washing"],
+  "topicType": "STANDARD",
+  "languageCode": "en-US",
+  "callToAction": {
+    "actionType": "LEARN_MORE",
+    "url": "https://maestrosservices.com/quote?utm_source=google_business_profile&utm_medium=organic&utm_campaign=gbp_growth_ops#quote"
+  }
+}
