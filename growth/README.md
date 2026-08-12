@@ -190,3 +190,31 @@ npm run test:growth-weekly
 - Every result sets `requiresHumanReview: true` and `autoPublishEligible: false`
 
 Missing inputs reduce confidence or suppress recommendations; they are **not** treated as zero.
+
+## GitHub Actions shadow (P2A)
+
+```sh
+npm run growth:weekly-ci-preflight
+npm run growth:weekly-ci-export -- --in qa-reports/growth-weekly.json --out-dir artifacts/growth-shadow
+npm run test:growth-ci
+```
+
+Workflow: `.github/workflows/growth-ops-shadow.yml`
+
+- Triggers: `workflow_dispatch` + weekly cron `0 16 * * 1` (16:00 UTC Mondays ≈ Vancouver morning across DST)
+- Permissions: `contents: read` only
+- Runs existing `growth:weekly` collectors/engine when required secret **names** are configured
+- Uploads a **sanitized** artifact only (no raw `gbp-reviews.json`, no review text/names, no OAuth values)
+- Does **not** create GitHub issues yet (P2A.1)
+- Never publishes, never mutates Google, never deploys
+
+Required GitHub Actions secret names (values never logged):
+
+- `GOOGLE_OAUTH_CLIENT_ID`
+- `GOOGLE_OAUTH_CLIENT_SECRET`
+- `GOOGLE_OAUTH_REFRESH_TOKEN`
+- `GOOGLE_GA4_PROPERTY_ID`
+- `GOOGLE_GBP_LOCATION_NAME`
+- `GOOGLE_GBP_ACCOUNT_NAME`
+
+Optional: `GOOGLE_SEARCH_CONSOLE_PROPERTY`, `SITE_URL`, `GOOGLE_GBP_OAUTH_*`
