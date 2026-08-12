@@ -369,6 +369,124 @@ test("recent duplicate/stale topic suppresses a post opportunity", () => {
   assert.match(opportunity.reason, /already cover/i);
 });
 
+test("keyword demand without usable post history does not authorize a draft", () => {
+  const opportunity = buildPostOpportunity({
+    catalog: VERIFIED_CATALOG,
+    gbpKeywords: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
+    },
+    gbpPosts: null,
+    now,
+  });
+  assert.equal(opportunity.shouldDraft, false);
+  assert.deepEqual(opportunity.serviceRefs, []);
+  assert.deepEqual(opportunity.areaRefs, []);
+  assert.equal(opportunity.maintenanceSignal, false);
+  assert.match(opportunity.reason, /post history is unavailable/i);
+  assert.match(opportunity.reason, /duplicate|topic coverage/i);
+});
+
+test("keyword demand with current empty localPosts may draft", () => {
+  const opportunity = buildPostOpportunity({
+    catalog: VERIFIED_CATALOG,
+    gbpKeywords: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
+    },
+    gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      localPosts: [],
+    },
+    now,
+  });
+  assert.equal(opportunity.shouldDraft, true);
+  assert.deepEqual(opportunity.serviceRefs, ["svc.power-washing"]);
+  assert.deepEqual(opportunity.areaRefs, []);
+});
+
+test("failed list-posts collector suppresses old post file and blocks demand-backed draft", () => {
+  const reports = baseReports({
+    gbpReviews: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      unrepliedCount: 0,
+      unrepliedReviewIds: [],
+      totalReviewCount: 1,
+      averageRating: 5,
+    },
+    gbpKeywords: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
+    },
+    gbpPosts: {
+      generatedAt: "2026-08-12T12:00:00.000Z",
+      localPosts: [
+        {
+          createTime: "2026-06-01T00:00:00.000Z",
+          summary: "Gravel driveway tips for wet season.",
+        },
+      ],
+    },
+  });
+
+  const prepared = prepareWeeklyInputs(reports, {
+    now,
+    collectorResults: [{ script: "gbp:list-posts", ok: false, status: 1 }],
+  });
+  assert.equal(prepared.usableReports.gbpPosts, null);
+  assert.ok(
+    prepared.dataQuality.issues.some(
+      (i) => i.source === "gbpPosts" && i.code === "collector_failed"
+    )
+  );
+
+  const report = buildWeeklyIntelligence({
+    reports,
+    catalog: VERIFIED_CATALOG,
+    now,
+    collectorResults: [{ script: "gbp:list-posts", ok: false, status: 1 }],
+  });
+  assert.equal(report.postOpportunity.shouldDraft, false);
+  assert.deepEqual(report.postOpportunity.serviceRefs, []);
+  assert.deepEqual(report.postOpportunity.areaRefs, []);
+  assert.equal(report.postOpportunity.maintenanceSignal, false);
+  assert.match(report.postOpportunity.reason, /post history is unavailable/i);
+  assert.equal(report.actions.some((a) => a.type === "gbp_post"), false);
+});
+
+test("stale post-history with fresh keyword demand does not authorize a draft", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      gbpReviews: {
+        generatedAt: "2026-08-12T12:00:00.000Z",
+        unrepliedCount: 0,
+        unrepliedReviewIds: [],
+        totalReviewCount: 1,
+        averageRating: 5,
+      },
+      gbpKeywords: {
+        generatedAt: "2026-08-12T12:00:00.000Z",
+        keywords: [{ searchKeyword: "power washing", impressions: 40, belowThreshold: false }],
+      },
+      gbpPosts: {
+        generatedAt: "2026-08-01T12:00:00.000Z",
+        localPosts: [
+          {
+            createTime: "2026-06-01T00:00:00.000Z",
+            summary: "Gravel driveway tips for wet season.",
+          },
+        ],
+      },
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.ok(report.dataQuality.issues.some((i) => i.source === "gbpPosts" && i.code === "stale"));
+  assert.equal(report.postOpportunity.shouldDraft, false);
+  assert.deepEqual(report.postOpportunity.serviceRefs, []);
+  assert.match(report.postOpportunity.reason, /post history is unavailable/i);
+});
+
 test("stale posts without service demand do not invent serviceRefs or areaRefs", () => {
   const opportunity = buildPostOpportunity({
     catalog: VERIFIED_CATALOG,

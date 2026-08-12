@@ -697,8 +697,9 @@ export const buildPostOpportunity = ({
   }
 
   const demand = pickGbpDemandService(gbpKeywords, services, areas);
+  const postsHistoryAvailable = gbpPosts != null;
   const stale =
-    freshness.days != null && freshness.days >= POST_STALE_DAYS
+    postsHistoryAvailable && freshness.days != null && freshness.days >= POST_STALE_DAYS
       ? {
           source: "gbpPosts",
           daysSinceLatestPost: freshness.days,
@@ -710,16 +711,45 @@ export const buildPostOpportunity = ({
   if (!demand) {
     return {
       shouldDraft: false,
-      reason: stale
-        ? `GBP posts are stale (${freshness.days} days), but no strong verified topic demand was found.`
-        : freshness.count === 0
-          ? "No verified GBP demand signal and no recent-post baseline to justify a draft."
-          : `Posts are recent (${freshness.days} days) and no verified keyword demand signal is available.`,
+      reason: !postsHistoryAvailable
+        ? "No verified GBP demand signal and current post history is unavailable."
+        : stale
+          ? `GBP posts are stale (${freshness.days} days), but no strong verified topic demand was found.`
+          : freshness.count === 0
+            ? "No verified GBP demand signal and no recent-post baseline to justify a draft."
+            : `Posts are recent (${freshness.days} days) and no verified keyword demand signal is available.`,
       serviceRefs: [],
       areaRefs: [],
-      evidence: stale ? [stale] : [{ source: "gbpPosts", daysSinceLatestPost: freshness.days, latestAt: freshness.latestAt }],
+      evidence: stale
+        ? [stale]
+        : postsHistoryAvailable
+          ? [{ source: "gbpPosts", daysSinceLatestPost: freshness.days, latestAt: freshness.latestAt }]
+          : [{ source: "gbpPosts", status: "unavailable" }],
       avoidTopics,
       maintenanceSignal: Boolean(stale),
+    };
+  }
+
+  // Demand alone is not enough: duplicate/topic coverage requires usable post history.
+  // Empty localPosts [] is usable; null/missing/failed/stale (suppressed) is not.
+  if (!postsHistoryAvailable) {
+    return {
+      shouldDraft: false,
+      reason:
+        "Verified topic demand exists, but current GBP post history is unavailable so duplicate/topic coverage cannot be safely assessed.",
+      serviceRefs: [],
+      areaRefs: [],
+      evidence: [
+        {
+          source: "gbpKeywords",
+          keyword: demand.keyword,
+          impressions: demand.impressions,
+          serviceId: demand.serviceId,
+        },
+        { source: "gbpPosts", status: "unavailable" },
+      ],
+      avoidTopics: [],
+      maintenanceSignal: false,
     };
   }
 
