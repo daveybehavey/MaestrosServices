@@ -43,11 +43,18 @@ const searchConsoleProperty =
   process.env.GOOGLE_SEARCH_CONSOLE_PROPERTY ?? `sc-domain:${siteHost}`;
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
+const shiftDays = (date, days) => {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+};
 const today = new Date();
+const yesterday = shiftDays(today, -1);
 const start28 = new Date(today);
 start28.setDate(start28.getDate() - 28);
 const start90 = new Date(today);
 start90.setDate(start90.getDate() - 90);
+const GSC_LAG_DAYS = 3;
 
 const writeReport = (fileName, data) => {
   if (!fs.existsSync(reportsDir)) {
@@ -143,6 +150,25 @@ const runSearchConsoleQuery = async (accessToken, body) => {
   }));
 };
 
+const leadEventFilter = {
+  filter: {
+    fieldName: "eventName",
+    inListFilter: {
+      values: ["generate_lead", "phone_click", "sms_click", "quote_form_start"],
+    },
+  },
+};
+
+const fetchLeadEventsForRange = async (accessToken, startDate, endDate) =>
+  runGa4Report(accessToken, {
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: "eventName" }],
+    metrics: [{ name: "eventCount" }],
+    dimensionFilter: leadEventFilter,
+    orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+    limit: 10,
+  });
+
 const buildGa4Summary = async (accessToken) => {
   const dateRanges = [{ startDate: formatDate(start28), endDate: formatDate(today) }];
 
@@ -174,17 +200,39 @@ const buildGa4Summary = async (accessToken) => {
     dateRanges,
     dimensions: [{ name: "eventName" }],
     metrics: [{ name: "eventCount" }],
-    dimensionFilter: {
-      filter: {
-        fieldName: "eventName",
-        inListFilter: {
-          values: ["generate_lead", "phone_click", "sms_click", "quote_form_start"],
-        },
-      },
-    },
+    dimensionFilter: leadEventFilter,
     orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
     limit: 10,
   });
+
+  // Additive comparable windows ending yesterday (complete days only).
+  const recent7 = {
+    startDate: formatDate(shiftDays(yesterday, -6)),
+    endDate: formatDate(yesterday),
+  };
+  const prior7 = {
+    startDate: formatDate(shiftDays(yesterday, -13)),
+    endDate: formatDate(shiftDays(yesterday, -7)),
+  };
+  const days28Complete = {
+    startDate: formatDate(shiftDays(yesterday, -27)),
+    endDate: formatDate(yesterday),
+  };
+  const recent7Leads = await fetchLeadEventsForRange(
+    accessToken,
+    recent7.startDate,
+    recent7.endDate
+  );
+  const prior7Leads = await fetchLeadEventsForRange(
+    accessToken,
+    prior7.startDate,
+    prior7.endDate
+  );
+  const days28Leads = await fetchLeadEventsForRange(
+    accessToken,
+    days28Complete.startDate,
+    days28Complete.endDate
+  );
 
   return {
     dateRange: dateRanges[0],
@@ -192,6 +240,12 @@ const buildGa4Summary = async (accessToken) => {
     landingPages,
     eventCounts,
     leadEvents,
+    leadEventsByWindow: {
+      windows: { recent7, prior7, days28: days28Complete },
+      recent7: recent7Leads,
+      prior7: prior7Leads,
+      days28: days28Leads,
+    },
   };
 };
 
@@ -223,12 +277,52 @@ const buildSearchConsoleSummary = async (accessToken) => {
     startRow: 0,
   });
 
+  // Additive lag-safe comparable windows (avoid treating partial fresh days as declines).
+  const gscEnd = shiftDays(today, -GSC_LAG_DAYS);
+  const recent28 = {
+    startDate: formatDate(shiftDays(gscEnd, -27)),
+    endDate: formatDate(gscEnd),
+  };
+  const prior28 = {
+    startDate: formatDate(shiftDays(gscEnd, -55)),
+    endDate: formatDate(shiftDays(gscEnd, -28)),
+  };
+  const recentQueries = await runSearchConsoleQuery(accessToken, {
+    ...recent28,
+    dimensions: ["query"],
+    rowLimit: 25,
+    startRow: 0,
+  });
+  const recentPages = await runSearchConsoleQuery(accessToken, {
+    ...recent28,
+    dimensions: ["page"],
+    rowLimit: 25,
+    startRow: 0,
+  });
+  const priorQueries = await runSearchConsoleQuery(accessToken, {
+    ...prior28,
+    dimensions: ["query"],
+    rowLimit: 25,
+    startRow: 0,
+  });
+  const priorPages = await runSearchConsoleQuery(accessToken, {
+    ...prior28,
+    dimensions: ["page"],
+    rowLimit: 25,
+    startRow: 0,
+  });
+
   return {
     property: searchConsoleProperty,
     dateRange: { startDate, endDate },
     topQueries,
     topPages,
     topQueries90d,
+    comparison: {
+      lagDays: GSC_LAG_DAYS,
+      recent28: { dateRange: recent28, topQueries: recentQueries, topPages: recentPages },
+      prior28: { dateRange: prior28, topQueries: priorQueries, topPages: priorPages },
+    },
   };
 };
 

@@ -167,3 +167,26 @@ npm run test:growth
 ```
 
 Exit `0` only when gates pass. Exit non-zero on validation failure. Never publishes. Human review remains mandatory; auto-publish eligible is always no.
+
+## Weekly intelligence (P1 shadow mode)
+
+```sh
+npm run growth:weekly
+npm run growth:weekly -- --from-reports qa-reports
+npm run test:growth-weekly
+```
+
+`growth:weekly` is a **read-only decision engine**:
+
+- Collects existing GBP / GA4 / GSC read-only reports (or loads `--from-reports`)
+- Emits ignored `qa-reports/growth-weekly.json` + `growth-weekly.md`
+- Returns at most 3 evidence-backed actions
+- May emit structured `postOpportunity` / `reviewOpportunity` for later human-reviewed shadow drafting
+- `postOpportunity.shouldDraft=true` requires both positive verified topic evidence (for example GBP keyword demand) and a usable current GBP post-history report for duplicate/topic coverage. Stale/missing/failed post history or stale posts alone never invent `serviceRefs` / `areaRefs`. An empty but current `localPosts: []` report is usable.
+- `areaRefs` are included only when locality is evidenced; otherwise service-only drafts are allowed
+- Never publishes, never mutates Google, never deploys
+- Failed collectors suppress that source for the run even if an older `qa-reports/` file remains on disk
+- Stale inputs are fail-closed via `dataQuality` (`collector_failed` / `stale`)
+- Every result sets `requiresHumanReview: true` and `autoPublishEligible: false`
+
+Missing inputs reduce confidence or suppress recommendations; they are **not** treated as zero.
