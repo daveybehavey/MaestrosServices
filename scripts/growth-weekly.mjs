@@ -15,6 +15,7 @@ import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 
 import { loadGrowthFacts, verifiedOnly } from "./lib/growth-facts.mjs";
+import { buildCollectorResult } from "./lib/growth-collector-diagnostics.mjs";
 import {
   COLLECTOR_REPORT_MAP,
   WEEKLY_SAFETY,
@@ -85,18 +86,23 @@ const writeReport = (outDir, fileName, data) => {
   return reportPath;
 };
 
-const runNpmScript = (scriptName) => {
+export const runNpmScript = (scriptName, { env = process.env } = {}) => {
   const result = spawnSync("npm", ["run", scriptName], {
     cwd: rootDir,
     encoding: "utf8",
     shell: true,
+    env,
   });
-  return {
+
+  // Capture child output only long enough to sanitize; never return raw streams.
+  return buildCollectorResult({
     script: scriptName,
-    ok: result.status === 0,
     status: result.status,
-    // Intentionally omit stdout/stderr bodies — collectors may print review previews.
-  };
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    error: result.error ?? null,
+    env,
+  });
 };
 
 export const collectReadOnlyReports = () => {
@@ -150,6 +156,17 @@ export const formatWeeklyConsoleSummary = (report) => {
   lines.push(
     `Review opportunity: unreplied=${report.reviewOpportunity.unrepliedCount} action=${report.reviewOpportunity.actionRecommended}`
   );
+  if (report.collection?.attempted && Array.isArray(report.collection.results)) {
+    const failed = report.collection.results.filter((row) => !row.ok);
+    if (failed.length) {
+      lines.push(`Collector failures: ${failed.length}`);
+      for (const row of failed.slice(0, 8)) {
+        lines.push(
+          `  - ${row.script}: ${row.failureClass ?? "unknown_collector_failure"}`
+        );
+      }
+    }
+  }
   if (report.dataQuality.issues.length) {
     lines.push(`Data-quality issues: ${report.dataQuality.issues.length}`);
     for (const issue of report.dataQuality.issues.slice(0, 8)) {
