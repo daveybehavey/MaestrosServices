@@ -49,6 +49,7 @@ export const exportWeeklyCiPacket = ({
   const report = JSON.parse(fs.readFileSync(absoluteIn, "utf8"));
   const packet = sanitizeWeeklyForCi(report, {
     generatedAt: now.toISOString(),
+    env,
     run: {
       repository: env.GITHUB_REPOSITORY ?? null,
       workflow: env.GITHUB_WORKFLOW ?? null,

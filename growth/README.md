@@ -221,3 +221,5 @@ Required GitHub Actions secret names (values never logged):
 Optional: `GOOGLE_SEARCH_CONSOLE_PROPERTY`, `SITE_URL`, `GOOGLE_GBP_OAUTH_CLIENT_ID`, `GOOGLE_GBP_OAUTH_CLIENT_SECRET`
 
 Architecture note: shared Google OAuth client ID/secret + shared refresh for GA4/GSC; dedicated `GOOGLE_GBP_OAUTH_REFRESH_TOKEN` for GBP `business.manage`.
+
+Failed collectors attach a **sanitized** `failureClass` + short `diagnostic` (secret values and review preview text redacted; truncated). Success collectors do not dump stdout.

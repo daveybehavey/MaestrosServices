@@ -4,6 +4,7 @@
  */
 
 import { WEEKLY_SAFETY } from "./growth-weekly.mjs";
+import { sanitizeCollectorResultForCi } from "./growth-collector-diagnostics.mjs";
 
 export const GROWTH_CI_SOURCE = "github_actions_shadow";
 
@@ -196,18 +197,14 @@ const sanitizeActions = (actions = []) =>
       priority: action?.priority == null ? index + 1 : Number(action.priority),
     }));
 
-const sanitizeCollection = (collection) => {
+const sanitizeCollection = (collection, env = process.env) => {
   if (!collection) {
     return { attempted: false, results: [] };
   }
   return {
     attempted: Boolean(collection.attempted),
     results: Array.isArray(collection.results)
-      ? collection.results.map((row) => ({
-          script: row?.script != null ? String(row.script) : "unknown",
-          ok: Boolean(row?.ok),
-          status: row?.status == null ? null : Number(row.status),
-        }))
+      ? collection.results.map((row) => sanitizeCollectorResultForCi(row, env))
       : [],
   };
 };
@@ -250,6 +247,7 @@ export const sanitizeWeeklyForCi = (
   {
     run = {},
     generatedAt = new Date().toISOString(),
+    env = process.env,
   } = {}
 ) => {
   const actions = sanitizeActions(report?.actions);
@@ -285,7 +283,7 @@ export const sanitizeWeeklyForCi = (
     actions,
     postOpportunity: sanitizePostOpportunity(report?.postOpportunity),
     reviewOpportunity: sanitizeReviewOpportunity(report?.reviewOpportunity),
-    collection: sanitizeCollection(report?.collection),
+    collection: sanitizeCollection(report?.collection, env),
   };
 
   return stripSensitiveFields(packet);
@@ -327,7 +325,13 @@ export const formatCiJobSummaryMarkdown = (packet) => {
     lines.push("- No collector results.");
   } else {
     for (const row of results) {
-      lines.push(`- ${row.script}: ${row.ok ? "ok" : "failed"} (status=${row.status})`);
+      if (row.ok) {
+        lines.push(`- ${row.script}: ok (status=${row.status})`);
+      } else {
+        lines.push(
+          `- ${row.script}: failed — ${row.failureClass ?? "unknown_collector_failure"} (status=${row.status})`
+        );
+      }
     }
   }
   lines.push("");
