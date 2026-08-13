@@ -24,11 +24,15 @@ export const CI_CONFIG_LABELS = Object.freeze([
   "SITE_URL",
 ]);
 
-/** Must be present for live collection (reporting + GBP collectors). */
+/**
+ * Must be present for live collection (reporting + GBP collectors).
+ * Shared OAuth client + dedicated GBP refresh token (business.manage).
+ */
 export const CI_REQUIRED_SECRET_NAMES = Object.freeze([
   "GOOGLE_OAUTH_CLIENT_ID",
   "GOOGLE_OAUTH_CLIENT_SECRET",
   "GOOGLE_OAUTH_REFRESH_TOKEN",
+  "GOOGLE_GBP_OAUTH_REFRESH_TOKEN",
   "GOOGLE_GA4_PROPERTY_ID",
   "GOOGLE_GBP_LOCATION_NAME",
   "GOOGLE_GBP_ACCOUNT_NAME",
@@ -36,10 +40,9 @@ export const CI_REQUIRED_SECRET_NAMES = Object.freeze([
 
 export const CI_OPTIONAL_SECRET_NAMES = Object.freeze([
   "GOOGLE_SEARCH_CONSOLE_PROPERTY",
+  "SITE_URL",
   "GOOGLE_GBP_OAUTH_CLIENT_ID",
   "GOOGLE_GBP_OAUTH_CLIENT_SECRET",
-  "GOOGLE_GBP_OAUTH_REFRESH_TOKEN",
-  "SITE_URL",
 ]);
 
 const FORBIDDEN_KEY_PATTERN =
@@ -397,6 +400,22 @@ export const WORKFLOW_ALLOWED_NPM_SCRIPTS = Object.freeze([
   "growth:weekly-ci-preflight",
 ]);
 
+const SHA40 = /^[0-9a-f]{40}$/i;
+
+/**
+ * Collect external `uses:` action refs from workflow YAML (comment-stripped lines).
+ */
+export const listWorkflowActionUses = (yamlText = "") => {
+  const refs = [];
+  for (const rawLine of String(yamlText).split(/\r?\n/)) {
+    const line = rawLine.replace(/#.*$/, "");
+    const match = line.match(/^\s*uses:\s*([^\s]+)\s*$/);
+    if (!match) continue;
+    refs.push(match[1]);
+  }
+  return refs;
+};
+
 /**
  * Static safety audit of workflow YAML text.
  * Ignores full-line and trailing comments.
@@ -425,6 +444,44 @@ export const auditGrowthShadowWorkflow = (yamlText = "") => {
   const runsGrowthWeekly = /growth:weekly\b/.test(active);
   const hasConcurrency = /concurrency\s*:/.test(active);
 
+  const actionUses = listWorkflowActionUses(yamlText);
+  const unpinnedActions = actionUses.filter((ref) => {
+    const at = ref.lastIndexOf("@");
+    if (at < 0) return true;
+    return !SHA40.test(ref.slice(at + 1));
+  });
+  const allActionsPinnedToSha = actionUses.length > 0 && unpinnedActions.length === 0;
+
+  // Controlled weekly failure: continue-on-error on weekly, then explicit final fail.
+  const weeklyStepBlock = (() => {
+    const idx = lines.findIndex((line) => /name:\s*Run read-only weekly intelligence/.test(line));
+    if (idx < 0) return "";
+    const block = [];
+    for (let i = idx; i < lines.length; i += 1) {
+      const line = lines[i];
+      if (i > idx && /^\s*-\s+name:\s*/.test(line)) break;
+      block.push(line);
+    }
+    return block.join("\n");
+  })();
+  const weeklyHasContinueOnError = /continue-on-error:\s*true/.test(weeklyStepBlock);
+  const weeklyHasId = /id:\s*weekly\b/.test(weeklyStepBlock);
+  const hasDecisionEngineFailureSummary =
+    /Failure class:\s*decision_engine_failure/.test(yamlText) &&
+    /steps\.weekly\.outcome\s*==\s*'failure'/.test(active);
+  const hasFinalWeeklyFailStep =
+    /decision_engine_failure:\s*growth:weekly exited non-zero/.test(yamlText) &&
+    /steps\.weekly\.outcome\s*==\s*'failure'/.test(active) &&
+    /exit\s+1/.test(yamlText);
+  const artifactUploadAfterControlledFailure =
+    /id:\s*upload_artifact/.test(active) &&
+    /if:\s*always\(\)/.test(active) &&
+    /upload-artifact@/.test(yamlText);
+
+  const checkoutPersistCredentialsFalse =
+    /actions\/checkout@[0-9a-f]{40}/i.test(yamlText) &&
+    /persist-credentials:\s*false/.test(active);
+
   if (!hasWorkflowDispatch) violations.push("Missing workflow_dispatch trigger.");
   if (!hasSchedule) violations.push("Missing weekly schedule cron.");
   if (!hasContentsRead) violations.push("Missing permissions.contents: read.");
@@ -440,6 +497,27 @@ export const auditGrowthShadowWorkflow = (yamlText = "") => {
   }
   if (!runsGrowthWeekly) violations.push("Workflow must invoke growth:weekly.");
   if (!hasConcurrency) violations.push("Missing concurrency group.");
+  if (!allActionsPinnedToSha) {
+    violations.push(
+      `External actions must be pinned to 40-char SHAs. Unpinned: ${unpinnedActions.join(", ") || "(none)"}`
+    );
+  }
+  if (!checkoutPersistCredentialsFalse) {
+    violations.push("checkout must set persist-credentials: false.");
+  }
+  if (!weeklyHasId) violations.push("weekly step must keep id: weekly.");
+  if (!weeklyHasContinueOnError) {
+    violations.push("weekly step must set continue-on-error: true for controlled failure handling.");
+  }
+  if (!hasDecisionEngineFailureSummary) {
+    violations.push("Missing decision_engine_failure summary path after weekly failure.");
+  }
+  if (!hasFinalWeeklyFailStep) {
+    violations.push("Missing final explicit fail when steps.weekly.outcome == 'failure'.");
+  }
+  if (!artifactUploadAfterControlledFailure) {
+    violations.push("Artifact upload must remain available after controlled weekly failure.");
+  }
 
   return {
     ok: violations.length === 0,
@@ -454,6 +532,14 @@ export const auditGrowthShadowWorkflow = (yamlText = "") => {
       hasIssuesWrite,
       runsGrowthWeekly,
       hasConcurrency,
+      allActionsPinnedToSha,
+      checkoutPersistCredentialsFalse,
+      weeklyHasContinueOnError,
+      weeklyHasId,
+      hasDecisionEngineFailureSummary,
+      hasFinalWeeklyFailStep,
+      artifactUploadAfterControlledFailure,
+      actionUses,
     },
   };
 };

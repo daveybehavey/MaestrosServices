@@ -215,11 +215,13 @@ test("config preflight reports labels only and fails closed when required missin
   assert.equal(missing.configured, false);
   assert.equal(missing.failureClass, "configuration_failure");
   assert.ok(missing.missingRequired.includes("GOOGLE_OAUTH_CLIENT_ID"));
+  assert.ok(missing.missingRequired.includes("GOOGLE_GBP_OAUTH_REFRESH_TOKEN"));
   const summary = formatCiConfigSummary(missing);
   assert.match(summary, /GOOGLE_OAUTH_CLIENT_ID: no/);
+  assert.match(summary, /GOOGLE_GBP_OAUTH_REFRESH_TOKEN: no/);
   assert.equal(summary.includes("secret-value"), false);
 
-  const present = assessCiConfig({
+  const withoutGbpRefresh = assessCiConfig({
     GOOGLE_OAUTH_CLIENT_ID: "x",
     GOOGLE_OAUTH_CLIENT_SECRET: "y",
     GOOGLE_OAUTH_REFRESH_TOKEN: "z",
@@ -227,8 +229,22 @@ test("config preflight reports labels only and fails closed when required missin
     GOOGLE_GBP_LOCATION_NAME: "locations/1",
     GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
   });
+  assert.equal(withoutGbpRefresh.configured, false);
+  assert.ok(withoutGbpRefresh.missingRequired.includes("GOOGLE_GBP_OAUTH_REFRESH_TOKEN"));
+
+  const present = assessCiConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "x",
+    GOOGLE_OAUTH_CLIENT_SECRET: "y",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "z",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh-present",
+    GOOGLE_GA4_PROPERTY_ID: "p",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  });
   assert.equal(present.configured, true);
   assert.equal(present.labels.GOOGLE_GA4_PROPERTY_ID, "yes");
+  assert.equal(present.labels.GOOGLE_GBP_OAUTH_REFRESH_TOKEN, "yes");
+  assert.equal(present.labels.GOOGLE_GBP_OAUTH_CLIENT_ID, "no");
 });
 
 test("exporter writes sanitized files from fixtures without leaking PII", () => {
@@ -280,9 +296,31 @@ test("shadow workflow is read-only with minimal permissions and approved trigger
   assert.equal(audit.checks.hasIssuesWrite, false);
   assert.equal(audit.checks.runsGrowthWeekly, true);
   assert.equal(audit.checks.hasConcurrency, true);
+  assert.equal(audit.checks.allActionsPinnedToSha, true);
+  assert.equal(audit.checks.checkoutPersistCredentialsFalse, true);
+  assert.equal(audit.checks.weeklyHasContinueOnError, true);
+  assert.equal(audit.checks.weeklyHasId, true);
+  assert.equal(audit.checks.hasDecisionEngineFailureSummary, true);
+  assert.equal(audit.checks.hasFinalWeeklyFailStep, true);
+  assert.equal(audit.checks.artifactUploadAfterControlledFailure, true);
   assert.match(yamlText, /cron:\s*"0 16 \* \* 1"/);
   assert.match(yamlText, /growth:weekly-ci-export/);
+  assert.match(yamlText, /persist-credentials:\s*false/);
+  assert.match(
+    yamlText,
+    /actions\/checkout@11bd71901bbe5b1630ceea73d27597364c9af683/
+  );
+  assert.match(
+    yamlText,
+    /actions\/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020/
+  );
+  assert.match(
+    yamlText,
+    /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/
+  );
   assert.equal(/gbp:create-post/.test(yamlText.replace(/#.*$/gm, "")), false);
   assert.equal(/ads:create/.test(yamlText.replace(/#.*$/gm, "")), false);
   assert.equal(/wrangler\s+deploy/.test(yamlText.replace(/#.*$/gm, "")), false);
+  assert.equal(/contents:\s*write/.test(yamlText.replace(/#.*$/gm, "")), false);
+  assert.equal(/issues:\s*write/.test(yamlText.replace(/#.*$/gm, "")), false);
 });
