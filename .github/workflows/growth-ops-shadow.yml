@@ -1,0 +1,129 @@
+name: Growth Ops Shadow
+
+# Read-only weekly Growth Ops intelligence for human review.
+# Never publishes GBP posts, never mutates Google, never deploys.
+#
+# Schedule note: GitHub cron is UTC and is not timezone-aware.
+# 16:00 UTC Mondays lands near Vancouver morning across PDT (09:00) and PST (08:00).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 16 * * 1"
+
+concurrency:
+  group: growth-ops-shadow
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  shadow-weekly:
+    name: Shadow weekly intelligence
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configuration preflight
+        id: preflight
+        continue-on-error: true
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          GOOGLE_GA4_PROPERTY_ID: ${{ secrets.GOOGLE_GA4_PROPERTY_ID }}
+          GOOGLE_GBP_LOCATION_NAME: ${{ secrets.GOOGLE_GBP_LOCATION_NAME }}
+          GOOGLE_GBP_ACCOUNT_NAME: ${{ secrets.GOOGLE_GBP_ACCOUNT_NAME }}
+          GOOGLE_SEARCH_CONSOLE_PROPERTY: ${{ secrets.GOOGLE_SEARCH_CONSOLE_PROPERTY }}
+          GOOGLE_GBP_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_ID }}
+          GOOGLE_GBP_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_SECRET }}
+          GOOGLE_GBP_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_GBP_OAUTH_REFRESH_TOKEN }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          mkdir -p artifacts/growth-shadow
+          echo "SHADOW_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
+          node scripts/growth-weekly-ci-preflight.mjs \
+            --summary-out artifacts/growth-shadow/preflight-summary.md \
+            --json-out artifacts/growth-shadow/preflight.json
+          if [ -f artifacts/growth-shadow/preflight-summary.md ]; then
+            cat artifacts/growth-shadow/preflight-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Run read-only weekly intelligence
+        id: weekly
+        if: steps.preflight.outputs.configured == 'true'
+        continue-on-error: true
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          GOOGLE_GA4_PROPERTY_ID: ${{ secrets.GOOGLE_GA4_PROPERTY_ID }}
+          GOOGLE_GBP_LOCATION_NAME: ${{ secrets.GOOGLE_GBP_LOCATION_NAME }}
+          GOOGLE_GBP_ACCOUNT_NAME: ${{ secrets.GOOGLE_GBP_ACCOUNT_NAME }}
+          GOOGLE_SEARCH_CONSOLE_PROPERTY: ${{ secrets.GOOGLE_SEARCH_CONSOLE_PROPERTY }}
+          GOOGLE_GBP_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_ID }}
+          GOOGLE_GBP_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_SECRET }}
+          GOOGLE_GBP_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_GBP_OAUTH_REFRESH_TOKEN }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: npm run growth:weekly
+
+      - name: Export sanitized CI packet
+        id: export
+        if: steps.weekly.outcome == 'success'
+        run: |
+          npm run growth:weekly-ci-export -- \
+            --in qa-reports/growth-weekly.json \
+            --out-dir artifacts/growth-shadow \
+            --summary-out artifacts/growth-shadow/job-summary.md
+
+      - name: Record failure class when weekly engine fails
+        id: weekly_failure_summary
+        if: steps.weekly.outcome == 'failure'
+        run: |
+          {
+            echo "## Maestro Growth Ops Shadow Report"
+            echo ""
+            echo "- Failure class: decision_engine_failure"
+            echo "- Weekly intelligence exited non-zero after configuration passed."
+            echo "- Publishes: no"
+            echo "- Mutates Google: no"
+            echo "- Deploys: no"
+          } | tee -a "$GITHUB_STEP_SUMMARY" > artifacts/growth-shadow/job-summary.md
+
+      - name: Upload sanitized shadow artifact
+        id: upload_artifact
+        if: always() && hashFiles('artifacts/growth-shadow/**') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maestro-growth-shadow-${{ env.SHADOW_DATE }}-${{ github.run_id }}
+          path: artifacts/growth-shadow/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Fail when required secrets are missing
+        if: steps.preflight.outputs.configured != 'true'
+        run: |
+          echo "configuration_failure: required GitHub Actions secret NAMES are missing."
+          echo "See job summary for labels. Values are never printed."
+          exit 1
+
+      - name: Fail when weekly intelligence failed
+        if: steps.weekly.outcome == 'failure'
+        run: |
+          echo "decision_engine_failure: growth:weekly exited non-zero."
+          exit 1
