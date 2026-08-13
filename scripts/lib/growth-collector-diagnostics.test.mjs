@@ -171,3 +171,105 @@ test("customer review text cannot leak through collector diagnostics", () => {
   assert.equal(blob.includes("Thanks!"), false);
   assert.match(result.diagnostic, /Request failed with status 500/);
 });
+
+test("stderr plain review fields are redacted while preserving API error marker", () => {
+  const result = buildCollectorResult({
+    script: "gbp:reviews",
+    status: 1,
+    stdout: "",
+    stderr:
+      "Request failed with status 500\nreviewerDisplayName: Alice Example\ncomment: Great work on my driveway\nownerReply: Thanks!",
+    env: FAKE_ENV,
+  });
+  const blob = JSON.stringify(result);
+  assert.equal(blob.includes("Alice Example"), false);
+  assert.equal(blob.includes("Great work on my driveway"), false);
+  assert.equal(blob.includes("Thanks!"), false);
+  assert.match(result.diagnostic, /Request failed with status 500/);
+  const cleaned = sanitizeCollectorResultForCi(result, FAKE_ENV);
+  assert.equal(JSON.stringify(cleaned).includes("Alice Example"), false);
+});
+
+test("stderr JSON review fields are redacted", () => {
+  const result = buildCollectorResult({
+    script: "gbp:reviews",
+    status: 1,
+    stdout: "ok-ish",
+    stderr: `API error 500 {"reviewerDisplayName":"Alice Example","comment":"Great work on my driveway","starRating":"FIVE"}`,
+    env: FAKE_ENV,
+  });
+  const blob = JSON.stringify(result);
+  assert.equal(blob.includes("Alice Example"), false);
+  assert.equal(blob.includes("Great work on my driveway"), false);
+  assert.match(result.diagnostic, /API error 500/);
+});
+
+test("stderr nested ownerReply comment is fail-closed", () => {
+  const result = buildCollectorResult({
+    script: "gbp:reviews",
+    status: 1,
+    stderr:
+      'upstream failed {"ownerReply":{"comment":"Thanks for the kind note!","updateTime":"2026-01-01T00:00:00Z"},"reviewId":"rev_x"}',
+    env: FAKE_ENV,
+  });
+  const blob = JSON.stringify(result);
+  assert.equal(blob.includes("Thanks for the kind note!"), false);
+  assert.match(result.diagnostic, /upstream failed/);
+});
+
+test("stderr mixed API error plus review data keeps marker and drops PII", () => {
+  const result = buildCollectorResult({
+    script: "gbp:reviews",
+    status: 1,
+    stderr:
+      'Google API 403 PERMISSION_DENIED while dumping {"reviewer_display_name":"Bob Customer","comment":"Please call me back","owner_reply":{"comment":"We will follow up"}}',
+    env: FAKE_ENV,
+  });
+  const blob = JSON.stringify(result);
+  assert.equal(blob.includes("Bob Customer"), false);
+  assert.equal(blob.includes("Please call me back"), false);
+  assert.equal(blob.includes("We will follow up"), false);
+  assert.match(result.diagnostic, /PERMISSION_DENIED|403/);
+  assert.equal(result.failureClass, "api_permission_denied");
+});
+
+test("stdout fallback is used when stderr is empty and still redacts review text", () => {
+  const result = buildCollectorResult({
+    script: "gbp:reviews",
+    status: 1,
+    stdout:
+      "Collector failed\nreviewerDisplayName: Alice Example\ncomment: Great work on my driveway",
+    stderr: "",
+    env: FAKE_ENV,
+  });
+  const blob = JSON.stringify(result);
+  assert.equal(blob.includes("Alice Example"), false);
+  assert.equal(blob.includes("Great work on my driveway"), false);
+  assert.match(result.diagnostic, /Collector failed/);
+});
+
+test("403 SERVICE_DISABLED classifies as api_not_enabled_or_quota", () => {
+  assert.equal(
+    classifyCollectorFailure({
+      text: "403 SERVICE_DISABLED Google My Business API has not been used in project 123",
+    }),
+    "api_not_enabled_or_quota"
+  );
+  const result = buildCollectorResult({
+    script: "gbp:performance",
+    status: 1,
+    stderr:
+      "Error: 403 SERVICE_DISABLED\nGoogle My Business API has not been used in project 123 before or it is disabled.",
+    env: FAKE_ENV,
+  });
+  assert.equal(result.failureClass, "api_not_enabled_or_quota");
+});
+
+test("ordinary 403 PERMISSION_DENIED classifies as api_permission_denied", () => {
+  assert.equal(
+    classifyCollectorFailure({
+      text: "403 PERMISSION_DENIED Caller does not have permission",
+    }),
+    "api_permission_denied"
+  );
+});

@@ -82,12 +82,43 @@ export const redactCollectorText = (rawText, env = process.env) => {
     `$1${REDACTED}`
   );
 
-  // Strip likely review/customer preview fragments without dropping whole error lines.
-  text = text.replace(/reviewerDisplayName\s*[:=]\s*[^\n,;|]*/gi, "reviewerDisplayName=[REDACTED]");
-  text = text.replace(/ownerReply\s*[:=]\s*[^\n]*/gi, "ownerReply=[REDACTED]");
+  // Strip review/customer preview fragments (plain + JSON-ish forms).
+  // Prefer losing diagnostic context over retaining customer content.
+  // Quoted JSON string values.
   text = text.replace(
-    /(?:^|\n)\s*comment\s*[:=]\s*[^\n]*/gi,
-    "\ncomment=[REDACTED]"
+    /"reviewer(?:DisplayName|_display_name)"\s*:\s*"(?:\\.|[^"\\])*"/gi,
+    `"reviewerDisplayName":"${REDACTED}"`
+  );
+  text = text.replace(
+    /"comment"\s*:\s*"(?:\\.|[^"\\])*"/gi,
+    `"comment":"${REDACTED}"`
+  );
+  // ownerReply object or string — fail closed on the whole value fragment.
+  text = text.replace(
+    /"owner(?:Reply|_reply)"\s*:\s*\{[\s\S]*?\}(?=\s*[,}\]]|$)/gi,
+    `"ownerReply":{"comment":"${REDACTED}"}`
+  );
+  text = text.replace(
+    /"owner(?:Reply|_reply)"\s*:\s*"(?:\\.|[^"\\])*"/gi,
+    `"ownerReply":"${REDACTED}"`
+  );
+
+  // Unquoted / plain key forms (with optional surrounding quotes on the key).
+  text = text.replace(
+    /"?reviewer(?:DisplayName|_display_name)"?\s*[:=]\s*("?)(?:\\.|[^"\n,;|}]*)\1/gi,
+    `reviewerDisplayName=${REDACTED}`
+  );
+  text = text.replace(
+    /"?owner(?:Reply|_reply)"?\s*[:=]\s*\{[\s\S]*?\}(?=\s*[,}\]\n]|$)/gi,
+    `ownerReply={comment:${REDACTED}}`
+  );
+  text = text.replace(
+    /"?owner(?:Reply|_reply)"?\s*[:=]\s*[^\n]*/gi,
+    `ownerReply=${REDACTED}`
+  );
+  text = text.replace(
+    /"?comment"?\s*[:=]\s*("?)(?:\\.|[^"\n]*)\1/gi,
+    `comment=${REDACTED}`
   );
 
   return text;
@@ -166,26 +197,28 @@ export const classifyCollectorFailure = ({
     /missing required environment/.test(hay) ||
     /missing required/.test(hay) ||
     /set google_gbp_/.test(hay) ||
-    /is required/.test(hay) && /google_|oauth|location|account/.test(hay)
+    (/is required/.test(hay) && /google_|oauth|location|account/.test(hay))
   ) {
     return "missing_configuration";
   }
+
+  // Specific enablement/quota signals before generic 403/permission checks.
+  if (
+    /service_disabled/.test(hay) ||
+    /api has not been used/.test(hay) ||
+    /accessnotconfigured/.test(hay) ||
+    /quota/.test(hay) ||
+    /rate[_ ]?limit/.test(hay)
+  ) {
+    return "api_not_enabled_or_quota";
+  }
+
   if (
     /\b403\b/.test(hay) ||
     /permission[_\s-]?denied/.test(hay) ||
-    /insufficientPermissions/i.test(hay) ||
-    /accessNotConfigured/i.test(hay) && /permission/i.test(hay)
+    /insufficientpermissions/.test(hay)
   ) {
     return "api_permission_denied";
-  }
-  if (
-    /quota/.test(hay) ||
-    /rate[_ ]?limit/.test(hay) ||
-    /API has not been used/.test(hay) ||
-    /accessNotConfigured/i.test(hay) ||
-    /SERVICE_DISABLED/.test(hay)
-  ) {
-    return "api_not_enabled_or_quota";
   }
   if (/\b404\b/.test(hay) || /not[_ ]found/.test(hay) || /Resource not found/i.test(hay)) {
     return "resource_not_found";
