@@ -388,6 +388,8 @@ export const formatCiMarkdownArtifact = (packet) => {
 /** Commands/patterns forbidden in the shadow workflow file (non-comment lines). */
 export const WORKFLOW_FORBIDDEN_COMMAND_PATTERNS = Object.freeze([
   /gbp:create-post/,
+  /createLocalPost/,
+  /reviews\/.*\/reply/,
   /ads:create/,
   /ads:add/,
   /ads:optimize/,
@@ -395,6 +397,9 @@ export const WORKFLOW_FORBIDDEN_COMMAND_PATTERNS = Object.freeze([
   /\bnpm\s+run\s+deploy\b/,
   /\bastro\s+deploy\b/,
   /\bgh\s+workflow\s+run\b.*deploy/i,
+  /\bgh\s+pr\s+create\b/,
+  /\bgh\s+issue\s+create\b/,
+  /\bgit\s+push\b/,
   /\bcloudflare\b.*\b(deploy|purge|mutation)\b/i,
 ]);
 
@@ -402,6 +407,7 @@ export const WORKFLOW_ALLOWED_NPM_SCRIPTS = Object.freeze([
   "growth:weekly",
   "growth:weekly-ci-export",
   "growth:weekly-ci-preflight",
+  "growth:drafts",
 ]);
 
 const SHA40 = /^[0-9a-f]{40}$/i;

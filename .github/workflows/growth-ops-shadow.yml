@@ -1,7 +1,7 @@
 name: Growth Ops Shadow
 
-# Read-only weekly Growth Ops intelligence for human review.
-# Never publishes GBP posts, never mutates Google, never deploys.
+# Read-only weekly Growth Ops intelligence and human-review drafts.
+# Never publishes GBP posts, never sends review replies, never mutates Google, never deploys.
 #
 # Schedule note: GitHub cron is UTC and is not timezone-aware.
 # 16:00 UTC Mondays lands near Vancouver morning across PDT (09:00) and PST (08:00).
@@ -91,6 +91,19 @@ jobs:
             --out-dir artifacts/growth-shadow \
             --summary-out artifacts/growth-shadow/job-summary.md
 
+      - name: Generate human-review drafts
+        id: drafts
+        if: steps.weekly.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm run growth:drafts -- \
+            --weekly qa-reports/growth-weekly.json \
+            --reviews qa-reports/gbp-reviews.json \
+            --posts qa-reports/gbp-list-posts.json \
+            --out-dir qa-reports \
+            --ci-out-dir artifacts/growth-shadow \
+            --summary-out artifacts/growth-shadow/job-summary.md
+
       - name: Record failure class when weekly engine fails
         id: weekly_failure_summary
         if: steps.weekly.outcome == 'failure'
@@ -126,4 +139,10 @@ jobs:
         if: steps.weekly.outcome == 'failure'
         run: |
           echo "decision_engine_failure: growth:weekly exited non-zero."
+          exit 1
+
+      - name: Fail when draft generation failed
+        if: steps.drafts.outcome == 'failure'
+        run: |
+          echo "draft_generation_failure: growth:drafts exited non-zero."
           exit 1
