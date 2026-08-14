@@ -9,6 +9,7 @@ import { loadGrowthFacts } from "./growth-facts.mjs";
 import { validateGbpPost } from "./growth-post-validator.mjs";
 import {
   DRAFT_SAFETY,
+  NEUTRAL_REPLY,
   buildDraftPacket,
   buildReviewReplyDrafts,
   formatDraftsJobSummaryMarkdown,
@@ -95,6 +96,33 @@ const weeklyBase = (overrides = {}) => ({
 });
 
 const blobHas = (value, needle) => JSON.stringify(value).includes(needle);
+
+const CATALOG_SERVICE_NAMES = [
+  "Weed Control",
+  "Lawn Mowing",
+  "Hedge Trimming",
+  "Mulching and Garden Beds",
+  "Seasonal Cleanups",
+];
+
+const POSITIVE_CLAIM_PATTERN = /kind review|glad|went smoothly|satisfied|happy with/i;
+
+const draftFromReview = ({ starRating, comment, reviewId = "rev_fake_one" }) =>
+  buildReviewReplyDrafts({
+    weekly: weeklyBase(),
+    reviewsReport: {
+      reviews: [
+        {
+          reviewId,
+          starRating,
+          comment,
+          reviewerDisplayName: "Alex Fixture",
+          hasOwnerReply: false,
+        },
+      ],
+    },
+    facts,
+  })[0];
 
 test("two unreplied reviews produce two draft replies", () => {
   const drafts = buildReviewReplyDrafts({
@@ -207,6 +235,107 @@ test("no incentives or rating-manipulation wording", () => {
   });
   const blob = JSON.stringify(packet);
   assert.equal(/discount|coupon|gift card|update your rating|leave a 5-star/i.test(blob), false);
+});
+
+test("FIVE-star generic review gets a positive thank-you", () => {
+  const row = draftFromReview({
+    starRating: "FIVE",
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_five_generic",
+  });
+  assert.match(row.draftReply, /kind review/i);
+  assert.notEqual(row.draftReply, NEUTRAL_REPLY);
+});
+
+test("FOUR-star review may use a positive response", () => {
+  const row = draftFromReview({
+    starRating: "FOUR",
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_four",
+  });
+  assert.match(row.draftReply, /kind review/i);
+});
+
+test("THREE-star review uses a neutral response", () => {
+  const row = draftFromReview({
+    starRating: "THREE",
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_three",
+  });
+  assert.equal(row.draftReply, NEUTRAL_REPLY);
+});
+
+test("TWO-star review uses a neutral response", () => {
+  const row = draftFromReview({
+    starRating: 2,
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_two",
+  });
+  assert.equal(row.draftReply, NEUTRAL_REPLY);
+});
+
+test("ONE-star review uses a neutral response", () => {
+  const row = draftFromReview({
+    starRating: "ONE",
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_one_star",
+  });
+  assert.equal(row.draftReply, NEUTRAL_REPLY);
+});
+
+test("unknown rating defaults to the neutral path", () => {
+  const row = draftFromReview({
+    starRating: "STAR_RATING_UNSPECIFIED",
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_unknown",
+  });
+  assert.equal(row.draftReply, NEUTRAL_REPLY);
+  const missing = draftFromReview({
+    starRating: null,
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_missing_rating",
+  });
+  assert.equal(missing.draftReply, NEUTRAL_REPLY);
+});
+
+test("ONE-star review never uses kind/glad/smooth/satisfaction language", () => {
+  const row = draftFromReview({
+    starRating: "ONE",
+    comment: FAKE_GENERIC_COMMENT,
+    reviewId: "rev_fake_one_claims",
+  });
+  assert.equal(POSITIVE_CLAIM_PATTERN.test(row.draftReply), false);
+});
+
+test("low-rating verified-service mention stays neutral and keeps internal refs", () => {
+  const row = draftFromReview({
+    starRating: "TWO",
+    comment: "The power washing was not what I expected.",
+    reviewId: "rev_fake_low_power",
+  });
+  assert.ok(row.serviceRefs.includes("svc.power-washing"));
+  assert.equal(row.draftReply, NEUTRAL_REPLY);
+  assert.equal(/glad|went smoothly|kind review|power washing/i.test(row.draftReply), false);
+});
+
+test("multi-service FIVE-star yard review keeps serviceRefs but does not enumerate catalog names", () => {
+  const drafts = buildReviewReplyDrafts({
+    weekly: weeklyBase(),
+    reviewsReport: fakeReviewsReport(),
+    facts,
+  });
+  const yard = drafts.find((row) => row.reviewId === "rev_fake_yard");
+  assert.ok(yard.serviceRefs.includes("svc.weed-control"));
+  assert.ok(yard.serviceRefs.includes("svc.lawn-mowing"));
+  assert.ok(yard.serviceRefs.includes("svc.hedge-trimming"));
+  assert.ok(yard.serviceRefs.includes("svc.garden-bed-maintenance"));
+  assert.ok(yard.serviceRefs.includes("svc.seasonal-cleanups"));
+  for (const name of CATALOG_SERVICE_NAMES) {
+    assert.equal(yard.draftReply.includes(name), false, name);
+  }
+  assert.match(yard.draftReply, /yard cleanup/i);
+  assert.equal(blobHas(sanitizeDraftPacketForCi({ reviewReplyDrafts: [yard] }), FAKE_REVIEWER_YARD), false);
+  assert.equal(blobHas(sanitizeDraftPacketForCi({ reviewReplyDrafts: [yard] }), FAKE_YARD_COMMENT), false);
 });
 
 test("postOpportunity.shouldDraft=false yields no GBP draft", () => {

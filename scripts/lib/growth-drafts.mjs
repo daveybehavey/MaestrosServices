@@ -32,8 +32,26 @@ const INCENTIVE_OR_RATING_PATTERN =
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const PHONE_PATTERN = /\b(?:\+?1[\s.-]?)?(?:\(?250\)?[\s.-]?)?\d{3}[\s.-]?\d{4}\b/;
 
-const GENERIC_REPLY =
-  "Thank you for the kind review. We appreciate you taking the time to share it, and we are glad the work was handled carefully and on time. Please reach out if you need anything else.";
+const POSITIVE_GENERIC_REPLY =
+  "Thank you for the kind review. We appreciate you taking the time to share it. Please reach out if you need anything else.";
+
+export const NEUTRAL_REPLY =
+  "Thank you for taking the time to share your feedback. We appreciate hearing from you and would welcome the opportunity to better understand your experience. Please reach out directly if you'd like to discuss it further.";
+
+const POSITIVE_OUTCOME_PATTERN =
+  /\b(kind review|went smoothly|we are glad|glad the|satisfied|happy with your)\b/i;
+
+const NATURAL_WORK_PHRASE = Object.freeze({
+  "svc.seasonal-cleanups": "yard cleanup",
+  "svc.lawn-mowing": "lawn mowing",
+  "svc.hedge-trimming": "hedge trimming",
+  "svc.garden-bed-maintenance": "garden bed work",
+  "svc.weed-control": "weeding",
+  "svc.power-washing": "power washing",
+  "svc.gravel-driveway-installation": "gravel driveway work",
+  "svc.fence-work-minor-repairs": "fence repair work",
+});
+
 
 const EXTRA_SERVICE_PHRASES = Object.freeze({
   "svc.hedge-trimming": ["bush trimming", "trimmed the bushes", "trimming bushes"],
@@ -93,16 +111,44 @@ export const draftReplyLooksUnsafe = ({
   return null;
 };
 
-export const buildReviewReplyText = ({ matchedServices = [] } = {}) => {
-  const names = matchedServices
-    .map((service) => service.name)
-    .filter(Boolean);
-  if (!names.length) return GENERIC_REPLY;
-  const listed =
-    names.length === 1
-      ? names[0]
-      : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
-  return `Thank you for the kind review. We are glad the ${listed.toLowerCase()} work went smoothly. Please reach out if you need anything else.`;
+export const normalizeStarRating = (raw) => {
+  if (raw == null || raw === "") return null;
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    const n = Math.trunc(raw);
+    return n >= 1 && n <= 5 ? n : null;
+  }
+  const text = String(raw).trim().toUpperCase();
+  const named = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
+  if (named[text]) return named[text];
+  if (/^[1-5]$/.test(text)) return Number(text);
+  const asNumber = Number(text);
+  if (Number.isFinite(asNumber)) {
+    const n = Math.trunc(asNumber);
+    return n >= 1 && n <= 5 ? n : null;
+  }
+  return null;
+};
+
+export const isPositiveStarRating = (raw) => {
+  const stars = normalizeStarRating(raw);
+  return stars === 4 || stars === 5;
+};
+
+export const naturalWorkPhrase = (matchedServices = []) => {
+  const ids = matchedServices.map((service) => service.id).filter(Boolean);
+  if (!ids.length) return null;
+  if (ids.includes("svc.seasonal-cleanups")) return "yard cleanup";
+  if (ids.length === 1) {
+    return NATURAL_WORK_PHRASE[ids[0]] ?? null;
+  }
+  return null;
+};
+
+export const buildReviewReplyText = ({ matchedServices = [], starRating } = {}) => {
+  if (!isPositiveStarRating(starRating)) return NEUTRAL_REPLY;
+  const work = naturalWorkPhrase(matchedServices);
+  if (!work) return POSITIVE_GENERIC_REPLY;
+  return `Thank you for the kind review. We are glad the ${work} went smoothly. Please reach out if you need anything else.`;
 };
 
 export const buildReviewReplyDrafts = ({
@@ -124,14 +170,25 @@ export const buildReviewReplyDrafts = ({
       review.comment,
       facts?.services ?? []
     );
-    let draftReply = buildReviewReplyText({ matchedServices });
+    let draftReply = buildReviewReplyText({
+      matchedServices,
+      starRating: review.starRating,
+    });
     const unsafe = draftReplyLooksUnsafe({
       draftReply,
       reviewerDisplayName: review.reviewerDisplayName,
       comment: review.comment,
     });
     if (unsafe) {
-      draftReply = GENERIC_REPLY;
+      draftReply = isPositiveStarRating(review.starRating)
+        ? POSITIVE_GENERIC_REPLY
+        : NEUTRAL_REPLY;
+    }
+    if (
+      !isPositiveStarRating(review.starRating) &&
+      POSITIVE_OUTCOME_PATTERN.test(draftReply)
+    ) {
+      draftReply = NEUTRAL_REPLY;
     }
 
     drafts.push({
@@ -358,7 +415,7 @@ export const sanitizeDraftPacketForCi = (packet, env = process.env) => {
   const replies = Array.isArray(cleaned.reviewReplyDrafts)
     ? cleaned.reviewReplyDrafts.map((row) => {
         const draftReply = redactCollectorText(String(row?.draftReply ?? ""), env);
-        const safeReply = piiPatternsInText(draftReply) ? GENERIC_REPLY : draftReply;
+        const safeReply = piiPatternsInText(draftReply) ? NEUTRAL_REPLY : draftReply;
         return {
           kind: "review_reply_draft",
           status: "draft",
