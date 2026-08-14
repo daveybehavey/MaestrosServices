@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveReportingSiteConfig } from "./lib/google-reporting-config.mjs";
 
 const rootDir = process.cwd();
 const envPath = path.join(rootDir, ".env.local");
@@ -37,10 +38,9 @@ if (missingEnv.length > 0) {
   process.exit(1);
 }
 
-const siteUrl = process.env.SITE_URL ?? "https://maestrosservices.com";
-const siteHost = new URL(siteUrl).host;
-const searchConsoleProperty =
-  process.env.GOOGLE_SEARCH_CONSOLE_PROPERTY ?? `sc-domain:${siteHost}`;
+const { siteUrl, siteHost, searchConsoleProperty } = resolveReportingSiteConfig(
+  process.env
+);
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
 const shiftDays = (date, days) => {

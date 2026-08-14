@@ -196,6 +196,7 @@ export const classifyCollectorFailure = ({
   if (
     /missing required environment/.test(hay) ||
     /missing required/.test(hay) ||
+    /missing google business profile environment/.test(hay) ||
     /set google_gbp_/.test(hay) ||
     (/is required/.test(hay) && /google_|oauth|location|account/.test(hay))
   ) {

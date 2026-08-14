@@ -101,6 +101,15 @@ test("missing env/config classifies correctly", () => {
   );
 });
 
+test("missing GBP environment values classifies as missing_configuration", () => {
+  assert.equal(
+    classifyCollectorFailure({
+      text: "Missing Google Business Profile environment values: oauth client ID, oauth client secret",
+    }),
+    "missing_configuration"
+  );
+});
+
 test("generic API/network error falls back safely", () => {
   assert.equal(
     classifyCollectorFailure({ text: "fetch failed ETIMEDOUT" }),

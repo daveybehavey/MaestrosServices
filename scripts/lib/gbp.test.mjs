@@ -50,7 +50,7 @@ test("resolveGbpOAuthConfig prefers GOOGLE_GBP_OAUTH_* over GOOGLE_OAUTH_*", () 
   assert.equal(described.requiredScope, BUSINESS_MANAGE_SCOPE);
 });
 
-test("resolveGbpOAuthConfig falls back to shared GOOGLE_OAUTH_*", () => {
+test("resolveGbpOAuthConfig falls back to shared GOOGLE_OAUTH_* when GBP vars are absent", () => {
   const config = resolveGbpOAuthConfig({
     GOOGLE_OAUTH_CLIENT_ID: "shared-client",
     GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
@@ -64,6 +64,86 @@ test("resolveGbpOAuthConfig falls back to shared GOOGLE_OAUTH_*", () => {
   assert.equal(described.usingGbpSpecificClient, false);
   assert.equal(described.usingGbpSpecificRefreshToken, false);
   assert.equal(described.usingAnyGbpSpecificCredential, false);
+});
+
+test("resolveGbpOAuthConfig treats empty GBP client ID as unset and uses shared", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "",
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh",
+  });
+  assert.equal(config.clientId, "shared-client");
+  assert.equal(config.sources.clientId, "GOOGLE_OAUTH_CLIENT_ID");
+});
+
+test("resolveGbpOAuthConfig treats empty GBP client secret as unset and uses shared", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "",
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh",
+  });
+  assert.equal(config.clientSecret, "shared-secret");
+  assert.equal(config.sources.clientSecret, "GOOGLE_OAUTH_CLIENT_SECRET");
+});
+
+test("resolveGbpOAuthConfig still prefers non-empty GBP-specific client credentials", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-client",
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-secret",
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh",
+  });
+  assert.equal(config.clientId, "gbp-client");
+  assert.equal(config.clientSecret, "gbp-secret");
+  assert.equal(config.sources.clientId, "GOOGLE_GBP_OAUTH_CLIENT_ID");
+  assert.equal(config.sources.clientSecret, "GOOGLE_GBP_OAUTH_CLIENT_SECRET");
+});
+
+test("resolveGbpOAuthConfig prefers dedicated GBP refresh token when non-empty", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh",
+  });
+  assert.equal(config.refreshToken, "gbp-refresh");
+  assert.equal(config.sources.refreshToken, "GOOGLE_GBP_OAUTH_REFRESH_TOKEN");
+});
+
+test("resolveGbpOAuthConfig treats empty GBP refresh as unset and uses shared", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh",
+  });
+  assert.equal(config.refreshToken, "shared-refresh");
+  assert.equal(config.sources.refreshToken, "GOOGLE_OAUTH_REFRESH_TOKEN");
+});
+
+test("Actions-shaped empty optional GBP client vars still resolve shared credentials", () => {
+  const config = resolveGbpOAuthConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh",
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "",
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+    GOOGLE_GBP_LOCATION_NAME: "locations/2",
+    SITE_URL: "",
+    GOOGLE_SEARCH_CONSOLE_PROPERTY: "",
+  });
+  assert.equal(config.clientId, "shared-client");
+  assert.equal(config.clientSecret, "shared-secret");
+  assert.equal(config.refreshToken, "gbp-refresh");
+  assert.equal(config.sources.clientId, "GOOGLE_OAUTH_CLIENT_ID");
+  assert.equal(config.sources.clientSecret, "GOOGLE_OAUTH_CLIENT_SECRET");
+  assert.equal(config.sources.refreshToken, "GOOGLE_GBP_OAUTH_REFRESH_TOKEN");
+  assert.deepEqual(listMissingGbpOauthLabels(config), []);
 });
 
 test("describeGbpAuthSources distinguishes mixed shared-client + GBP refresh token", () => {

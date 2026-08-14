@@ -4,6 +4,8 @@
  * Safe for unit tests without live credentials.
  */
 
+import { nonEmptyEnvValue, preferEnvValue } from "./env-value.mjs";
+
 export const BUSINESS_MANAGE_SCOPE = "https://www.googleapis.com/auth/business.manage";
 
 export const DEFAULT_DAILY_METRICS = [
@@ -50,35 +52,36 @@ const SECRET_KEY_HINTS = [
 
 /**
  * Resolve GBP OAuth config with GBP-specific env vars preferred over shared Google OAuth.
+ * Empty strings (GitHub Actions optional secrets) are treated as unset.
  * Does not read or print secret values beyond returning them for internal use.
  */
 export const resolveGbpOAuthConfig = (env = process.env) => {
-  const clientIdSource = env.GOOGLE_GBP_OAUTH_CLIENT_ID
-    ? "GOOGLE_GBP_OAUTH_CLIENT_ID"
-    : env.GOOGLE_OAUTH_CLIENT_ID
-      ? "GOOGLE_OAUTH_CLIENT_ID"
-      : null;
-  const clientSecretSource = env.GOOGLE_GBP_OAUTH_CLIENT_SECRET
-    ? "GOOGLE_GBP_OAUTH_CLIENT_SECRET"
-    : env.GOOGLE_OAUTH_CLIENT_SECRET
-      ? "GOOGLE_OAUTH_CLIENT_SECRET"
-      : null;
-  const refreshTokenSource = env.GOOGLE_GBP_OAUTH_REFRESH_TOKEN
-    ? "GOOGLE_GBP_OAUTH_REFRESH_TOKEN"
-    : env.GOOGLE_OAUTH_REFRESH_TOKEN
-      ? "GOOGLE_OAUTH_REFRESH_TOKEN"
-      : null;
+  const clientId = preferEnvValue(
+    env,
+    "GOOGLE_GBP_OAUTH_CLIENT_ID",
+    "GOOGLE_OAUTH_CLIENT_ID"
+  );
+  const clientSecret = preferEnvValue(
+    env,
+    "GOOGLE_GBP_OAUTH_CLIENT_SECRET",
+    "GOOGLE_OAUTH_CLIENT_SECRET"
+  );
+  const refreshToken = preferEnvValue(
+    env,
+    "GOOGLE_GBP_OAUTH_REFRESH_TOKEN",
+    "GOOGLE_OAUTH_REFRESH_TOKEN"
+  );
 
   return {
-    clientId: env.GOOGLE_GBP_OAUTH_CLIENT_ID ?? env.GOOGLE_OAUTH_CLIENT_ID ?? null,
-    clientSecret: env.GOOGLE_GBP_OAUTH_CLIENT_SECRET ?? env.GOOGLE_OAUTH_CLIENT_SECRET ?? null,
-    refreshToken: env.GOOGLE_GBP_OAUTH_REFRESH_TOKEN ?? env.GOOGLE_OAUTH_REFRESH_TOKEN ?? null,
-    accountName: env.GOOGLE_GBP_ACCOUNT_NAME ?? null,
-    locationName: env.GOOGLE_GBP_LOCATION_NAME ?? null,
+    clientId: clientId.value,
+    clientSecret: clientSecret.value,
+    refreshToken: refreshToken.value,
+    accountName: nonEmptyEnvValue(env, "GOOGLE_GBP_ACCOUNT_NAME"),
+    locationName: nonEmptyEnvValue(env, "GOOGLE_GBP_LOCATION_NAME"),
     sources: {
-      clientId: clientIdSource,
-      clientSecret: clientSecretSource,
-      refreshToken: refreshTokenSource,
+      clientId: clientId.source,
+      clientSecret: clientSecret.source,
+      refreshToken: refreshToken.source,
     },
   };
 };
