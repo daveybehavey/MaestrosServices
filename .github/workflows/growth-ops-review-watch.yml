@@ -1,0 +1,141 @@
+name: Growth Ops Review Watch
+
+# Daily read-only check for unreplied GBP reviews + human-review reply drafts.
+# Never sends review replies, never mutates Google, never deploys.
+#
+# Schedule note: GitHub cron is UTC and is not timezone-aware.
+# 17:00 UTC daily lands near Vancouver morning across PDT (10:00) and PST (09:00).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 17 * * *"
+
+concurrency:
+  group: growth-ops-review-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  review-watch:
+    name: Review watch drafts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configuration preflight
+        id: preflight
+        continue-on-error: true
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          GOOGLE_GBP_LOCATION_NAME: ${{ secrets.GOOGLE_GBP_LOCATION_NAME }}
+          GOOGLE_GBP_ACCOUNT_NAME: ${{ secrets.GOOGLE_GBP_ACCOUNT_NAME }}
+          GOOGLE_GBP_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_ID }}
+          GOOGLE_GBP_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_SECRET }}
+          GOOGLE_GBP_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_GBP_OAUTH_REFRESH_TOKEN }}
+        run: |
+          mkdir -p artifacts/growth-review-watch
+          echo "WATCH_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
+          node scripts/growth-review-watch-preflight.mjs \
+            --summary-out artifacts/growth-review-watch/preflight-summary.md \
+            --json-out artifacts/growth-review-watch/preflight.json
+          if [ -f artifacts/growth-review-watch/preflight-summary.md ]; then
+            cat artifacts/growth-review-watch/preflight-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Collect GBP reviews (read-only)
+        id: reviews
+        if: steps.preflight.outputs.configured == 'true'
+        continue-on-error: true
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          GOOGLE_GBP_LOCATION_NAME: ${{ secrets.GOOGLE_GBP_LOCATION_NAME }}
+          GOOGLE_GBP_ACCOUNT_NAME: ${{ secrets.GOOGLE_GBP_ACCOUNT_NAME }}
+          GOOGLE_GBP_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_ID }}
+          GOOGLE_GBP_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_GBP_OAUTH_CLIENT_SECRET }}
+          GOOGLE_GBP_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_GBP_OAUTH_REFRESH_TOKEN }}
+        run: npm run gbp:reviews
+
+      - name: Generate human-review reply drafts
+        id: watch
+        if: steps.reviews.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm run growth:review-watch -- \
+            --reviews qa-reports/gbp-reviews.json \
+            --out-dir qa-reports \
+            --ci-out-dir artifacts/growth-review-watch \
+            --summary-out artifacts/growth-review-watch/job-summary.md
+
+      - name: Record failure when reviews collector fails
+        if: steps.reviews.outcome == 'failure'
+        run: |
+          {
+            echo "## Review Watch"
+            echo ""
+            echo "- Failure class: reviews_collector_failure"
+            echo "- Unreplied reviews: unavailable"
+            echo "- Human-review drafts: 0"
+            echo "- Requires human review: yes"
+            echo "- Replies sent: 0"
+          } | tee -a "$GITHUB_STEP_SUMMARY" > artifacts/growth-review-watch/job-summary.md
+
+      - name: Record failure when draft generation fails
+        if: steps.watch.outcome == 'failure'
+        run: |
+          {
+            echo "## Review Watch"
+            echo ""
+            echo "- Failure class: review_watch_failure"
+            echo "- Human-review draft generation exited non-zero."
+            echo "- Requires human review: yes"
+            echo "- Replies sent: 0"
+          } | tee -a "$GITHUB_STEP_SUMMARY" > artifacts/growth-review-watch/job-summary.md
+
+      - name: Upload sanitized review-watch artifact
+        if: always() && hashFiles('artifacts/growth-review-watch/**') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maestro-growth-review-watch-${{ env.WATCH_DATE }}-${{ github.run_id }}
+          path: artifacts/growth-review-watch/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Fail when required secrets are missing
+        if: steps.preflight.outputs.configured != 'true'
+        run: |
+          echo "configuration_failure: required GitHub Actions secret NAMES are missing."
+          echo "See job summary for labels. Values are never printed."
+          exit 1
+
+      - name: Fail when reviews collector failed
+        if: steps.reviews.outcome == 'failure'
+        run: |
+          echo "reviews_collector_failure: gbp:reviews exited non-zero."
+          exit 1
+
+      - name: Fail when review-watch draft generation failed
+        if: steps.watch.outcome == 'failure'
+        run: |
+          echo "review_watch_failure: growth:review-watch exited non-zero."
+          exit 1
