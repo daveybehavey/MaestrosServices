@@ -507,6 +507,7 @@ export const buildQuoteFunnel = (ga4Kpis) => {
 /**
  * Conservative quote-funnel diagnostic from event counts.
  * Returns null when no evidence-specific investigation is warranted.
+ * Ordering prefers the strongest direct stage evidence; never treats null as zero.
  */
 export const diagnoseQuoteFunnel = (ga4Kpis) => {
   const startsKpi = ga4Kpis?.events?.quote_form_start;
@@ -523,55 +524,12 @@ export const diagnoseQuoteFunnel = (ga4Kpis) => {
     { source: "ga4", event: "generate_lead", ...(leadsKpi ?? {}) },
   ];
 
-  if (starts == null || starts === 0) {
+  if (starts == null && submits == null && leads == null) {
     return null;
   }
 
-  if (starts < MIN_LEAD_SAMPLE) {
-    return {
-      id: "signal.leads.quote_funnel_tiny_sample",
-      type: "leads",
-      severity: "low",
-      stage: "tiny_sample",
-      summary:
-        "Quote-form event sample is too small for a confident funnel diagnosis. Raw event counts are not session-level conversion data.",
-      evidence,
-      confidence: "low",
-    };
-  }
-
-  if (submits == null) {
-    return {
-      id: "signal.leads.quote_funnel_submit_unavailable",
-      type: "leads",
-      severity: "low",
-      stage: "submit_unavailable",
-      summary:
-        "Quote-form starts were observed, but form_submit counts are unavailable. Funnel conversion claims are withheld until submit evidence is present.",
-      evidence,
-      confidence: "low",
-    };
-  }
-
-  // Healthy downstream activity: do not invent abandonment from higher start counts.
-  if (submits > 0 && leads != null && leads > 0) {
-    return null;
-  }
-
-  if (submits === 0 && (leads ?? 0) === 0) {
-    return {
-      id: "signal.leads.quote_pre_submit_gap",
-      type: "leads",
-      severity: "medium",
-      stage: "pre_submit",
-      summary:
-        "Quote-form starts occurred without observed form_submit events. Raw event counts are not session-level conversion data.",
-      evidence,
-      confidence: "medium",
-    };
-  }
-
-  if (submits > 0 && (leads ?? 0) === 0) {
+  // A. Strongest direct evidence: submissions without observed leads (strict zero).
+  if (submits != null && submits > 0 && leads === 0) {
     return {
       id: "signal.leads.quote_post_submit_gap",
       type: "leads",
@@ -584,8 +542,73 @@ export const diagnoseQuoteFunnel = (ga4Kpis) => {
     };
   }
 
-  // starts with submits==0 but leads>0 (or other asymmetric windows): no abandonment alarm.
+  // submits > 0 with missing lead evidence is not a post-submit gap (null !== 0).
+  if (submits != null && submits > 0 && leads == null) {
+    return null;
+  }
+
+  // E. Downstream submit + lead activity both exist: no generic abandonment alarm.
+  if (submits != null && submits > 0 && leads != null && leads > 0) {
+    return null;
+  }
+
+  // B. Start evidence exists but form_submit is unavailable.
+  if (starts != null && starts > 0 && submits == null) {
+    return {
+      id: "signal.leads.quote_funnel_submit_unavailable",
+      type: "leads",
+      severity: "low",
+      stage: "submit_unavailable",
+      summary:
+        "Quote-form starts were observed, but form_submit counts are unavailable. Funnel conversion claims are withheld until submit evidence is present.",
+      evidence,
+      confidence: "low",
+    };
+  }
+
+  // C. Tiny start sample when no stronger post-submit evidence applied.
+  if (starts != null && starts > 0 && starts < MIN_LEAD_SAMPLE) {
+    return {
+      id: "signal.leads.quote_funnel_tiny_sample",
+      type: "leads",
+      severity: "low",
+      stage: "tiny_sample",
+      summary:
+        "Quote-form event sample is too small for a confident funnel diagnosis. Raw event counts are not session-level conversion data.",
+      evidence,
+      confidence: "low",
+    };
+  }
+
+  // D. Pre-submit: enough starts, observed zero submits, observed zero leads.
+  if (
+    starts != null &&
+    starts >= MIN_LEAD_SAMPLE &&
+    submits === 0 &&
+    leads === 0
+  ) {
+    return {
+      id: "signal.leads.quote_pre_submit_gap",
+      type: "leads",
+      severity: "medium",
+      stage: "pre_submit",
+      summary:
+        "Quote-form starts occurred without observed form_submit events. Raw event counts are not session-level conversion data.",
+      evidence,
+      confidence: "medium",
+    };
+  }
+
+  // F. Fail closed / no stage conclusion (including starts with submits==0 but leads>0).
   return null;
+};
+
+const hasUsableQuoteCurrentWindow = (ga4Kpis, dataQuality) => {
+  if (!dataQuality?.available?.ga4) return false;
+  if (!ga4Kpis || ga4Kpis.reason === "missing") return false;
+  return QUOTE_FUNNEL_EVENTS.some(
+    (name) => kpiWindowValue(ga4Kpis.events?.[name], "current7") != null
+  );
 };
 
 const matchVerifiedService = (text, services = []) => {
@@ -1027,7 +1050,18 @@ export const collectSignals = ({
         evidence: [{ source: "ga4", event: "generate_lead", ...generateLead }],
       });
     }
+  } else if (dataQuality.available.ga4 && ga4Kpis.reason === "no_prior_period_comparator") {
+    signals.push({
+      id: "signal.leads.no_comparator",
+      type: "data_quality",
+      severity: "medium",
+      summary: "GA4 lead totals exist but lack a comparable prior 7-day window.",
+      evidence: [{ source: "ga4", reason: ga4Kpis.reason, days28: generateLead?.days28 ?? null }],
+    });
+  }
 
+  // Quote-funnel diagnostic uses current-window event counts; it is not a WoW conversion rate.
+  if (hasUsableQuoteCurrentWindow(ga4Kpis, dataQuality)) {
     const quoteFunnelSignal = diagnoseQuoteFunnel(ga4Kpis);
     if (quoteFunnelSignal) {
       signals.push({
@@ -1040,14 +1074,6 @@ export const collectSignals = ({
         confidence: quoteFunnelSignal.confidence,
       });
     }
-  } else if (dataQuality.available.ga4 && ga4Kpis.reason === "no_prior_period_comparator") {
-    signals.push({
-      id: "signal.leads.no_comparator",
-      type: "data_quality",
-      severity: "medium",
-      summary: "GA4 lead totals exist but lack a comparable prior 7-day window.",
-      evidence: [{ source: "ga4", reason: ga4Kpis.reason, days28: generateLead?.days28 ?? null }],
-    });
   }
 
   const pageOpp = pickExistingPageOpportunity(gsc);

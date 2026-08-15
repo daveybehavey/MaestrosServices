@@ -15,6 +15,7 @@ import {
   buildQuoteFunnel,
   buildReviewOpportunity,
   buildWeeklyIntelligence,
+  collectSignals,
   computeGa4LeadKpis,
   diagnoseQuoteFunnel,
   LEAD_EVENTS,
@@ -1023,6 +1024,113 @@ test("unavailable form_submit fails closed with low confidence", () => {
   });
   assert.equal(diagnosis.id, "signal.leads.quote_funnel_submit_unavailable");
   assert.equal(diagnosis.confidence, "low");
+});
+
+test("quote diagnostic runs without prior7 WoW comparator", () => {
+  const ga4Kpis = {
+    ok: true,
+    reason: null,
+    events: {
+      quote_form_start: {
+        current7: 11,
+        prior7: null,
+        days28: 12,
+        absChange: null,
+        pctChange: null,
+        comparable: false,
+      },
+      form_submit: {
+        current7: 0,
+        prior7: null,
+        days28: 1,
+        absChange: null,
+        pctChange: null,
+        comparable: false,
+      },
+      generate_lead: {
+        current7: 0,
+        prior7: null,
+        days28: 2,
+        absChange: null,
+        pctChange: null,
+        comparable: false,
+      },
+      phone_click: {
+        current7: 0,
+        prior7: null,
+        days28: 0,
+        absChange: null,
+        pctChange: null,
+        comparable: false,
+      },
+      sms_click: {
+        current7: 0,
+        prior7: null,
+        days28: 0,
+        absChange: null,
+        pctChange: null,
+        comparable: false,
+      },
+    },
+  };
+  const signals = collectSignals({
+    ga4Kpis,
+    gbpKpis: { ok: false, metrics: {} },
+    gsc: null,
+    catalog: VERIFIED_CATALOG,
+    reviewOpportunity: { actionRecommended: false, unrepliedCount: 0, evidence: [] },
+    postOpportunity: { shouldDraft: false, maintenanceSignal: false, evidence: [] },
+    dataQuality: { available: { ga4: true }, issues: [] },
+  });
+  assert.equal(signals.some((s) => s.id === "signal.leads.decline"), false);
+  assert.equal(signals.some((s) => s.id === "signal.leads.improve"), false);
+  assert.ok(signals.some((s) => s.id === "signal.leads.quote_pre_submit_gap"));
+});
+
+test("zero or null starts still allow post-submit continuity when submits>0 and leads=0", () => {
+  assert.equal(
+    diagnoseQuoteFunnel({
+      events: {
+        quote_form_start: { current7: 0, prior7: 1, days28: 1, comparable: true },
+        form_submit: { current7: 5, prior7: 1, days28: 6, comparable: true },
+        generate_lead: { current7: 0, prior7: 2, days28: 2, comparable: true },
+      },
+    }).id,
+    "signal.leads.quote_post_submit_gap"
+  );
+  assert.equal(
+    diagnoseQuoteFunnel({
+      events: {
+        quote_form_start: { current7: null, prior7: null, days28: null, comparable: false },
+        form_submit: { current7: 5, prior7: 1, days28: 6, comparable: true },
+        generate_lead: { current7: 0, prior7: 2, days28: 2, comparable: true },
+      },
+    }).id,
+    "signal.leads.quote_post_submit_gap"
+  );
+});
+
+test("tiny start count does not suppress stronger post-submit evidence", () => {
+  const diagnosis = diagnoseQuoteFunnel({
+    events: {
+      quote_form_start: { current7: 2, prior7: 1, days28: 3, comparable: true },
+      form_submit: { current7: 5, prior7: 1, days28: 6, comparable: true },
+      generate_lead: { current7: 0, prior7: 1, days28: 1, comparable: true },
+    },
+  });
+  assert.equal(diagnosis.id, "signal.leads.quote_post_submit_gap");
+  assert.equal(diagnosis.stage, "post_submit");
+});
+
+test("missing generate_lead evidence is not treated as a post-submit gap", () => {
+  const diagnosis = diagnoseQuoteFunnel({
+    events: {
+      quote_form_start: { current7: 11, prior7: 1, days28: 12, comparable: true },
+      form_submit: { current7: 5, prior7: 1, days28: 6, comparable: true },
+      generate_lead: { current7: null, prior7: null, days28: null, comparable: false },
+    },
+  });
+  assert.equal(diagnosis, null);
 });
 
 test("quote funnel diagnostics never emit percentage conversion rates", () => {
