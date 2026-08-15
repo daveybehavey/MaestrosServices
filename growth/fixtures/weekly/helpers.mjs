@@ -89,8 +89,20 @@ export const buildGbpPerformance = ({
 };
 
 export const buildGa4WithWindows = ({
-  recent = { generate_lead: 2, phone_click: 1, sms_click: 0, quote_form_start: 4 },
-  prior = { generate_lead: 5, phone_click: 2, sms_click: 0, quote_form_start: 6 },
+  recent = {
+    generate_lead: 2,
+    phone_click: 1,
+    sms_click: 0,
+    quote_form_start: 4,
+    form_submit: 2,
+  },
+  prior = {
+    generate_lead: 5,
+    phone_click: 2,
+    sms_click: 0,
+    quote_form_start: 6,
+    form_submit: 4,
+  },
   days28 = null,
 } = {}) => {
   const toRows = (map) =>
@@ -103,6 +115,7 @@ export const buildGa4WithWindows = ({
     phone_click: recent.phone_click + prior.phone_click,
     sms_click: (recent.sms_click ?? 0) + (prior.sms_click ?? 0),
     quote_form_start: recent.quote_form_start + prior.quote_form_start,
+    form_submit: (recent.form_submit ?? 0) + (prior.form_submit ?? 0),
   };
   return {
     dateRange: { startDate: "2026-07-15", endDate: "2026-08-12" },

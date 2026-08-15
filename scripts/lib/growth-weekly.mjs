@@ -32,7 +32,22 @@ export const MAX_REPORT_AGE_HOURS = 72;
 /** Allowed skew between expected complete-day window end and report window end. */
 export const MAX_WINDOW_END_SKEW_DAYS = 2;
 
-const LEAD_EVENTS = ["generate_lead", "phone_click", "sms_click", "quote_form_start"];
+export const LEAD_EVENTS = [
+  "generate_lead",
+  "phone_click",
+  "sms_click",
+  "quote_form_start",
+  "form_submit",
+];
+
+export const QUOTE_FUNNEL_EVENTS = Object.freeze([
+  "quote_form_start",
+  "form_submit",
+  "generate_lead",
+]);
+
+export const QUOTE_FUNNEL_CAVEAT =
+  "Raw GA4 event counts have different deduplication semantics and must not be interpreted as unique-user/session conversion rates.";
 
 const ACTION_TYPE_RANK = Object.freeze({
   review_reply: 1,
@@ -449,6 +464,128 @@ export const computeGa4LeadKpis = (ga4) => {
     windows: { days28: ga4.dateRange ?? null },
     events,
   };
+};
+
+const kpiWindowValue = (eventKpi, key) => {
+  if (!eventKpi || typeof eventKpi !== "object") return null;
+  const value = eventKpi[key];
+  return value == null ? null : toNumber(value);
+};
+
+/**
+ * Diagnostic quote-form event-count package. Never a conversion-rate model.
+ */
+export const buildQuoteFunnel = (ga4Kpis) => {
+  const events = ga4Kpis?.events ?? {};
+  const slice = (windowKey) => {
+    const out = {};
+    for (const name of QUOTE_FUNNEL_EVENTS) {
+      out[name] = kpiWindowValue(events[name], windowKey);
+    }
+    return out;
+  };
+
+  const recent = slice("current7");
+  const formSubmitAvailable = recent.form_submit != null;
+  const caveats = [QUOTE_FUNNEL_CAVEAT];
+  if (!formSubmitAvailable) {
+    caveats.push(
+      "form_submit counts are unavailable for the recent window; quote-funnel conversion claims are withheld."
+    );
+  }
+
+  return {
+    measurementKind: "event_count_diagnostic",
+    comparableAsConversionRate: false,
+    recent7: recent,
+    prior7: slice("prior7"),
+    days28: slice("days28"),
+    caveats,
+  };
+};
+
+/**
+ * Conservative quote-funnel diagnostic from event counts.
+ * Returns null when no evidence-specific investigation is warranted.
+ */
+export const diagnoseQuoteFunnel = (ga4Kpis) => {
+  const startsKpi = ga4Kpis?.events?.quote_form_start;
+  const submitsKpi = ga4Kpis?.events?.form_submit;
+  const leadsKpi = ga4Kpis?.events?.generate_lead;
+
+  const starts = kpiWindowValue(startsKpi, "current7");
+  const submits = kpiWindowValue(submitsKpi, "current7");
+  const leads = kpiWindowValue(leadsKpi, "current7");
+
+  const evidence = [
+    { source: "ga4", event: "quote_form_start", ...(startsKpi ?? {}) },
+    { source: "ga4", event: "form_submit", ...(submitsKpi ?? {}) },
+    { source: "ga4", event: "generate_lead", ...(leadsKpi ?? {}) },
+  ];
+
+  if (starts == null || starts === 0) {
+    return null;
+  }
+
+  if (starts < MIN_LEAD_SAMPLE) {
+    return {
+      id: "signal.leads.quote_funnel_tiny_sample",
+      type: "leads",
+      severity: "low",
+      stage: "tiny_sample",
+      summary:
+        "Quote-form event sample is too small for a confident funnel diagnosis. Raw event counts are not session-level conversion data.",
+      evidence,
+      confidence: "low",
+    };
+  }
+
+  if (submits == null) {
+    return {
+      id: "signal.leads.quote_funnel_submit_unavailable",
+      type: "leads",
+      severity: "low",
+      stage: "submit_unavailable",
+      summary:
+        "Quote-form starts were observed, but form_submit counts are unavailable. Funnel conversion claims are withheld until submit evidence is present.",
+      evidence,
+      confidence: "low",
+    };
+  }
+
+  // Healthy downstream activity: do not invent abandonment from higher start counts.
+  if (submits > 0 && leads != null && leads > 0) {
+    return null;
+  }
+
+  if (submits === 0 && (leads ?? 0) === 0) {
+    return {
+      id: "signal.leads.quote_pre_submit_gap",
+      type: "leads",
+      severity: "medium",
+      stage: "pre_submit",
+      summary:
+        "Quote-form starts occurred without observed form_submit events. Raw event counts are not session-level conversion data.",
+      evidence,
+      confidence: "medium",
+    };
+  }
+
+  if (submits > 0 && (leads ?? 0) === 0) {
+    return {
+      id: "signal.leads.quote_post_submit_gap",
+      type: "leads",
+      severity: "medium",
+      stage: "post_submit",
+      summary:
+        "Form submissions were observed without matching generate_lead events in the comparison window. Investigate submission outcomes/tracking; event counts are not user-level funnel rates.",
+      evidence,
+      confidence: "medium",
+    };
+  }
+
+  // starts with submits==0 but leads>0 (or other asymmetric windows): no abandonment alarm.
+  return null;
 };
 
 const matchVerifiedService = (text, services = []) => {
@@ -891,21 +1028,16 @@ export const collectSignals = ({
       });
     }
 
-    const quoteStarts = ga4Kpis.events?.quote_form_start;
-    if (
-      quoteStarts?.comparable &&
-      (quoteStarts.current7 ?? 0) >= MIN_LEAD_SAMPLE &&
-      (generateLead.current7 ?? 0) === 0
-    ) {
+    const quoteFunnelSignal = diagnoseQuoteFunnel(ga4Kpis);
+    if (quoteFunnelSignal) {
       signals.push({
-        id: "signal.leads.quote_start_no_complete",
-        type: "leads",
-        severity: "medium",
-        summary: "Quote form starts occurred without matching completed generate_lead events.",
-        evidence: [
-          { source: "ga4", event: "quote_form_start", ...quoteStarts },
-          { source: "ga4", event: "generate_lead", ...generateLead },
-        ],
+        id: quoteFunnelSignal.id,
+        type: quoteFunnelSignal.type,
+        severity: quoteFunnelSignal.severity,
+        summary: quoteFunnelSignal.summary,
+        evidence: quoteFunnelSignal.evidence,
+        stage: quoteFunnelSignal.stage,
+        confidence: quoteFunnelSignal.confidence,
       });
     }
   } else if (dataQuality.available.ga4 && ga4Kpis.reason === "no_prior_period_comparator") {
@@ -1030,20 +1162,42 @@ export const selectActions = ({ signals, reviewOpportunity, postOpportunity, ga4
     );
   }
 
-  const quoteGap = signals.find((s) => s.id === "signal.leads.quote_start_no_complete");
-  if (quoteGap) {
+  const quotePreSubmit = signals.find((s) => s.id === "signal.leads.quote_pre_submit_gap");
+  const quotePostSubmit = signals.find((s) => s.id === "signal.leads.quote_post_submit_gap");
+  const quoteSubmitUnavailable = signals.find(
+    (s) => s.id === "signal.leads.quote_funnel_submit_unavailable"
+  );
+  const quoteTiny = signals.find((s) => s.id === "signal.leads.quote_funnel_tiny_sample");
+  const quoteSignal = quotePreSubmit || quotePostSubmit || quoteSubmitUnavailable || quoteTiny;
+  if (quoteSignal) {
+    const stage = quoteSignal.stage;
+    const title =
+      stage === "post_submit"
+        ? "Inspect quote-form submit-to-lead continuity"
+        : stage === "pre_submit"
+          ? "Inspect quote-form pre-submit activity"
+          : stage === "submit_unavailable"
+            ? "Collect form_submit before judging quote funnel"
+            : "Watch quote-form event sample (low confidence)";
+    const nextStep =
+      stage === "post_submit"
+        ? "Compare form_submit to generate_lead and success redirect tracking for the same window. Do not invent offer changes from raw event counts."
+        : stage === "pre_submit"
+          ? "Review whether visitors leave before submit, switch to phone/SMS, or whether start events are inflated across pages. Raw event counts are not session conversion rates."
+          : stage === "submit_unavailable"
+            ? "Ensure form_submit is present in the GA4 lead-event package before treating start vs lead as a funnel gap."
+            : "Wait for a larger sample of quote-form events before prioritizing a funnel investigation.";
     candidates.push(
       makeAction({
         id: "action.quote_funnel_gap",
         type: "lead_conversion",
-        title: "Inspect quote-form completion gap",
-        reason: quoteGap.summary,
-        evidence: quoteGap.evidence,
-        recommendedNextStep:
-          "Review quote form UX and tracking continuity; do not invent offer changes from this signal alone.",
-        targetKpi: "generate_lead",
-        confidence: "medium",
-        impact: 75,
+        title,
+        reason: quoteSignal.summary,
+        evidence: quoteSignal.evidence,
+        recommendedNextStep: nextStep,
+        targetKpi: stage === "pre_submit" ? "form_submit" : "generate_lead",
+        confidence: quoteSignal.confidence ?? "low",
+        impact: stage === "post_submit" || stage === "pre_submit" ? 75 : 40,
       })
     );
   }
@@ -1167,6 +1321,25 @@ export const formatWeeklyMarkdown = (report) => {
       `- ${name}: 7d=${row.current7 ?? "n/a"} prior7=${row.prior7 ?? "n/a"} 28d=${row.days28 ?? "n/a"}`
     );
   }
+  const quoteFunnel = report.quoteFunnel;
+  if (quoteFunnel) {
+    lines.push("");
+    lines.push(`## Quote funnel (event-count diagnostic)`);
+    lines.push(`- measurementKind: ${quoteFunnel.measurementKind}`);
+    lines.push(`- comparableAsConversionRate: ${quoteFunnel.comparableAsConversionRate}`);
+    lines.push(
+      `- recent7: start=${quoteFunnel.recent7?.quote_form_start ?? "n/a"} submit=${quoteFunnel.recent7?.form_submit ?? "n/a"} lead=${quoteFunnel.recent7?.generate_lead ?? "n/a"}`
+    );
+    lines.push(
+      `- prior7: start=${quoteFunnel.prior7?.quote_form_start ?? "n/a"} submit=${quoteFunnel.prior7?.form_submit ?? "n/a"} lead=${quoteFunnel.prior7?.generate_lead ?? "n/a"}`
+    );
+    lines.push(
+      `- days28: start=${quoteFunnel.days28?.quote_form_start ?? "n/a"} submit=${quoteFunnel.days28?.form_submit ?? "n/a"} lead=${quoteFunnel.days28?.generate_lead ?? "n/a"}`
+    );
+    for (const caveat of quoteFunnel.caveats ?? []) {
+      lines.push(`- caveat: ${caveat}`);
+    }
+  }
   lines.push("");
   lines.push(`## Actions (max 3)`);
   if (!report.actions.length) {
@@ -1214,6 +1387,7 @@ export const buildWeeklyIntelligence = ({
   const dataQuality = prepared.dataQuality;
 
   const ga4Kpis = computeGa4LeadKpis(usable.ga4);
+  const quoteFunnel = buildQuoteFunnel(ga4Kpis);
   const gbpKpis = computeGbpKpis(usable.gbpPerformance, { now });
   const reviewOpportunity = buildReviewOpportunity(usable.gbpReviews);
   const postOpportunity = buildPostOpportunity({
@@ -1258,6 +1432,7 @@ export const buildWeeklyIntelligence = ({
       primaryNote:
         "Lead events outrank impressions/sessions. Missing inputs are not treated as zero.",
     },
+    quoteFunnel,
     signals,
     actions,
     postOpportunity,

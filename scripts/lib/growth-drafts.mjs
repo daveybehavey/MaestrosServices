@@ -340,25 +340,54 @@ export const buildWebsiteOpportunity = ({ weekly } = {}) => {
   if (!action) return null;
 
   const isQuoteGap = action.id === "action.quote_funnel_gap";
+  const submitEvidence = (action.evidence ?? []).find((row) => row?.event === "form_submit");
+  const submitCount = submitEvidence?.current7;
+  const stage =
+    submitCount == null
+      ? "submit_unavailable"
+      : submitCount === 0
+        ? "pre_submit"
+        : "post_submit";
+
+  const quoteHypotheses =
+    stage === "post_submit"
+      ? [
+          "Successful server acceptance or generate_lead firing may be incomplete for some submits.",
+          "Submit and lead events may fall in different comparison windows.",
+          "Sample size may be too small for a firm conclusion.",
+        ]
+      : stage === "pre_submit"
+        ? [
+            "Visitors may leave before submitting, or continue via phone/SMS instead.",
+            "quote_form_start can fire once per page load, so raw start counts may exceed unique sessions.",
+            "UX friction before submit may interrupt completion.",
+            "Sample size may be too small for a firm conclusion.",
+          ]
+        : [
+            "form_submit evidence is incomplete, so start-vs-lead claims should stay withheld.",
+            "Tracking or comparability limits may explain the observation.",
+            "Sample size may be too small for a firm conclusion.",
+          ];
+
   return {
     status: "review_recommended",
     actionId: action.id ?? null,
     title: action.title ?? "Website investigation",
-    observation: action.reason ?? action.title ?? "",
+    observation: isQuoteGap
+      ? action.reason ??
+        "GA4 recorded quote-form interaction activity. Raw event counts are not session-level funnel conversion data."
+      : action.reason ?? action.title ?? "",
     evidence: sanitizeGa4Evidence(action.evidence),
     hypotheses: isQuoteGap
-      ? [
-          "Users may abandon after starting the quote form.",
-          "Instrumentation may not be joining start and complete events.",
-          "UX friction on the quote form may interrupt completion.",
-          "Sample size may be too small for a firm conclusion.",
-        ]
+      ? quoteHypotheses
       : [
           "The weekly signal may reflect a real user-path issue.",
           "Tracking or comparability limits may explain the observation.",
           "Sample size may be too small for a firm conclusion.",
         ],
-    suggestedInvestigation: action.recommendedNextStep ?? "Human-review the existing page or form path. Do not change the website automatically.",
+    suggestedInvestigation:
+      action.recommendedNextStep ??
+      "Human-review the existing page or form path. Do not change the website automatically.",
     suggestedSuccessMetric: action.targetKpi ?? "generate_lead",
     createsPullRequest: false,
     requiresHumanReview: true,

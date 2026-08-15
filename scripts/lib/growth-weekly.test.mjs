@@ -12,9 +12,14 @@ import {
 } from "../../growth/fixtures/weekly/helpers.mjs";
 import {
   buildPostOpportunity,
+  buildQuoteFunnel,
   buildReviewOpportunity,
   buildWeeklyIntelligence,
+  computeGa4LeadKpis,
+  diagnoseQuoteFunnel,
+  LEAD_EVENTS,
   prepareWeeklyInputs,
+  QUOTE_FUNNEL_CAVEAT,
 } from "./growth-weekly.mjs";
 import { formatWeeklyConsoleSummary, runGrowthWeekly } from "../growth-weekly.mjs";
 
@@ -770,4 +775,284 @@ test("weekly engine source has no mutation / create-post paths", () => {
     assert.equal(/ads:create/.test(source), false);
     assert.equal(/method:\s*["']POST["']/.test(source), false);
   }
+});
+
+test("form_submit is collected in recent7/prior7/days28 lead KPIs", () => {
+  const kpis = computeGa4LeadKpis(
+    buildGa4WithWindows({
+      recent: {
+        generate_lead: 0,
+        phone_click: 0,
+        sms_click: 0,
+        quote_form_start: 11,
+        form_submit: 5,
+      },
+      prior: {
+        generate_lead: 2,
+        phone_click: 1,
+        sms_click: 0,
+        quote_form_start: 1,
+        form_submit: 1,
+      },
+    })
+  );
+  assert.equal(LEAD_EVENTS.includes("form_submit"), true);
+  assert.equal(kpis.events.form_submit.current7, 5);
+  assert.equal(kpis.events.form_submit.prior7, 1);
+  assert.equal(kpis.events.form_submit.days28, 6);
+  assert.equal(kpis.events.form_submit.comparable, true);
+});
+
+test("valid GA4 zero for form_submit remains zero, missing GA4 stays null", () => {
+  const zeroed = computeGa4LeadKpis(
+    buildGa4WithWindows({
+      recent: {
+        generate_lead: 0,
+        phone_click: 0,
+        sms_click: 0,
+        quote_form_start: 4,
+        form_submit: 0,
+      },
+      prior: {
+        generate_lead: 1,
+        phone_click: 0,
+        sms_click: 0,
+        quote_form_start: 2,
+        form_submit: 0,
+      },
+    })
+  );
+  assert.equal(zeroed.events.form_submit.current7, 0);
+  assert.equal(zeroed.events.form_submit.prior7, 0);
+
+  const absentRow = computeGa4LeadKpis(
+    buildGa4WithWindows({
+      recent: { generate_lead: 0, phone_click: 0, sms_click: 0, quote_form_start: 4 },
+      prior: { generate_lead: 1, phone_click: 0, sms_click: 0, quote_form_start: 2 },
+    })
+  );
+  assert.equal(absentRow.events.form_submit.current7, 0);
+
+  const missing = computeGa4LeadKpis(null);
+  assert.equal(missing.events.form_submit.current7, null);
+  assert.equal(missing.events.form_submit.days28, null);
+});
+
+test("11 starts / 0 submits / 0 leads yields conservative pre-submit investigation", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: {
+          generate_lead: 0,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 11,
+          form_submit: 0,
+        },
+        prior: {
+          generate_lead: 2,
+          phone_click: 1,
+          sms_click: 0,
+          quote_form_start: 1,
+          form_submit: 1,
+        },
+      }),
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.ok(report.signals.some((s) => s.id === "signal.leads.quote_pre_submit_gap"));
+  const action = report.actions.find((a) => a.id === "action.quote_funnel_gap");
+  assert.ok(action);
+  assert.match(action.title, /pre-submit/i);
+  assert.match(action.reason, /Raw event counts are not session-level/);
+  assert.equal(/%/.test(action.reason), false);
+  assert.equal(report.quoteFunnel.comparableAsConversionRate, false);
+  assert.ok(report.quoteFunnel.caveats.includes(QUOTE_FUNNEL_CAVEAT));
+});
+
+test("11 starts / 5 submits / 0 leads yields post-submit continuity investigation", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: {
+          generate_lead: 0,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 11,
+          form_submit: 5,
+        },
+        prior: {
+          generate_lead: 2,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 4,
+          form_submit: 3,
+        },
+      }),
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.ok(report.signals.some((s) => s.id === "signal.leads.quote_post_submit_gap"));
+  const action = report.actions.find((a) => a.id === "action.quote_funnel_gap");
+  assert.ok(action);
+  assert.match(action.title, /submit-to-lead/i);
+  assert.match(action.reason, /Form submissions were observed/);
+});
+
+test("11 starts / 5 submits / 5 leads does not invent a generic abandonment alarm", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: {
+          generate_lead: 5,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 11,
+          form_submit: 5,
+        },
+        prior: {
+          generate_lead: 5,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 8,
+          form_submit: 5,
+        },
+      }),
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.equal(
+    report.signals.some((s) => String(s.id).startsWith("signal.leads.quote_")),
+    false
+  );
+  assert.equal(
+    report.actions.some((a) => a.id === "action.quote_funnel_gap"),
+    false
+  );
+});
+
+test("generate_lead greater than quote_form_start does not imply impossible conversion", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: {
+          generate_lead: 5,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 2,
+          form_submit: 4,
+        },
+        prior: {
+          generate_lead: 1,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 1,
+          form_submit: 1,
+        },
+      }),
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  assert.equal(report.quoteFunnel.comparableAsConversionRate, false);
+  assert.equal(
+    report.actions.some((a) => a.id === "action.quote_funnel_gap"),
+    false
+  );
+  const quoteText = [
+    JSON.stringify(report.quoteFunnel),
+    ...report.signals.filter((s) => String(s.id).includes("quote")).map((s) => s.summary),
+    ...report.actions.filter((a) => a.id === "action.quote_funnel_gap").map((a) => `${a.title} ${a.reason}`),
+  ].join("\n");
+  assert.equal(/\b\d+(\.\d+)?\s*%\s*(abandoned|conversion|funnel)/i.test(quoteText), false);
+});
+
+test("quoteFunnel packet marks event counts as non-comparable conversion rates", () => {
+  const funnel = buildQuoteFunnel(
+    computeGa4LeadKpis(
+      buildGa4WithWindows({
+        recent: {
+          generate_lead: 0,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 11,
+          form_submit: 0,
+        },
+        prior: {
+          generate_lead: 2,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 1,
+          form_submit: 1,
+        },
+      })
+    )
+  );
+  assert.equal(funnel.measurementKind, "event_count_diagnostic");
+  assert.equal(funnel.comparableAsConversionRate, false);
+  assert.deepEqual(funnel.recent7, {
+    quote_form_start: 11,
+    form_submit: 0,
+    generate_lead: 0,
+  });
+  assert.ok(funnel.caveats.includes(QUOTE_FUNNEL_CAVEAT));
+});
+
+test("small quote-form samples reduce confidence", () => {
+  const diagnosis = diagnoseQuoteFunnel({
+    events: {
+      quote_form_start: { current7: 2, prior7: 1, days28: 3, comparable: true },
+      form_submit: { current7: 0, prior7: 0, days28: 0, comparable: true },
+      generate_lead: { current7: 0, prior7: 0, days28: 0, comparable: true },
+    },
+  });
+  assert.equal(diagnosis.id, "signal.leads.quote_funnel_tiny_sample");
+  assert.equal(diagnosis.confidence, "low");
+});
+
+test("unavailable form_submit fails closed with low confidence", () => {
+  const diagnosis = diagnoseQuoteFunnel({
+    events: {
+      quote_form_start: { current7: 11, prior7: 1, days28: 13, comparable: true },
+      form_submit: { current7: null, prior7: null, days28: null, comparable: false },
+      generate_lead: { current7: 0, prior7: 2, days28: 5, comparable: true },
+    },
+  });
+  assert.equal(diagnosis.id, "signal.leads.quote_funnel_submit_unavailable");
+  assert.equal(diagnosis.confidence, "low");
+});
+
+test("quote funnel diagnostics never emit percentage conversion rates", () => {
+  const report = buildWeeklyIntelligence({
+    reports: baseReports({
+      ga4: buildGa4WithWindows({
+        recent: {
+          generate_lead: 0,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 11,
+          form_submit: 0,
+        },
+        prior: {
+          generate_lead: 2,
+          phone_click: 0,
+          sms_click: 0,
+          quote_form_start: 1,
+          form_submit: 1,
+        },
+      }),
+    }),
+    catalog: VERIFIED_CATALOG,
+    now,
+  });
+  const quoteBits = [
+    JSON.stringify(report.quoteFunnel),
+    ...report.signals.filter((s) => String(s.id).includes("quote")).map((s) => s.summary),
+    ...report.actions.filter((a) => a.id === "action.quote_funnel_gap").map((a) => a.reason),
+  ].join("\n");
+  assert.equal(/\b\d+(\.\d+)?\s*%\s*(abandoned|conversion|funnel|complete)/i.test(quoteBits), false);
+  assert.equal(report.quoteFunnel.comparableAsConversionRate, false);
 });

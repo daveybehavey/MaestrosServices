@@ -154,7 +154,13 @@ const leadEventFilter = {
   filter: {
     fieldName: "eventName",
     inListFilter: {
-      values: ["generate_lead", "phone_click", "sms_click", "quote_form_start"],
+      values: [
+        "generate_lead",
+        "phone_click",
+        "sms_click",
+        "quote_form_start",
+        "form_submit",
+      ],
     },
   },
 };

@@ -279,6 +279,7 @@ export const sanitizeWeeklyForCi = (
     period: stripSensitiveFields(report?.period ?? null),
     dataQuality: sanitizeDataQuality(report?.dataQuality),
     kpis: sanitizeKpis(report?.kpis),
+    quoteFunnel: stripSensitiveFields(report?.quoteFunnel ?? null),
     signals: sanitizeSignals(report?.signals),
     actions,
     postOpportunity: sanitizePostOpportunity(report?.postOpportunity),
@@ -344,6 +345,15 @@ export const formatCiJobSummaryMarkdown = (packet) => {
         `- ${action.priority}. [${action.confidence}] ${action.title} (${action.type})`
       );
     }
+  }
+  const quoteFunnel = packet.quoteFunnel;
+  if (quoteFunnel) {
+    lines.push("");
+    lines.push("## Quote funnel (event-count diagnostic)");
+    lines.push(`- comparableAsConversionRate: ${quoteFunnel.comparableAsConversionRate}`);
+    lines.push(
+      `- recent7 start/submit/lead: ${quoteFunnel.recent7?.quote_form_start ?? "n/a"} / ${quoteFunnel.recent7?.form_submit ?? "n/a"} / ${quoteFunnel.recent7?.generate_lead ?? "n/a"}`
+    );
   }
   lines.push("");
   lines.push("## Post opportunity");

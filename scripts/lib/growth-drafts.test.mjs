@@ -81,13 +81,15 @@ const weeklyBase = (overrides = {}) => ({
     {
       id: "action.quote_funnel_gap",
       type: "lead_conversion",
-      title: "Inspect quote-form completion gap",
-      reason: "Quote form starts occurred without matching completed generate_lead events.",
+      title: "Inspect quote-form pre-submit activity",
+      reason:
+        "Quote-form starts occurred without observed form_submit events. Raw event counts are not session-level conversion data.",
       recommendedNextStep:
-        "Review quote form UX and tracking continuity; do not invent offer changes from this signal alone.",
-      targetKpi: "generate_lead",
+        "Review whether visitors leave before submit, switch to phone/SMS, or whether start events are inflated across pages. Raw event counts are not session conversion rates.",
+      targetKpi: "form_submit",
       evidence: [
         { source: "ga4", event: "quote_form_start", current7: 4, prior7: 3, comparable: true },
+        { source: "ga4", event: "form_submit", current7: 0, prior7: 1, comparable: true },
         { source: "ga4", event: "generate_lead", current7: 0, prior7: 1, comparable: true },
       ],
     },
@@ -423,7 +425,7 @@ test("website action produces a recommendation only", () => {
   });
   assert.equal(packet.websiteOpportunity.status, "review_recommended");
   assert.equal(packet.websiteOpportunity.createsPullRequest, false);
-  assert.equal(packet.websiteOpportunity.title, "Inspect quote-form completion gap");
+  assert.equal(packet.websiteOpportunity.title, "Inspect quote-form pre-submit activity");
 });
 
 test("website recommendation distinguishes observation from hypothesis", () => {
@@ -431,7 +433,7 @@ test("website recommendation distinguishes observation from hypothesis", () => {
     weekly: weeklyBase(),
     facts,
   });
-  assert.match(packet.websiteOpportunity.observation, /Quote form starts/);
+  assert.match(packet.websiteOpportunity.observation, /Raw event counts are not session-level/);
   assert.ok(packet.websiteOpportunity.hypotheses.length >= 3);
   assert.equal(
     packet.websiteOpportunity.hypotheses.some((row) => /may/i.test(row)),
@@ -491,7 +493,7 @@ test("current-run replay: 2 replies, 0 GBP posts, 1 website recommendation", () 
   });
   assert.equal(packet.reviewReplyDrafts.length, 2);
   assert.equal(packet.gbpPostDraft, null);
-  assert.equal(packet.websiteOpportunity.title, "Inspect quote-form completion gap");
+  assert.equal(packet.websiteOpportunity.title, "Inspect quote-form pre-submit activity");
   const summary = formatDraftsJobSummaryMarkdown(packet);
   assert.match(summary, /Review replies: 2/);
   assert.match(summary, /opportunity gate false/);
