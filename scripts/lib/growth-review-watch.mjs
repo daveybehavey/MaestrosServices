@@ -26,19 +26,19 @@ export const REVIEW_WATCH_SAFETY = Object.freeze({
 export const GROWTH_REVIEW_WATCH_WORKFLOW_PATH =
   ".github/workflows/growth-ops-review-watch.yml";
 
+/** Name-required GBP secrets (dedicated refresh; never the shared GA4/GSC refresh). */
 export const REVIEW_WATCH_REQUIRED_SECRET_NAMES = Object.freeze([
-  "GOOGLE_OAUTH_CLIENT_ID",
-  "GOOGLE_OAUTH_CLIENT_SECRET",
-  "GOOGLE_OAUTH_REFRESH_TOKEN",
   "GOOGLE_GBP_OAUTH_REFRESH_TOKEN",
   "GOOGLE_GBP_LOCATION_NAME",
   "GOOGLE_GBP_ACCOUNT_NAME",
 ]);
 
 export const REVIEW_WATCH_CONFIG_LABELS = Object.freeze([
-  ...REVIEW_WATCH_REQUIRED_SECRET_NAMES,
+  "GOOGLE_OAUTH_CLIENT_ID",
+  "GOOGLE_OAUTH_CLIENT_SECRET",
   "GOOGLE_GBP_OAUTH_CLIENT_ID",
   "GOOGLE_GBP_OAUTH_CLIENT_SECRET",
+  ...REVIEW_WATCH_REQUIRED_SECRET_NAMES,
 ]);
 
 const SHA40 = /^[0-9a-f]{40}$/i;
@@ -50,16 +50,38 @@ const hasConfiguredValue = (env, name) => {
 
 /**
  * Assess review-watch CI config by label only (never returns values).
- * Does not require GA4/GSC secrets.
+ * GBP-only: requires a usable OAuth client (shared or GBP-specific), dedicated
+ * GOOGLE_GBP_OAUTH_REFRESH_TOKEN, and GBP location/account. Does not require
+ * GOOGLE_OAUTH_REFRESH_TOKEN (shared GA4/GSC refresh) or GA4/GSC secrets.
  */
 export const assessReviewWatchConfig = (env = process.env) => {
   const labels = {};
   for (const name of REVIEW_WATCH_CONFIG_LABELS) {
     labels[name] = hasConfiguredValue(env, name) ? "yes" : "no";
   }
-  const missingRequired = REVIEW_WATCH_REQUIRED_SECRET_NAMES.filter(
-    (name) => labels[name] === "no"
-  );
+
+  const hasClientId =
+    hasConfiguredValue(env, "GOOGLE_GBP_OAUTH_CLIENT_ID") ||
+    hasConfiguredValue(env, "GOOGLE_OAUTH_CLIENT_ID");
+  const hasClientSecret =
+    hasConfiguredValue(env, "GOOGLE_GBP_OAUTH_CLIENT_SECRET") ||
+    hasConfiguredValue(env, "GOOGLE_OAUTH_CLIENT_SECRET");
+
+  const missingRequired = [];
+  if (!hasClientId) {
+    missingRequired.push(
+      "oauth client ID (GOOGLE_OAUTH_CLIENT_ID or GOOGLE_GBP_OAUTH_CLIENT_ID)"
+    );
+  }
+  if (!hasClientSecret) {
+    missingRequired.push(
+      "oauth client secret (GOOGLE_OAUTH_CLIENT_SECRET or GOOGLE_GBP_OAUTH_CLIENT_SECRET)"
+    );
+  }
+  for (const name of REVIEW_WATCH_REQUIRED_SECRET_NAMES) {
+    if (labels[name] === "no") missingRequired.push(name);
+  }
+
   return {
     configured: missingRequired.length === 0,
     labels,

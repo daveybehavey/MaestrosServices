@@ -255,15 +255,66 @@ test("review-watch module and CLI have no send/write mutation paths", () => {
   }
 });
 
-test("review-watch preflight does not require GA4/GSC secrets", () => {
+test("review-watch preflight succeeds without shared GOOGLE_OAUTH_REFRESH_TOKEN", () => {
   const assessment = assessReviewWatchConfig({
-    GOOGLE_OAUTH_CLIENT_ID: "x",
-    GOOGLE_OAUTH_CLIENT_SECRET: "x",
-    GOOGLE_OAUTH_REFRESH_TOKEN: "x",
-    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "x",
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client-id",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-client-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh-only",
     GOOGLE_GBP_LOCATION_NAME: "locations/1",
     GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
   });
   assert.equal(assessment.configured, true);
+  assert.equal(assessment.labels.GOOGLE_GBP_OAUTH_REFRESH_TOKEN, "yes");
+  assert.equal(assessment.labels.GOOGLE_OAUTH_REFRESH_TOKEN, undefined);
   assert.equal(assessment.labels.GOOGLE_GA4_PROPERTY_ID, undefined);
+  assert.equal(
+    assessment.missingRequired.includes("GOOGLE_OAUTH_REFRESH_TOKEN"),
+    false
+  );
+});
+
+test("review-watch preflight fails when dedicated GBP refresh token is missing", () => {
+  const assessment = assessReviewWatchConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client-id",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-client-secret",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "shared-refresh-must-not-satisfy",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  });
+  assert.equal(assessment.configured, false);
+  assert.ok(
+    assessment.missingRequired.includes("GOOGLE_GBP_OAUTH_REFRESH_TOKEN")
+  );
+});
+
+test("review-watch preflight accepts optional GBP-specific client credentials alone", () => {
+  const assessment = assessReviewWatchConfig({
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-client-id",
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-client-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh-only",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  });
+  assert.equal(assessment.configured, true);
+  assert.equal(assessment.labels.GOOGLE_GBP_OAUTH_CLIENT_ID, "yes");
+  assert.equal(assessment.labels.GOOGLE_GBP_OAUTH_CLIENT_SECRET, "yes");
+  assert.equal(assessment.labels.GOOGLE_OAUTH_CLIENT_ID, "no");
+  assert.equal(assessment.labels.GOOGLE_OAUTH_CLIENT_SECRET, "no");
+});
+
+test("review-watch workflow does not expose shared GOOGLE_OAUTH_REFRESH_TOKEN", () => {
+  const yaml = fs.readFileSync(
+    path.join(root, GROWTH_REVIEW_WATCH_WORKFLOW_PATH),
+    "utf8"
+  );
+  assert.equal(/secrets\.GOOGLE_OAUTH_REFRESH_TOKEN/.test(yaml), false);
+  assert.match(yaml, /secrets\.GOOGLE_GBP_OAUTH_REFRESH_TOKEN/);
+  assert.match(yaml, /contents:\s*read/);
+  assert.equal(/contents:\s*write/.test(yaml), false);
+  assert.equal(/reviews\/.*\/reply/.test(yaml), false);
+  assert.equal(/gbp:create-post/.test(yaml), false);
+  assert.equal(/git\s+push/.test(yaml), false);
+  assert.equal(/gh\s+pr\s+create/.test(yaml), false);
+  assert.equal(/gh\s+issue\s+create/.test(yaml), false);
+  assert.equal(/wrangler\s+deploy/.test(yaml), false);
 });
