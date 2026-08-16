@@ -151,12 +151,10 @@ export const buildReviewReplyText = ({ matchedServices = [], starRating } = {}) 
   return `Thank you for the kind review. We are glad the ${work} went smoothly. Please reach out if you need anything else.`;
 };
 
-export const buildReviewReplyDrafts = ({
-  weekly,
+export const buildReviewReplyDraftsFromReviews = ({
   reviewsReport,
   facts,
 } = {}) => {
-  if (!weekly?.reviewOpportunity?.actionRecommended) return [];
   const reviews = Array.isArray(reviewsReport?.reviews) ? reviewsReport.reviews : null;
   if (!reviews) return [];
 
@@ -206,6 +204,15 @@ export const buildReviewReplyDrafts = ({
     });
   }
   return drafts;
+};
+
+export const buildReviewReplyDrafts = ({
+  weekly,
+  reviewsReport,
+  facts,
+} = {}) => {
+  if (!weekly?.reviewOpportunity?.actionRecommended) return [];
+  return buildReviewReplyDraftsFromReviews({ reviewsReport, facts });
 };
 
 const verifiedById = (catalog, id) =>
@@ -439,25 +446,26 @@ const piiPatternsInText = (text) => {
   return false;
 };
 
+export const sanitizeReviewReplyDraftsForCi = (drafts, env = process.env) =>
+  (Array.isArray(drafts) ? drafts : []).map((row) => {
+    const draftReply = redactCollectorText(String(row?.draftReply ?? ""), env);
+    const safeReply = piiPatternsInText(draftReply) ? NEUTRAL_REPLY : draftReply;
+    return {
+      kind: "review_reply_draft",
+      status: "draft",
+      reviewId: row?.reviewId != null ? String(row.reviewId) : null,
+      starRating: row?.starRating ?? null,
+      draftReply: safeReply,
+      serviceRefs: Array.isArray(row?.serviceRefs) ? row.serviceRefs.map(String) : [],
+      evidenceIds: Array.isArray(row?.evidenceIds) ? row.evidenceIds.map(String) : [],
+      requiresHumanReview: true,
+      sendEligible: false,
+    };
+  });
+
 export const sanitizeDraftPacketForCi = (packet, env = process.env) => {
   const cleaned = stripSensitiveFields(packet ?? {});
-  const replies = Array.isArray(cleaned.reviewReplyDrafts)
-    ? cleaned.reviewReplyDrafts.map((row) => {
-        const draftReply = redactCollectorText(String(row?.draftReply ?? ""), env);
-        const safeReply = piiPatternsInText(draftReply) ? NEUTRAL_REPLY : draftReply;
-        return {
-          kind: "review_reply_draft",
-          status: "draft",
-          reviewId: row?.reviewId != null ? String(row.reviewId) : null,
-          starRating: row?.starRating ?? null,
-          draftReply: safeReply,
-          serviceRefs: Array.isArray(row?.serviceRefs) ? row.serviceRefs.map(String) : [],
-          evidenceIds: Array.isArray(row?.evidenceIds) ? row.evidenceIds.map(String) : [],
-          requiresHumanReview: true,
-          sendEligible: false,
-        };
-      })
-    : [];
+  const replies = sanitizeReviewReplyDraftsForCi(cleaned.reviewReplyDrafts, env);
 
   let gbpPostDraft = cleaned.gbpPostDraft ?? null;
   if (gbpPostDraft && typeof gbpPostDraft === "object") {
