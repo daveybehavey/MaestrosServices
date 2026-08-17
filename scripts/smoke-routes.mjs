@@ -1,4 +1,4 @@
-import { access, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const directRoutes = [
@@ -91,6 +91,49 @@ for (const [label, count] of familyChecks) {
   }
 
   console.log(`OK ${label}: ${count}`);
+}
+
+const contentChecks = [
+  {
+    file: "dist/blog/gravel-driveway-preparation-chemainus/index.html",
+    includes: ["/quote?service=gravel"],
+    excludes: ["service=driveway", "Need help with your yard?"],
+  },
+  {
+    file: "dist/services/gravel-driveway-installation/chemainus/index.html",
+    includes: [
+      "Gravel Driveway Preparation in Chemainus",
+      "Typical gravel driveway outcomes",
+    ],
+    excludes: [
+      "How often should I book gravel driveways",
+      "weekly, bi-weekly, or seasonal schedule",
+      "combine this with lawn mowing and hedge trimming",
+      "Gravel Driveways outcomes in Chemainus",
+    ],
+  },
+];
+
+for (const check of contentChecks) {
+  try {
+    const html = await readFile(check.file, "utf8");
+    const missingIncludes = check.includes.filter((snippet) => !html.includes(snippet));
+    const presentExcludes = check.excludes.filter((snippet) => html.includes(snippet));
+    if (missingIncludes.length > 0 || presentExcludes.length > 0) {
+      missing.push(check.file);
+      for (const snippet of missingIncludes) {
+        console.error(`MISSING CONTENT ${check.file}: ${snippet}`);
+      }
+      for (const snippet of presentExcludes) {
+        console.error(`UNEXPECTED CONTENT ${check.file}: ${snippet}`);
+      }
+      continue;
+    }
+    console.log(`OK content ${check.file}`);
+  } catch {
+    missing.push(check.file);
+    console.error(`MISSING ${check.file}`);
+  }
 }
 
 if (missing.length > 0) {

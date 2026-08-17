@@ -1,0 +1,50 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, "../..");
+
+const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+
+test("Chemainus gravel blog quote CTAs preselect gravel, not driveway grading", () => {
+  const source = read("src/content/blog/gravel-driveway-preparation-chemainus.md");
+  assert.match(source, /\/quote\?service=gravel#quote/);
+  assert.equal(source.includes("service=driveway"), false);
+});
+
+test("Chemainus gravel location page heading matches preparation intent", () => {
+  const source = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
+  assert.match(
+    source,
+    /seoKey === "gravel-driveway-installation:chemainus"/,
+  );
+  assert.match(source, /Gravel Driveway Preparation in Chemainus/);
+  assert.match(source, /<h1 class="section-title">\{pageHeading\}<\/h1>/);
+});
+
+test("driveway location pages do not inject weekly booking FAQs", () => {
+  const source = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
+  assert.match(source, /if \(!isDrivewayService\) \{/);
+  assert.match(source, /How often should I book/);
+  const bookingBlock = source.slice(
+    source.indexOf("if (!isDrivewayService)"),
+    source.indexOf("if (service.slug === \"gravel-driveway-installation\")"),
+  );
+  assert.match(bookingBlock, /weekly, bi-weekly, or seasonal schedule/);
+});
+
+test("quote form applies service query params on the static quote page", () => {
+  const source = read("src/components/QuoteForm.astro");
+  assert.match(source, /allowedQuoteServices/);
+  assert.match(source, /params\.get\("service"\)/);
+  assert.match(source, /serviceSelect\.value = serviceParam/);
+});
+
+test("gravel driveway service still has no verified project evidence records", () => {
+  const projectsDir = path.join(root, "growth/projects");
+  const files = fs.readdirSync(projectsDir).filter((name) => name.endsWith(".json"));
+  assert.deepEqual(files, []);
+});
