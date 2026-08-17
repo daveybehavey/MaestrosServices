@@ -40,6 +40,46 @@ export const OPPORTUNITY_TYPES = Object.freeze([
 const PRIORITY_WEIGHT = Object.freeze({ high: 3, medium: 2, low: 1 });
 const CONFIDENCE_WEIGHT = Object.freeze({ high: 3, medium: 2, low: 1 });
 
+/**
+ * Deterministic ranking (no AI scores):
+ * 1) priority label (high > medium > low)
+ * 2) confidence label (high > medium > low)
+ * 3) numeric impact (documented per opportunity builder)
+ * 4) stable id ascending
+ *
+ * Impact policy (higher = more lead/growth actionable):
+ * - unreplied reviews / lead decline: 85–90
+ * - quote-funnel diagnostic (non-tiny): 70
+ * - GBP demand with verified service: 68
+ * - organic query with verified serviceRefs: 66
+ * - organic page weak-CTR (no service map): 62
+ * - evidence gap with demand: 60
+ * - seasonal verified: 55
+ * - evidence gap without demand / thin review volume: 35–40
+ * - seasonal research_required: 25 (never a topAction)
+ */
+export const LEAD_OPS_RANKING_RULES = Object.freeze({
+  order: ["priority", "confidence", "impact", "id"],
+  impact: Object.freeze({
+    reviewUnreplied: 85,
+    leadDecline: 90,
+    quoteFunnelDiagnostic: 70,
+    gbpDemand: 68,
+    organicQueryVerified: 66,
+    organicPageWeakCtr: 62,
+    evidenceGapWithDemand: 60,
+    seasonalVerified: 55,
+    evidenceGapNoDemand: 40,
+    reviewVolumeThin: 35,
+    seasonalResearch: 25,
+  }),
+});
+
+/** GSC thresholds reused from weekly engine semantics (impressions floor + CTR ceiling). */
+export const LEAD_OPS_GSC_MIN_PAGE_IMPRESSIONS = 25;
+export const LEAD_OPS_GSC_MIN_QUERY_IMPRESSIONS = 30;
+export const LEAD_OPS_GSC_LOW_CTR = 0.02;
+
 /** Deterministic seasonal themes by UTC month (1-12). Catalog status still governs marketability. */
 export const SEASONAL_THEMES_BY_MONTH = Object.freeze({
   1: [
@@ -264,7 +304,13 @@ const rankOpportunities = (opportunities) =>
 
 const toTopActions = (ranked) =>
   ranked
-    .filter((row) => row.status !== "research_required" && row.status !== "abstain")
+    // watch/research_required/abstain stay in the opportunity list but are not top actions.
+    .filter(
+      (row) =>
+        row.status !== "research_required" &&
+        row.status !== "abstain" &&
+        row.status !== "watch"
+    )
     .slice(0, 3)
     .map((row, index) => ({
       priority: index + 1,
@@ -338,7 +384,7 @@ export const buildSeasonalOpportunities = ({
           recommendedAction:
             "Human-review which verified seasonal services to emphasize in next-week marketing; do not invent offers.",
           status: "recommended",
-          impact: 55,
+          impact: LEAD_OPS_RANKING_RULES.impact.seasonalVerified,
         })
       );
     }
@@ -374,7 +420,7 @@ export const buildSeasonalOpportunities = ({
           recommendedAction:
             "Investigate snow/ice or unverified seasonal service viability before adding to the verified catalog. Do not claim Maestros offers unverified services.",
           status: "research_required",
-          impact: 25,
+          impact: LEAD_OPS_RANKING_RULES.impact.seasonalResearch,
         })
       );
     }
@@ -431,7 +477,9 @@ export const buildEvidenceGapOpportunities = ({
         serviceRefs: [service.id],
         recommendedAction: `Collect before/after photos and a short job note from the next verified ${service.name} job. Do not invent project evidence.`,
         status: "recommended",
-        impact: hasDemand ? 60 : 40,
+        impact: hasDemand
+          ? LEAD_OPS_RANKING_RULES.impact.evidenceGapWithDemand
+          : LEAD_OPS_RANKING_RULES.impact.evidenceGapNoDemand,
       })
     );
   }
@@ -473,7 +521,7 @@ const mapWeeklySignalsToOpportunities = ({
           recommendedAction:
             "Use growth:review-watch drafts for human review. Do not auto-send replies.",
           status: "recommended",
-          impact: 85,
+          impact: LEAD_OPS_RANKING_RULES.impact.reviewUnreplied,
         })
       );
     }
@@ -481,6 +529,7 @@ const mapWeeklySignalsToOpportunities = ({
     const total = reviewOpportunity.evidence?.[0]?.totalReviewCount;
     if (
       typeof total === "number" &&
+      Number.isFinite(total) &&
       total >= 0 &&
       total < 5 &&
       reviewOpportunity.unrepliedCount != null
@@ -492,13 +541,12 @@ const mapWeeklySignalsToOpportunities = ({
           title: "Review volume is still thin",
           priority: "low",
           confidence: "medium",
-          rationale:
-            "Current public review count is low; stronger review coverage would support lead trust. No review-request automation in v1.",
+          rationale: `Current snapshot has ${total} public review(s). This is an operational observation only — not a competitor benchmark or ranking claim.`,
           evidence: reviewOpportunity.evidence,
           recommendedAction:
             "After completed jobs, manually ask satisfied customers for a Google review. No incentives or rating gating.",
           status: "recommended",
-          impact: 35,
+          impact: LEAD_OPS_RANKING_RULES.impact.reviewVolumeThin,
         })
       );
     }
@@ -507,6 +555,28 @@ const mapWeeklySignalsToOpportunities = ({
   for (const signal of signals) {
     if (signal.id === "signal.gsc.page_low_ctr" || signal.id === "signal.gsc.query_opportunity") {
       const row = signal.evidence?.[0] ?? {};
+      const impressions = Number(row.impressions);
+      const minImpressions =
+        signal.id === "signal.gsc.query_opportunity"
+          ? LEAD_OPS_GSC_MIN_QUERY_IMPRESSIONS
+          : LEAD_OPS_GSC_MIN_PAGE_IMPRESSIONS;
+      // Defense in depth: weekly already thresholds, but Lead Ops refuses noisy rows.
+      if (!Number.isFinite(impressions) || impressions < minImpressions) {
+        abstentions.push({
+          type: "organic_search_demand",
+          reason: `Organic signal below Lead Ops impression floor (${minImpressions}).`,
+          evidence: signal.evidence,
+        });
+        continue;
+      }
+      if (row.ctr == null || !Number.isFinite(Number(row.ctr))) {
+        abstentions.push({
+          type: "organic_search_demand",
+          reason: "Organic CTR unavailable; not inventing a CTR comparison.",
+          evidence: signal.evidence,
+        });
+        continue;
+      }
       const serviceRefs = onlyVerifiedRefs(row.serviceIds ?? [], verifiedServices);
       if (signal.id === "signal.gsc.query_opportunity" && !serviceRefs.length) {
         abstentions.push({
@@ -516,24 +586,26 @@ const mapWeeklySignalsToOpportunities = ({
         });
         continue;
       }
+      const isQuery = signal.id === "signal.gsc.query_opportunity";
       opportunities.push(
         makeOpportunity({
           id: `opp.organic.${signal.id}`,
           type: "organic_search_demand",
-          title:
-            signal.id === "signal.gsc.query_opportunity"
-              ? "Organic query demand with weak CTR"
-              : "Existing page has impressions with weak CTR",
+          title: isQuery
+            ? "Organic query demand with weak CTR"
+            : "Existing page has impressions with weak CTR",
           priority: "medium",
           confidence: "medium",
-          rationale: signal.summary,
+          rationale: `${signal.summary} Treat as an investigation opportunity, not proof the page is defective. GSC floor: >=${minImpressions} impressions and CTR <= ${LEAD_OPS_GSC_LOW_CTR}.`,
           evidence: signal.evidence,
           serviceRefs,
           areaRefs: [],
           recommendedAction:
             "Human-review the existing page/query path and improve clarity/CTA. Do not generate programmatic location or service pages.",
           status: "recommended",
-          impact: 65,
+          impact: isQuery
+            ? LEAD_OPS_RANKING_RULES.impact.organicQueryVerified
+            : LEAD_OPS_RANKING_RULES.impact.organicPageWeakCtr,
         })
       );
     }
@@ -572,7 +644,10 @@ const mapWeeklySignalsToOpportunities = ({
           recommendedAction:
             "Treat this as a hypothesis only. Inspect quote UX/tracking with human judgment; do not open website PRs from Lead Ops.",
           status: confidence === "low" ? "watch" : "recommended",
-          impact: signal.id === "signal.leads.decline" ? 90 : 70,
+          impact:
+            signal.id === "signal.leads.decline"
+              ? LEAD_OPS_RANKING_RULES.impact.leadDecline
+              : LEAD_OPS_RANKING_RULES.impact.quoteFunnelDiagnostic,
         })
       );
     }
@@ -602,7 +677,7 @@ const mapWeeklySignalsToOpportunities = ({
           recommendedAction:
             "Human-review a GBP post draft offline via growth:drafts. Do not auto-publish.",
           status: "recommended",
-          impact: 68,
+          impact: LEAD_OPS_RANKING_RULES.impact.gbpDemand,
         })
       );
     }

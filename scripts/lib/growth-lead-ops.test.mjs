@@ -10,6 +10,7 @@ import {
   buildGbpPerformance,
 } from "../../growth/fixtures/weekly/helpers.mjs";
 import {
+  LEAD_OPS_RANKING_RULES,
   LEAD_OPS_SAFETY,
   assertOpportunityCatalogSafety,
   buildEvidenceGapOpportunities,
@@ -86,7 +87,9 @@ const baseReports = () => ({
   gsc: {
     generatedAt: "2026-08-12T12:00:00.000Z",
     comparison: {
+      lagDays: 3,
       recent28: {
+        dateRange: { startDate: "2026-07-13", endDate: "2026-08-09" },
         topPages: [
           {
             keys: ["https://example.com/services/power-washing"],
@@ -478,6 +481,153 @@ test("all output requires human review and mutation flags stay false", () => {
       requiresHumanReview: true,
       executionEligible: false,
     }
+  );
+});
+
+test("ranking prefers quote diagnostic, then verified-query demand, then page CTR", () => {
+  const reports = baseReports();
+  reports.ga4 = stampGa4(
+    buildGa4WithWindows({
+      recent: {
+        quote_form_start: 8,
+        form_submit: 0,
+        generate_lead: 0,
+        phone_click: 0,
+        sms_click: 0,
+      },
+      prior: {
+        quote_form_start: 7,
+        form_submit: 0,
+        generate_lead: 0,
+        phone_click: 0,
+        sms_click: 0,
+      },
+    })
+  );
+  reports.gbpKeywords = {
+    generatedAt: "2026-08-12T12:00:00.000Z",
+    keywords: [],
+  };
+  reports.gbpReviews = {
+    generatedAt: "2026-08-12T12:00:00.000Z",
+    averageRating: 5,
+    totalReviewCount: 8,
+    unrepliedCount: 0,
+    unrepliedReviewIds: [],
+    reviews: [],
+  };
+  reports.gbpPerformance = {
+    ...buildGbpPerformance({ endDate: "2026-08-11" }),
+    generatedAt: "2026-08-12T12:00:00.000Z",
+  };
+  const packet = buildLeadOpsPacket({
+    reports,
+    facts: factsBundle,
+    now: NOW,
+  });
+  assert.equal(packet.topActions.length, 3);
+  assert.equal(
+    packet.topActions[0].opportunityId,
+    "opp.conversion.signal.leads.quote_pre_submit_gap"
+  );
+  assert.equal(
+    packet.topActions[1].opportunityId,
+    "opp.organic.signal.gsc.query_opportunity"
+  );
+  assert.equal(packet.topActions[2].opportunityId, "opp.organic.signal.gsc.page_low_ctr");
+  assert.equal(
+    LEAD_OPS_RANKING_RULES.impact.quoteFunnelDiagnostic >
+      LEAD_OPS_RANKING_RULES.impact.organicQueryVerified,
+    true
+  );
+  assert.equal(
+    LEAD_OPS_RANKING_RULES.impact.organicQueryVerified >
+      LEAD_OPS_RANKING_RULES.impact.organicPageWeakCtr,
+    true
+  );
+  const query = packet.opportunities.find(
+    (o) => o.id === "opp.organic.signal.gsc.query_opportunity"
+  );
+  assert.deepEqual(query.serviceRefs, ["svc.power-washing"]);
+  assert.deepEqual(query.areaRefs, []);
+});
+
+test("tiny-sample quote funnel is watch and excluded from topActions", () => {
+  const reports = baseReports();
+  reports.ga4 = stampGa4(
+    buildGa4WithWindows({
+      recent: {
+        quote_form_start: 2,
+        form_submit: 0,
+        generate_lead: 0,
+        phone_click: 0,
+        sms_click: 0,
+      },
+      prior: {
+        quote_form_start: 1,
+        form_submit: 0,
+        generate_lead: 0,
+        phone_click: 0,
+        sms_click: 0,
+      },
+    })
+  );
+  reports.gsc = {
+    generatedAt: "2026-08-12T12:00:00.000Z",
+    comparison: { recent28: { topPages: [], topQueries: [] } },
+  };
+  reports.gbpKeywords = { generatedAt: "2026-08-12T12:00:00.000Z", keywords: [] };
+  const packet = buildLeadOpsPacket({
+    reports,
+    facts: factsBundle,
+    now: NOW,
+  });
+  const tiny = packet.opportunities.find((o) =>
+    String(o.id).includes("quote_funnel_tiny_sample")
+  );
+  assert.ok(tiny);
+  assert.equal(tiny.status, "watch");
+  assert.equal(
+    packet.topActions.some((a) => a.opportunityId === tiny.id),
+    false
+  );
+});
+
+test("sub-threshold organic impressions do not become top actions", () => {
+  const reports = baseReports();
+  reports.gsc = {
+    generatedAt: "2026-08-12T12:00:00.000Z",
+    comparison: {
+      recent28: {
+        topPages: [
+          {
+            keys: ["https://example.com/services/power-washing"],
+            impressions: 3,
+            clicks: 0,
+            ctr: 0,
+            position: 40,
+          },
+        ],
+        topQueries: [
+          {
+            keys: ["power washing"],
+            impressions: 4,
+            clicks: 0,
+            ctr: 0,
+            position: 30,
+          },
+        ],
+      },
+    },
+  };
+  const packet = buildLeadOpsPacket({
+    reports,
+    facts: factsBundle,
+    now: NOW,
+  });
+  assert.equal(
+    packet.opportunities.some((o) => o.type === "organic_search_demand"),
+    false
   );
 });
 
