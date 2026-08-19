@@ -375,6 +375,43 @@ const showErrorState = error === "1";
     var startedAtInput = document.getElementById("form-started-at");
     var submitButton = quoteForm ? quoteForm.querySelector('button[type="submit"]') : null;
     var localStorageKey = "ms_attribution_v1";
+    var allowedQuoteServices = {
+      "not-sure": true,
+      mowing: true,
+      trim: true,
+      cleanup: true,
+      mulch: true,
+      powerwash: true,
+      rock: true,
+      fence: true,
+      gutter: true,
+      pruning: true,
+      moss: true,
+      driveway: true,
+      gravel: true,
+      ongoing: true,
+      other: true,
+    };
+    var applyQuoteQueryParams = function () {
+      if (!quoteForm) return;
+      var params = new URLSearchParams(window.location.search);
+      var serviceSelect = document.getElementById("service");
+      var serviceParam = params.get("service");
+      if (
+        serviceSelect &&
+        serviceParam &&
+        allowedQuoteServices[serviceParam] &&
+        (!serviceSelect.value || serviceSelect.value === "not-sure")
+      ) {
+        serviceSelect.value = serviceParam;
+      }
+      var areaInput = document.getElementById("area");
+      var areaParam = params.get("area");
+      if (areaInput && areaParam && !areaInput.value) {
+        areaInput.value = String(areaParam).slice(0, 80);
+      }
+    };
+    applyQuoteQueryParams();
 
     var readStoredAttribution = function () {
       try {

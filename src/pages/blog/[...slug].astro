@@ -61,6 +61,22 @@ const relatedServices = relatedServiceIds
 
 const primaryRelatedServiceId =
   post.data.relatedServices?.[0] ?? relatedServices[0]?.id;
+const quoteServiceById: Record<string, string> = {
+  "gravel-driveway-installation": "gravel",
+  "driveway-grading": "driveway",
+  "power-washing": "powerwash",
+  "fence-work-minor-repairs": "fence",
+  "garden-bed-maintenance": "mulch",
+  "seasonal-cleanups": "cleanup",
+  "yard-waste-removal": "other",
+  "brush-clearing": "other",
+  "hedge-trimming": "trim",
+  "lawn-mowing": "mowing",
+};
+const quoteService = primaryRelatedServiceId
+  ? quoteServiceById[primaryRelatedServiceId]
+  : undefined;
+const quoteHref = quoteService ? `/quote?service=${quoteService}` : "/quote";
 const relatedLocationCards = (post.data.relatedLocations ?? [])
   .map((id) => getLocationById(id))
   .filter(Boolean)
@@ -104,7 +120,7 @@ function formatDate(date: Date): string {
   }}
   headerVariant="simple"
   headerSubtitle="Blog"
-  quoteHref="/quote"
+  quoteHref={quoteHref}
 >
   <article class="section">
     <div class="mx-auto max-w-3xl px-5 sm:px-6">
@@ -244,7 +260,7 @@ function formatDate(date: Date): string {
           </a>
           <a
             class="rounded-full border border-border bg-paper px-4 py-2 text-ink-soft transition hover:border-ink/30 hover:text-ink"
-            href="/quote"
+            href={quoteHref}
           >
             Request a quote
           </a>
@@ -253,7 +269,11 @@ function formatDate(date: Date): string {
 
       <!-- CTA at end of article -->
       <div class="mt-12 rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
-        <p class="section-kicker">Need help with your yard?</p>
+        <p class="section-kicker">
+          {quoteService === "gravel" || quoteService === "driveway"
+            ? "Need help with the driveway?"
+            : "Need help with your yard?"}
+        </p>
         <h2 class="mb-2 text-2xl font-display font-semibold text-ink">
           Get a free quote today
         </h2>
@@ -276,7 +296,7 @@ function formatDate(date: Date): string {
           </a>
           <a
             class="rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:border-ink"
-            href="/quote"
+            href={quoteHref}
           >
             Request a quote
           </a>

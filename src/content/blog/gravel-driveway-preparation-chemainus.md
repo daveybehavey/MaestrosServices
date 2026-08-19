@@ -54,7 +54,7 @@ A practical gravel repair or refresh is often a good fit when:
 - the issue looks localized rather than construction-level
 - you want a cleaner, more usable surface without overselling a full rebuild
 
-Send photos for a quick first look: [/quote?service=driveway#quote](/quote?service=driveway#quote)
+Send photos for a quick first look: [/quote?service=gravel#quote](/quote?service=gravel#quote)
 
 ## When the Job May Need a Larger Driveway Contractor
 
@@ -90,6 +90,6 @@ If you are not sure whether a smaller repair will be enough, that is normal. Pho
 
 Next helpful pages:
 
-- [Send photos for a driveway repair quote](/quote?service=driveway#quote)
+- [Send photos for a gravel driveway quote](/quote?service=gravel#quote)
 - [/services/gravel-driveway-installation/chemainus](/services/gravel-driveway-installation/chemainus)
 - [/driveway-faq](/driveway-faq)

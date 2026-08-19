@@ -79,20 +79,30 @@ const breadcrumbItems = [
   { name: location.name, href: `/services/${service.slug}/${location.slug}` },
 ];
 
+const pageHeading =
+  seoKey === "gravel-driveway-installation:chemainus"
+    ? "Gravel Driveway Preparation in Chemainus"
+    : `${service.shortName} in ${location.name}`;
+
 const pageFaqs = [
   {
     question: `Do you offer ${service.shortName.toLowerCase()} in ${location.name}?`,
     answer: `Yes. ${business.name} provides ${service.shortName.toLowerCase()} for homeowners in ${location.name} and nearby neighborhoods.`,
   },
-  {
-    question: `How often should I book ${service.shortName.toLowerCase()} in ${location.name}?`,
-    answer: `Most properties book during ${service.seasonalRelevance.join(", ")}. We can recommend a weekly, bi-weekly, or seasonal schedule based on your yard.`,
-  },
-  {
-    question: `Can I combine ${service.shortName.toLowerCase()} with other services in ${location.name}?`,
-    answer: `Absolutely. Many homeowners bundle this service with recurring maintenance, garden bed care, and seasonal cleanup visits.`,
-  },
 ];
+
+if (!isDrivewayService) {
+  pageFaqs.push(
+    {
+      question: `How often should I book ${service.shortName.toLowerCase()} in ${location.name}?`,
+      answer: `Most properties book during ${service.seasonalRelevance.join(", ")}. We can recommend a weekly, bi-weekly, or seasonal schedule based on your yard.`,
+    },
+    {
+      question: `Can I combine ${service.shortName.toLowerCase()} with other services in ${location.name}?`,
+      answer: `Absolutely. Many homeowners bundle this service with recurring maintenance, garden bed care, and seasonal cleanup visits.`,
+    },
+  );
+}
 
 if (service.slug === "gravel-driveway-installation") {
   pageFaqs.push({
@@ -202,22 +212,38 @@ const localizedHeroNote = isChemainusDrivewayCluster
     : "This page is built for Chemainus homeowners dealing with puddles, ruts, washboarding, and uneven gravel surfaces who want to know if grading is enough before paying for a bigger refresh."
   : null;
 
-const localProofItems = [
-  {
-    title: `Common request in ${primaryNeighborhood}`,
-    detail: `Around ${primaryLandmark}, homeowners usually ask for ${normalizeFeature(service.features[0])} to keep properties tidy with minimal disruption.`,
-  },
-  {
-    title: `${location.name} seasonal pattern`,
-    detail: `${service.shortName} bookings here are strongest in ${seasonSummary}. We keep scheduling flexible around local weather windows.`,
-  },
-  {
-    title: `Typical bundled scope`,
-    detail: relatedServiceSummary
-      ? `Many quotes in ${location.name} combine this with ${relatedServiceSummary} for ${serviceGoal}.`
-      : `Many quotes in ${location.name} combine this with general yard upkeep for ${serviceGoal}.`,
-  },
-];
+const localProofItems = isDrivewayService
+  ? [
+      {
+        title: `Common request in ${location.name}`,
+        detail: `Requests here usually involve preparation, a surface refresh, or grading when the driveway is thin, rutted, holding water, or breaking down at the edges.`,
+      },
+      {
+        title: `${location.name} seasonal pattern`,
+        detail: `${service.shortName} work here is strongest in ${seasonSummary}. Scheduling stays flexible around local weather windows.`,
+      },
+      {
+        title: "What helps a quote",
+        detail:
+          "Photos of the full driveway plus the worst section are usually enough to tell whether a smaller repair, a refresh, or a broader pass makes sense.",
+      },
+    ]
+  : [
+      {
+        title: `Common request in ${primaryNeighborhood}`,
+        detail: `Around ${primaryLandmark}, homeowners usually ask for ${normalizeFeature(service.features[0])} to keep properties tidy with minimal disruption.`,
+      },
+      {
+        title: `${location.name} seasonal pattern`,
+        detail: `${service.shortName} bookings here are strongest in ${seasonSummary}. We keep scheduling flexible around local weather windows.`,
+      },
+      {
+        title: `Typical bundled scope`,
+        detail: relatedServiceSummary
+          ? `Many quotes in ${location.name} combine this with ${relatedServiceSummary} for ${serviceGoal}.`
+          : `Many quotes in ${location.name} combine this with general yard upkeep for ${serviceGoal}.`,
+      },
+    ];
 
 const serviceFormMap: Record<string, string> = {
   "lawn-mowing": "mowing",
@@ -250,7 +276,7 @@ const localTrustPoints = [
   canonicalUrl={canonicalUrl}
   structuredData={structuredData}
   headerVariant="simple"
-  headerSubtitle={`${service.shortName} in ${location.name}`}
+  headerSubtitle={pageHeading}
   quoteHref="#quote"
   analytics={{
     pageGroup: "service_location_pages",
@@ -264,7 +290,7 @@ const localTrustPoints = [
 
       <div class="mb-10 space-y-4">
         <p class="section-kicker">{location.region}</p>
-        <h1 class="section-title">{service.shortName} in {location.name}</h1>
+        <h1 class="section-title">{pageHeading}</h1>
         <p class="section-copy max-w-3xl">
           {service.longDescription} Homeowners in {location.name} trust us for consistent, friendly
           service and clear communication from quote to cleanup.
@@ -370,7 +396,11 @@ const localTrustPoints = [
               <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
                 <p class="section-kicker">Before and after</p>
                 <h2 class="mb-6 text-2xl font-display font-semibold text-ink sm:text-3xl">
-                  {service.shortName} outcomes in {location.name}
+                  {service.slug === "gravel-driveway-installation"
+                    ? "Typical gravel driveway outcomes"
+                    : service.slug === "driveway-grading"
+                      ? "Typical driveway grading outcomes"
+                      : `${service.shortName} outcomes in ${location.name}`}
                 </h2>
                 <div class="grid gap-4">
                   {service.beforeAfterScenarios.map((scenario) => (
