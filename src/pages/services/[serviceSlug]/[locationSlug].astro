@@ -50,9 +50,9 @@ const locationSeoOverrides: Record<string, { title: string; description: string 
 
 const locationServiceSeoOverrides: Record<string, { title: string; description: string }> = {
   "gravel-driveway-installation:chemainus": {
-    title: `Gravel Driveway Preparation in Chemainus, BC | Refresh and Base Prep`,
+    title: `Gravel Driveway Preparation Near Chemainus, BC | Refresh and Base Prep`,
     description:
-      "Gravel driveway preparation in Chemainus, BC for soft spots, puddles, edge breakdown, and patchy gravel surfaces. Practical base prep, refresh work, and fast residential quotes.",
+      "Gravel driveway preparation near Chemainus, BC for soft spots, puddles, edge breakdown, and patchy gravel surfaces. Send photos and we will confirm whether the job is a good fit.",
   },
   "driveway-grading:chemainus": {
     title: `Driveway Grading in Chemainus, BC | Fix Puddles, Ruts, and Washboarding`,
@@ -62,6 +62,8 @@ const locationServiceSeoOverrides: Record<string, { title: string; description: 
 };
 
 const seoKey = `${service.slug}:${location.slug}`;
+const isChemainusGravel =
+  service.slug === "gravel-driveway-installation" && location.slug === "chemainus";
 
 const pageTitle =
   locationServiceSeoOverrides[seoKey]?.title ??
@@ -79,17 +81,24 @@ const breadcrumbItems = [
   { name: location.name, href: `/services/${service.slug}/${location.slug}` },
 ];
 
-const pageHeading =
-  seoKey === "gravel-driveway-installation:chemainus"
-    ? "Gravel Driveway Preparation in Chemainus"
-    : `${service.shortName} in ${location.name}`;
+const pageHeading = isChemainusGravel
+  ? "Gravel Driveway Preparation Near Chemainus"
+  : `${service.shortName} in ${location.name}`;
 
-const pageFaqs = [
-  {
-    question: `Do you offer ${service.shortName.toLowerCase()} in ${location.name}?`,
-    answer: `Yes. ${business.name} provides ${service.shortName.toLowerCase()} for homeowners in ${location.name} and nearby neighborhoods.`,
-  },
-];
+const pageFaqs = isChemainusGravel
+  ? [
+      {
+        question: "Can you take on gravel driveway projects in Chemainus?",
+        answer:
+          "Depending on the project location, scope, and schedule, we may be able to. Send a few photos and the basic job details, and we will confirm whether it is a good fit.",
+      },
+    ]
+  : [
+      {
+        question: `Do you offer ${service.shortName.toLowerCase()} in ${location.name}?`,
+        answer: `Yes. ${business.name} provides ${service.shortName.toLowerCase()} for homeowners in ${location.name} and nearby neighborhoods.`,
+      },
+    ];
 
 if (!isDrivewayService) {
   pageFaqs.push(
@@ -141,8 +150,14 @@ if (service.slug === "power-washing") {
   });
 }
 
+const serviceLocationSchema = createServiceLocationSchema(service, location);
+if (isChemainusGravel) {
+  serviceLocationSchema.name = "Gravel Driveway Preparation Near Chemainus";
+  serviceLocationSchema.description = `${service.description} We may be able to take on gravel driveway work near Chemainus depending on location, scope, and schedule.`;
+}
+
 const structuredData = [
-  createServiceLocationSchema(service, location),
+  serviceLocationSchema,
   createBreadcrumbSchema(breadcrumbItems),
   createFAQSchema(pageFaqs),
 ];
@@ -208,11 +223,28 @@ const isChemainusDrivewayCluster =
 
 const localizedHeroNote = isChemainusDrivewayCluster
   ? service.slug === "gravel-driveway-installation"
-    ? "This page is built for Chemainus homeowners comparing driveway preparation, fresh gravel, and partial refresh work when the surface feels thin, soft, or patchy."
+    ? "This page is for homeowners near Chemainus comparing driveway preparation, fresh gravel, and partial refresh work when the surface feels thin, soft, or patchy."
     : "This page is built for Chemainus homeowners dealing with puddles, ruts, washboarding, and uneven gravel surfaces who want to know if grading is enough before paying for a bigger refresh."
   : null;
 
-const localProofItems = isDrivewayService
+const localProofItems = isChemainusGravel
+  ? [
+      {
+        title: "Common request near Chemainus",
+        detail:
+          "Requests usually involve preparation, a surface refresh, or grading when the driveway is thin, rutted, holding water, or breaking down at the edges.",
+      },
+      {
+        title: "Seasonal pattern",
+        detail: `${service.shortName} work is strongest in ${seasonSummary}. Scheduling stays flexible around local weather windows.`,
+      },
+      {
+        title: "What helps a quote",
+        detail:
+          "Photos of the full driveway plus the worst section are usually enough to tell whether a smaller repair, a refresh, or a broader pass makes sense, and whether the job is a good fit.",
+      },
+    ]
+  : isDrivewayService
   ? [
       {
         title: `Common request in ${location.name}`,
@@ -263,11 +295,17 @@ const serviceFormMap: Record<string, string> = {
   "gravel-driveway-installation": "gravel",
 };
 
-const localTrustPoints = [
-  `You are reaching the owner directly for ${service.shortName.toLowerCase()} in ${location.name}.`,
-  "If a smaller fix, different service, or another trade makes more sense, we would rather tell you that early.",
-  "You can read reviews first, check the review page, and then decide if you want to contact us.",
-] as const;
+const localTrustPoints = isChemainusGravel
+  ? [
+      "You are reaching the owner directly. We will confirm whether a Chemainus-area gravel driveway job is a good fit.",
+      "If a smaller fix, different service, or another trade makes more sense, we would rather tell you that early.",
+      "You can read reviews first, check the review page, and then decide if you want to contact us.",
+    ]
+  : [
+      `You are reaching the owner directly for ${service.shortName.toLowerCase()} in ${location.name}.`,
+      "If a smaller fix, different service, or another trade makes more sense, we would rather tell you that early.",
+      "You can read reviews first, check the review page, and then decide if you want to contact us.",
+    ];
 ---
 
 <Layout
@@ -292,8 +330,19 @@ const localTrustPoints = [
         <p class="section-kicker">{location.region}</p>
         <h1 class="section-title">{pageHeading}</h1>
         <p class="section-copy max-w-3xl">
-          {service.longDescription} Homeowners in {location.name} trust us for consistent, friendly
-          service and clear communication from quote to cleanup.
+          {
+            isChemainusGravel ? (
+              <>
+                {service.longDescription} If you are near Chemainus, send the project details and we
+                will confirm whether it is a good fit.
+              </>
+            ) : (
+              <>
+                {service.longDescription} Homeowners in {location.name} trust us for consistent,
+                friendly service and clear communication from quote to cleanup.
+              </>
+            )
+          }
         </p>
         {
           localizedHeroNote && (
@@ -331,16 +380,18 @@ const localTrustPoints = [
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
             <p class="section-kicker">Local focus</p>
             <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
-              Service details for {location.name}
+              {isChemainusGravel ? "Details for driveway work near Chemainus" : `Service details for ${location.name}`}
             </h2>
             <p class="mb-5 text-sm leading-relaxed text-ink-soft">
-              We schedule around local weather, lot sizes, and neighborhood access patterns in {location.name}
-              so the work feels smooth, the communication stays clear, and the final result looks
-              professional without extra hassle.
+              {
+                isChemainusGravel
+                  ? "Weather, lot access, and driveway condition all affect whether a Chemainus-area gravel job is a good fit. Photos usually make that clearer before anyone commits to a visit."
+                  : `We schedule around local weather, lot sizes, and neighborhood access patterns in ${location.name} so the work feels smooth, the communication stays clear, and the final result looks professional without extra hassle.`
+              }
             </p>
 
             {
-              neighborhoodList.length > 0 && (
+              neighborhoodList.length > 0 && !isChemainusGravel && (
                 <div class="mb-5">
                   <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
                     Neighborhoods we regularly serve
@@ -377,7 +428,9 @@ const localTrustPoints = [
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
             <p class="section-kicker">Local proof</p>
             <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
-              What homeowners ask for in {location.name}
+              {isChemainusGravel
+                ? "What homeowners ask about near Chemainus"
+                : `What homeowners ask for in ${location.name}`}
             </h2>
             <div class="grid gap-4 sm:grid-cols-3">
               {
@@ -596,7 +649,11 @@ const localTrustPoints = [
       <div class="mb-8 space-y-3">
         <p class="section-kicker">Request a quote</p>
         <h2 class="section-title">
-          Get {service.shortName.toLowerCase()} in {location.name}
+          {
+            isChemainusGravel
+              ? "Ask about gravel driveway work near Chemainus"
+              : `Get ${service.shortName.toLowerCase()} in ${location.name}`
+          }
         </h2>
         <p class="text-sm text-ink-soft">
           Need a faster response? Call or text{" "}

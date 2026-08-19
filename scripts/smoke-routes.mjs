@@ -102,7 +102,8 @@ const contentChecks = [
   {
     file: "dist/services/gravel-driveway-installation/chemainus/index.html",
     includes: [
-      "Gravel Driveway Preparation in Chemainus",
+      "Gravel Driveway Preparation Near Chemainus",
+      "Can you take on gravel driveway projects in Chemainus?",
       "Typical gravel driveway outcomes",
     ],
     excludes: [
@@ -110,6 +111,10 @@ const contentChecks = [
       "weekly, bi-weekly, or seasonal schedule",
       "combine this with lawn mowing and hedge trimming",
       "Gravel Driveways outcomes in Chemainus",
+      "Do you offer gravel driveways in Chemainus?",
+      "Homeowners in Chemainus trust us",
+      "Neighborhoods we regularly serve",
+      "Get gravel driveways in Chemainus",
     ],
   },
 ];

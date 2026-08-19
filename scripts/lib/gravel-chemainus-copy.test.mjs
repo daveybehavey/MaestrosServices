@@ -15,14 +15,26 @@ test("Chemainus gravel blog quote CTAs preselect gravel, not driveway grading", 
   assert.equal(source.includes("service=driveway"), false);
 });
 
-test("Chemainus gravel location page heading matches preparation intent", () => {
+test("Chemainus gravel location page heading stays conservative", () => {
   const source = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
-  assert.match(
-    source,
-    /seoKey === "gravel-driveway-installation:chemainus"/,
-  );
-  assert.match(source, /Gravel Driveway Preparation in Chemainus/);
+  assert.match(source, /isChemainusGravel/);
+  assert.match(source, /Gravel Driveway Preparation Near Chemainus/);
+  assert.equal(source.includes("Gravel Driveway Preparation in Chemainus"), false);
   assert.match(source, /<h1 class="section-title">\{pageHeading\}<\/h1>/);
+});
+
+test("Chemainus gravel FAQ is conditional, not an absolute yes", () => {
+  const source = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
+  assert.match(source, /Can you take on gravel driveway projects in Chemainus\?/);
+  assert.match(source, /we may be able to/);
+  assert.equal(source.includes("Do you offer gravel driveways in Chemainus?"), false);
+});
+
+test("Chemainus remains a candidate service area, not verified", () => {
+  const facts = JSON.parse(read("growth/service-areas.json"));
+  const chemainus = facts.areas.find((area) => area.id === "area.chemainus");
+  assert.equal(chemainus.status, "candidate");
+  assert.equal(chemainus.verifiedAt, null);
 });
 
 test("driveway location pages do not inject weekly booking FAQs", () => {
