@@ -1,206 +1,106 @@
+<div align="center">
+
 # Maestros Services
 
-Static Astro site for Maestros Services, a residential landscaping business serving lower-mid Vancouver Island.
+**Production local-business website and growth tooling for a Vancouver Island landscaping company.**
 
-The site is built around data files in `src/data`, content collections in `src/content`, and a set of reusable Astro templates in `src/components` and `src/pages`.
+[Live Site](https://maestrosservices.com) · [EuroDigital Portfolio](https://eurodigital.ca)
 
-## What's In The Repo
+</div>
 
-- `src/pages/` - homepage, service pages, area pages, blog, quote form, FAQ hubs, and 404
-- `src/components/` - shared layout, header, footer, SEO, CTA, breadcrumbs, and quote form
-- `src/data/` - business profile, services, service areas, homepage copy, projects, and FAQs
-- `src/content/blog/` - blog posts
-- `src/lib/schema.ts` - JSON-LD helpers for SEO and structured data
-- `functions/api/quote.ts` - quote form submission endpoint
-- `public/` - images, logos, favicon, sitemap helpers, and static assets
-- `scripts/smoke-routes.mjs` - build smoke check
+---
 
-## Key Routes
+## Overview
 
-- `/` - homepage
-- `/services` - service index
-- `/services/[slug]` - individual service detail pages
-- `/services/[serviceSlug]/[locationSlug]` - localized service pages
-- `/areas/[slug]` - area landing pages
-- `/service-area` - service area hub
-- `/services-by-area` - localized service browser
-- `/blog` - blog index
-- `/blog/[slug]` - blog posts
-- `/quote` - quote form
-- `/driveway-faq` - driveway FAQ hub
-- `/projects` - project profiles
-- `/404` - custom 404 page
+Maestros Services is a production Astro/TypeScript website built around local lead generation, search visibility, reusable content, and measurable growth workflows.
+
+Rather than treating the site as a small collection of static pages, the project uses structured service/location data, reusable templates, automated validation, Google reporting integrations, and business-profile tooling to support ongoing local marketing and operations.
+
+## Product Highlights
+
+- Responsive service-business website with quote/contact flows
+- Structured service, location, project, FAQ, and blog content
+- Reusable localized service/location page generation
+- Schema.org / JSON-LD structured data for SEO
+- Google Business Profile API tooling
+- GA4 and Search Console reporting workflows
+- Google Ads campaign/conversion tooling
+- Review, keyword, and business-profile monitoring helpers
+- Automated route smoke tests and production build validation
+- Lighthouse mobile/desktop performance auditing
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Framework | Astro 5 |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| SEO | Sitemap, structured data, localized content architecture |
+| Analytics | GA4, Google Search Console |
+| Local Search | Google Business Profile APIs |
+| Advertising | Google Ads API tooling |
+| QA | Node tests, route smoke tests, Lighthouse, Astro checks |
+
+## Site Architecture
+
+The site is data-driven. Shared service, location, project, FAQ, and business information is stored centrally and rendered through reusable templates.
+
+Key surfaces include:
+
+- service and service-detail pages
+- localized service-by-area pages
+- area landing pages
+- blog and project profiles
+- quote flows
+- FAQ hubs
+- custom 404 handling
+
+This architecture makes it possible to expand coverage without duplicating page logic or manually maintaining hundreds of disconnected pages.
+
+## Growth & Reporting Tooling
+
+The repository includes scripts for read-only and operational workflows around:
+
+- Google Business Profile accounts and locations
+- profile performance and search keywords
+- reviews and profile audits
+- GA4 and Search Console reporting
+- Google Ads customers, campaigns, search terms, and conversions
+- website conversion configuration and campaign assets
+
+Automated tests cover the supporting growth/reporting logic so marketing tooling is not treated as unverified scripting.
+
+## Quality Checks
+
+```bash
+npm run build:smoke
+npm run test
+npm run lighthouse:mobile
+npm run lighthouse:desktop
+```
+
+The production build and route smoke checks are the primary release validation gates for this static-first site.
 
 ## Local Development
 
-```sh
+```bash
 npm install
 npm run dev
 ```
 
-Astro dev server runs on `http://localhost:4321`.
+Astro runs locally on `http://localhost:4321` by default.
 
-## Validation
+## Production
 
-```sh
-npm run build
-npm run astro -- check
-npm run smoke
-```
+**Live:** https://maestrosservices.com
 
-For a full production validation:
+The project demonstrates small-business web development, scalable content architecture, technical SEO, analytics/reporting integration, automated QA, and practical growth tooling.
 
-```sh
-npm run build:smoke
-```
+---
 
-## Google Reporting
+<div align="center">
 
-If `.env.local` contains the Google OAuth values and GA4 property ID, you can pull reporting data locally:
+Built and maintained as part of **EuroDigital** client work.
 
-```sh
-npm run reporting:summary
-```
-
-Other options:
-
-```sh
-npm run reporting:ga4
-npm run reporting:gsc
-```
-
-Reports are written to `qa-reports/` as JSON for later review.
-
-## Google Business Profile API
-
-GBP commands live in `scripts/google-business-profile.mjs` with shared helpers in `scripts/lib/gbp.mjs`.
-
-### Auth and config separation
-
-| Concern | Script | Preferred env vars | Fallback |
-| --- | --- | --- | --- |
-| GBP Business Profile | `scripts/google-business-profile.mjs` | `GOOGLE_GBP_OAUTH_CLIENT_ID`, `GOOGLE_GBP_OAUTH_CLIENT_SECRET`, `GOOGLE_GBP_OAUTH_REFRESH_TOKEN` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN` |
-| GA4 + Search Console reporting | `scripts/google-reporting.mjs` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN` | none |
-
-Preferred practice: keep a **GBP write-capable** OAuth client/refresh token (`business.manage`) in the `GOOGLE_GBP_OAUTH_*` vars, and use a more limited reporting credential in `GOOGLE_OAUTH_*` for GA4/GSC. The GBP script preserves that separation and only falls back to shared `GOOGLE_OAUTH_*` when a GBP-specific value is unset.
-
-Also set:
-
-- `GOOGLE_GBP_ACCOUNT_NAME` (`accounts/{id}`)
-- `GOOGLE_GBP_LOCATION_NAME` (`locations/{id}` or `accounts/{id}/locations/{id}`)
-
-Required GBP OAuth scope:
-
-```text
-https://www.googleapis.com/auth/business.manage
-```
-
-Enable these Google Cloud APIs on the OAuth client project before smoke testing:
-
-- My Business Account Management API (`mybusinessaccountmanagement.googleapis.com`) — `gbp:accounts`
-- My Business Business Information API (`mybusinessbusinessinformation.googleapis.com`) — `gbp:locations`, `gbp:profile-audit`
-- Business Profile Performance API (`businessprofileperformance.googleapis.com`) — `gbp:performance`, `gbp:search-keywords`
-- Google My Business API (`mybusiness.googleapis.com`) — legacy v4 needed for `gbp:list-posts`, `gbp:reviews`, and post publish
-
-Inspect which credential source is active without printing secrets:
-
-```sh
-npm run gbp:auth-info
-```
-
-### Read-only local smoke (Growth Ops P0 / P1)
-
-Do **not** run `gbp:create-post` during verification. These commands are read-only measurement / discovery:
-
-```sh
-npm run test:gbp
-npm run gbp:auth-info
-npm run gbp:accounts
-npm run gbp:locations
-npm run gbp:list-posts
-npm run gbp:performance
-npm run gbp:search-keywords
-npm run gbp:reviews
-npm run gbp:profile-audit
-npm run reporting:ga4
-npm run reporting:gsc
-```
-
-Reports write JSON under gitignored `qa-reports/` (`gbp-performance.json`, `gbp-search-keywords.json`, `gbp-reviews.json`, `gbp-profile-audit.json`).
-
-`gbp:performance` defaults to the last **28 completed UTC calendar days** (inclusive `endDate` = yesterday UTC, `startDate` = end minus 27 days). Google's Performance `DailyRange` treats both ends as inclusive.
-
-If a command returns HTTP 403 mentioning an API "has not been used" or "is disabled", enable that API on the Cloud project and retry. Do not create posts or mutate profile fields while debugging enablement.
-
-### Publishing posts (manual only)
-
-Publishing remains an explicit local action, not part of smoke verification:
-
-```sh
-npm run gbp:create-post -- "Post summary" "https://maestrosservices.com/quote" "https://example.com/image.png"
-```
-## Google Tags
-
-The site supports both GA4 and Google Ads tags through environment variables:
-
-- `PUBLIC_GA_ID`
-- `PUBLIC_GOOGLE_ADS_ID`
-- `PUBLIC_GOOGLE_ADS_QUOTE_LABEL`
-- `PUBLIC_GOOGLE_ADS_PHONE_LABEL`
-- `PUBLIC_GOOGLE_ADS_SMS_LABEL`
-
-If both are present, the shared `gtag.js` loader is injected once and configured for both properties.
-
-## Google Ads API
-
-If `.env.local` contains the Google Ads API values, you can verify account access locally:
-
-```sh
-npm run ads:smoke
-```
-
-Other options:
-
-```sh
-npm run ads:customers
-npm run ads:campaigns
-npm run ads:search-terms
-npm run ads:conversions
-npm run ads:create:website-conversions
-npm run ads:create:power-washing
-npm run ads:add:trust-assets -- 23882682845
-```
-
-Expected environment values:
-
-- `GOOGLE_ADS_DEVELOPER_TOKEN`
-- `GOOGLE_ADS_CUSTOMER_ID`
-- `GOOGLE_ADS_LOGIN_CUSTOMER_ID`
-- `GOOGLE_ADS_OAUTH_CLIENT_ID`
-- `GOOGLE_ADS_OAUTH_CLIENT_SECRET`
-- `GOOGLE_ADS_OAUTH_REFRESH_TOKEN`
-
-If you reuse the general Google OAuth app, the ads script will fall back to `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and `GOOGLE_OAUTH_REFRESH_TOKEN`, but the refresh token still needs the Google Ads scope: `https://www.googleapis.com/auth/adwords`.
-
-## Content Model
-
-Most site content is generated from the files below:
-
-- `src/data/business.ts` - business name, phone, email, social links, and site metadata
-- `src/data/services.ts` - services, FAQs, features, and before/after scenarios
-- `src/data/locations.ts` - service areas and regions
-- `src/data/homepage.ts` - homepage copy and homepage highlights
-- `src/data/projects.ts` - project profile cards
-- `src/data/faqs.ts` - homepage and area FAQ content
-
-If you add a new service or area, update the relevant data file first and then let the page templates generate the route output.
-
-## Quote Flow
-
-The quote form posts to `functions/api/quote.ts`. That endpoint handles the lead payload and is used by the quote page and the embedded quote forms on service and area pages.
-
-## Notes
-
-- The repo currently uses an npm override for `shiki` so Astro can build cleanly in this workspace.
-- The site is intended to stay static, so the production build is the most important test.
-- If you change routes or add new content families, update `scripts/smoke-routes.mjs` so the smoke test keeps covering the important pages.
+</div>
