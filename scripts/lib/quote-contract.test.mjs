@@ -113,3 +113,116 @@ test('quote failed captcha prevents delivery', async () => {
   assert.equal(h.calls.length, 1);
   assert.equal(h.calls[0].url, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
 });
+
+for (const failure of ['non-ok', 'throw']) {
+  test('quote retries identical input after delivery ' + failure, async () => {
+    let attempts = 0;
+    const h = harness(async () => {
+      if (++attempts === 1) {
+        if (failure === 'throw') throw new Error('synthetic transport failure');
+        return { ok: false };
+      }
+      return { ok: true };
+    });
+    redirect(await h.submit(), 'error');
+    redirect(await h.submit(), 'submitted');
+    redirect(await h.submit(), 'submitted');
+    assert.equal(attempts, 2, 'Only the failed attempt and successful retry send');
+  });
+}
+
+test('quote suppresses an identical successful delivery', async () => {
+  const h = harness();
+  redirect(await h.submit(), 'submitted');
+  redirect(await h.submit(), 'submitted');
+  assert.equal(h.calls.length, 1);
+});
+
+for (const outcome of ['success', 'non-ok', 'throw']) {
+  test('quote concurrent duplicate cannot claim success during ' + outcome, async () => {
+    let release;
+    let entered;
+    const started = new Promise(resolve => { entered = resolve; });
+    const pending = new Promise(resolve => { release = resolve; });
+    let attempts = 0;
+    const h = harness(async () => {
+      if (++attempts === 1) {
+        entered();
+        await pending;
+        if (outcome === 'throw') throw new Error('synthetic transport failure');
+        return { ok: outcome === 'success' };
+      }
+      return { ok: true };
+    });
+    const first = h.submit();
+    await started;
+    try {
+      redirect(await h.submit(), 'error');
+      assert.equal(attempts, 1, 'No second delivery while the first is pending');
+    } finally {
+      release();
+    }
+    redirect(await first, outcome === 'success' ? 'submitted' : 'error');
+    redirect(await h.submit(), 'submitted');
+    assert.equal(attempts, outcome === 'success' ? 1 : 2);
+  });
+}
+
+test('quote missing configuration does not poison an identical retry', async () => {
+  const h = harness();
+  redirect(await h.submit({}, {}), 'error');
+  redirect(await h.submit(), 'submitted');
+  assert.equal(h.calls.length, 1);
+});
+
+test('quote captcha failure does not poison retry or bypass captcha after success', async () => {
+  let checks = 0;
+  let deliveries = 0;
+  const h = harness(async url => {
+    if (url.includes('turnstile')) return { json: async () => ({ success: ++checks === 2 }) };
+    deliveries++;
+    return { ok: true };
+  });
+  const env = { ...syntheticEnv, TURNSTILE_SECRET: 'synthetic-secret' };
+  const fields = { 'cf-turnstile-response': 'synthetic-token' };
+  redirect(await h.submit(fields, env), 'error');
+  redirect(await h.submit(fields, env), 'submitted');
+  redirect(await h.submit(fields, env), 'error');
+  assert.equal(checks, 3);
+  assert.equal(deliveries, 1);
+});
+
+test('quote rechecks completed duplicate after concurrent captcha validation', async () => {
+  let release;
+  let entered;
+  const started = new Promise(resolve => { entered = resolve; });
+  const pending = new Promise(resolve => { release = resolve; });
+  let checks = 0;
+  let deliveries = 0;
+  const h = harness(async url => {
+    if (url.includes('turnstile')) {
+      if (++checks === 1) { entered(); await pending; }
+      return { json: async () => ({ success: true }) };
+    }
+    deliveries++;
+    return { ok: true };
+  });
+  const env = { ...syntheticEnv, TURNSTILE_SECRET: 'synthetic-secret' };
+  const fields = { 'cf-turnstile-response': 'synthetic-token' };
+  const first = h.submit(fields, env);
+  await started;
+  try { redirect(await h.submit(fields, env), 'submitted'); }
+  finally { release(); }
+  redirect(await first, 'submitted');
+  assert.equal(checks, 2);
+  assert.equal(deliveries, 1);
+});
+
+test('quote failed-delivery retries retain the existing per-IP rate limit', async () => {
+  const h = harness(async () => ({ ok: false }));
+  const headers = { 'CF-Connecting-IP': '192.0.2.10' };
+  for (let i = 0; i < 4; i++) redirect(await h.submit({}, syntheticEnv, headers), 'error');
+  // Existing anti-abuse behavior quietly suppresses the fifth request.
+  redirect(await h.submit({}, syntheticEnv, headers), 'submitted');
+  assert.equal(h.calls.length, 4);
+});
