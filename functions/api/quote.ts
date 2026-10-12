@@ -12,6 +12,7 @@ const MAX_SHORT_VALUE_LENGTH = 180;
 
 const recentRequestsByIp = new Map<string, number[]>();
 const recentSubmissions = new Map<string, number>();
+const pendingSubmissions = new Set<string>();
 
 const escapeHtml = (value: string) =>
   value
@@ -65,7 +66,6 @@ const wasRecentlySubmitted = (signature: string, now: number) => {
   if (previous && now - previous <= DUPLICATE_WINDOW_MS) {
     return true;
   }
-  recentSubmissions.set(signature, now);
   return false;
 };
 
@@ -228,9 +228,6 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
   }
 
   const duplicateSignature = [phoneDigits, area.toLowerCase(), service.toLowerCase(), details.toLowerCase().slice(0, 160)].join("|");
-  if (wasRecentlySubmitted(duplicateSignature, now)) {
-    return Response.redirect(redirectOk, 303);
-  }
 
   if (turnstileRequired && !turnstileSecret) {
     return Response.redirect(redirectError, 303);
@@ -270,6 +267,15 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
 
   const resendKey = env.RESEND_API_KEY;
   if (!resendKey) {
+    return Response.redirect(redirectError, 303);
+  }
+
+  // Check after asynchronous CAPTCHA validation: another request may have
+  // completed while it was pending. Only confirmed delivery is a duplicate.
+  if (wasRecentlySubmitted(duplicateSignature, now)) {
+    return Response.redirect(redirectOk, 303);
+  }
+  if (pendingSubmissions.has(duplicateSignature)) {
     return Response.redirect(redirectError, 303);
   }
 
@@ -338,6 +344,7 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     }
   `;
 
+  pendingSubmissions.add(duplicateSignature);
   try {
     const response = await fetch(RESEND_ENDPOINT, {
       method: "POST",
@@ -357,8 +364,11 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     if (!response.ok) {
       return Response.redirect(redirectError, 303);
     }
+    recentSubmissions.set(duplicateSignature, Date.now());
   } catch {
     return Response.redirect(redirectError, 303);
+  } finally {
+    pendingSubmissions.delete(duplicateSignature);
   }
 
   return Response.redirect(redirectOk, 303);
