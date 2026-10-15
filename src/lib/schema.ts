@@ -1,7 +1,20 @@
 import { business } from "../data/business";
-import type { Location } from "../data/locations";
+import { locations, type Location } from "../data/locations";
 import type { Service } from "../data/services";
 import type { FAQ } from "../data/faqs";
+
+/** Matches the homepage meta description in src/pages/index.astro */
+const homepageDescription =
+  "Owner-operated landscaping, power washing, driveway work, fence repairs, and cleanups across lower-mid Vancouver Island. Direct replies and low-pressure quotes.";
+
+const allServiceAreas = locations.map((location) => ({
+  "@type": "City" as const,
+  name: location.name,
+  containedInPlace: {
+    "@type": "AdministrativeArea" as const,
+    name: "British Columbia",
+  },
+}));
 
 export const createLocalBusinessSchema = (location?: Location) => ({
   "@context": "https://schema.org",
@@ -9,6 +22,7 @@ export const createLocalBusinessSchema = (location?: Location) => ({
   "@id": `${business.siteUrl}/#business`,
   name: location ? `${business.name} - ${location.name}` : business.name,
   url: business.siteUrl,
+  description: homepageDescription,
   telephone: business.phoneTel,
   email: business.email,
   image: `${business.siteUrl}${business.socialImage}`,
@@ -28,16 +42,16 @@ export const createLocalBusinessSchema = (location?: Location) => ({
   ...(business.sameAs.length > 0 && {
     sameAs: [...business.sameAs],
   }),
-  ...(location && {
-    areaServed: {
-      "@type": "City",
-      name: location.name,
-      containedInPlace: {
-        "@type": "AdministrativeArea",
-        name: "British Columbia",
-      },
-    },
-  }),
+  areaServed: location
+    ? {
+        "@type": "City",
+        name: location.name,
+        containedInPlace: {
+          "@type": "AdministrativeArea",
+          name: "British Columbia",
+        },
+      }
+    : allServiceAreas,
 });
 
 export const createLocationPageSchema = (location: Location) => ({
@@ -205,12 +219,11 @@ export const createWebsiteSchema = () => ({
 });
 
 export const createHomepageBusinessSchema = (
-  areaServed: string[],
+  _areaServed: string[],
   serviceType: string[],
   description: string
 ) => ({
   ...createLocalBusinessSchema(),
-  areaServed,
   serviceType,
   description,
 });

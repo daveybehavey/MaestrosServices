@@ -18,6 +18,7 @@ export const business = {
   socialImage: "/og-image.png?v=4",
   sameAs: [
     "https://www.facebook.com/profile.php?id=61588020354024",
+    "https://www.google.com/maps/place/Maestros+Services/data=!4m2!3m1!1s0x0:0xee225b1441c0ec49",
   ],
   trackedLinks: {
     googleBusinessQuote:
