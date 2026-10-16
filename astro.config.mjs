@@ -1,6 +1,9 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { buildBlogLastmodByUrl, lastmodForSitemapUrl } from './src/lib/sitemapLastmod.ts';
+
+const blogLastmodByUrl = buildBlogLastmodByUrl();
 
 // https://astro.build/config
 export default defineConfig({
@@ -10,6 +13,12 @@ export default defineConfig({
       filter: (page) => !page.includes('/404'),
       changefreq: 'weekly',
       priority: 0.7,
+      serialize(item) {
+        return {
+          ...item,
+          lastmod: lastmodForSitemapUrl(item.url, blogLastmodByUrl),
+        };
+      },
     }),
   ],
 });
