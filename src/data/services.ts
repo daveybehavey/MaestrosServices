@@ -302,14 +302,14 @@ export const services: Service[] = [
       "Treatment for moss and algae on hard surfaces",
       "Surface-safe approach by material type",
       "Focus on slip-prone traffic areas",
-      "Optional tie-in with power washing service",
+      "Optional tie-in with pressure washing service",
       "Post-treatment cleanup and next-step guidance",
     ],
     faqs: [
       {
-        question: "Is this the same as power washing?",
+        question: "Is this the same as pressure washing?",
         answer:
-          "Not exactly. Moss and algae treatment targets biological buildup specifically. It can be done on its own or paired with power washing for a full reset.",
+          "Not exactly. Moss and algae treatment targets biological buildup specifically. It can be done on its own or paired with pressure washing for a full reset.",
       },
       {
         question: "Where do you usually apply this service?",
@@ -345,7 +345,7 @@ export const services: Service[] = [
         {
           question: "Can fence work be bundled with other yard services?",
           answer:
-            "Yes. Fence work is often paired with mulching, power washing, and rock edging to improve overall curb appeal in one visit.",
+            "Yes. Fence work is often paired with mulching, pressure washing, and rock edging to improve overall curb appeal in one visit.",
         },
         {
           question: "How do I know if my fence is a repair or replacement situation?",
@@ -376,42 +376,48 @@ export const services: Service[] = [
   },
   {
     id: "power-washing",
-    slug: "power-washing",
-    name: "Power Washing for Driveways, Patios, and Exteriors",
-    shortName: "Power Washing",
+    slug: "pressure-washing",
+    name: "Pressure Washing for Driveways, Sidewalks, Decks, and Exteriors",
+    shortName: "Pressure Washing",
     description:
-      "Residential power washing and pressure washing for driveways, patios, decks, and exterior surfaces that need a cleaner, fresher finish.",
+      "Residential pressure washing for driveways, sidewalks, siding, decks, fences, and concrete surfaces that need moss, algae, and grime cleaned off.",
     longDescription:
-      "Our power washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so driveways, patios, decks, walkways, fences, and exterior surfaces look fresh without unnecessary wear. It is a strong choice before photos, listing prep, seasonal resets, or when hard surfaces start to look older than they are.",
+      "Our pressure washing service restores curb appeal by cleaning high-traffic exterior surfaces safely and efficiently. We adjust pressure by surface type, pre-rinse nearby areas, and leave the site tidy so driveways, sidewalks, decks, fences, concrete pads, and siding look fresher without unnecessary wear. It is a practical choice for moss and algae removal, seasonal resets, listing prep, or when hard surfaces start to look older than they are.",
     features: [
-      "Driveway, patio, and walkway washing",
-      "Deck, fence, and exterior wall cleaning",
+      "Driveway, sidewalk, and walkway washing",
+      "Deck, fence, siding, and concrete surface cleaning",
+      "Moss and algae buildup removal on hard surfaces",
       "Surface-safe pressure adjustment by material",
       "Pre-wet and rinse-down around nearby plants",
       "Post-wash cleanup and finish check",
     ],
-      faqs: [
-        {
-          question: "What surfaces can you power wash?",
-          answer:
-            "We clean concrete, pavers, stone, vinyl siding, many decks, and most fences. We review each surface first and confirm the right method before starting.",
-        },
-        {
-          question: "Do you offer deck cleaning and patio washing too?",
-          answer:
-            "Yes. Many power washing requests include decks, patios, walkways, and other exterior surfaces alongside the driveway. We check the material first and use the right method for each surface.",
-        },
-        {
-          question: "Do you use high pressure on every surface?",
-          answer:
-            "No. We match pressure to the material and use gentler washing where needed to avoid damage while still removing buildup.",
-        },
-        {
-          question: "Will power washing remove every stain completely?",
-          answer:
-            "Not always. Organic buildup, grime, and surface dirt usually improve well, but some older staining, rust marks, or deeply set discoloration may only improve partially. We would rather set that expectation clearly than overpromise.",
-        },
-      ],
+    faqs: [
+      {
+        question: "What surfaces can you pressure wash?",
+        answer:
+          "We clean concrete, pavers, stone, vinyl siding, many decks, sidewalks, and most fences. We review each surface first and confirm the right method before starting.",
+      },
+      {
+        question: "Do you clean driveways, decks, fences, and siding?",
+        answer:
+          "Yes. Common pressure washing requests include driveways, sidewalks, decks, fences, concrete, and exterior siding. We check the material first and use the right method for each surface.",
+      },
+      {
+        question: "Can pressure washing help with moss and algae?",
+        answer:
+          "Yes. Pressure washing is often used to clear moss, algae, and organic buildup from hard surfaces. Stubborn biological growth may also pair well with our moss and algae treatment when a fuller reset is needed.",
+      },
+      {
+        question: "Do you use high pressure on every surface?",
+        answer:
+          "No. We match pressure to the material and use gentler washing where needed to avoid damage while still removing buildup.",
+      },
+      {
+        question: "Will pressure washing remove every stain completely?",
+        answer:
+          "Not always. Organic buildup, grime, and surface dirt usually improve well, but some older staining, rust marks, or deeply set discoloration may only improve partially. We would rather set that expectation clearly than overpromise.",
+      },
+    ],
     beforeAfterScenarios: [
       {
         before:
@@ -423,14 +429,14 @@ export const services: Service[] = [
       },
       {
         before:
-          "Patio and fence lines looked dull with seasonal buildup and embedded dirt.",
+          "Patio, sidewalk, and fence lines looked dull with seasonal moss buildup and embedded dirt.",
         after:
           "Completed a full surface wash and detail pass around corners, joints, and transitions.",
         result:
           "Outdoor living areas looked reset and ready for regular maintenance.",
       },
     ],
-    relatedServices: ["seasonal-cleanups", "driveway-grading", "garden-bed-maintenance"],
+    relatedServices: ["moss-algae-treatment", "seasonal-cleanups", "driveway-grading"],
     seasonalRelevance: ["spring", "summer", "fall"],
   },
   {

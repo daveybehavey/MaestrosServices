@@ -33,7 +33,7 @@ Reports are written to `qa-reports/` as both HTML and JSON.
 
 - `/`
 - `/quote`
-- `/services/power-washing`
+- `/services/pressure-washing`
 - `/services/fence-work-minor-repairs`
 - `/services/garden-bed-maintenance`
 

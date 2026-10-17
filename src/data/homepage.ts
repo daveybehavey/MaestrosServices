@@ -16,9 +16,9 @@ export const homepagePackages = [
       "Decorative rock edging and small wall touch-ups to restore structure and cleaner property lines.",
   },
   {
-    name: "Power Wash Reset",
+    name: "Pressure Wash Reset",
     description:
-      "Driveways, patios, and walkways cleaned up fast when surfaces look tired or slippery.",
+      "Driveways, sidewalks, decks, and exterior surfaces cleaned up fast when they look tired or slippery.",
   },
   {
     name: "Mulch Refresh",

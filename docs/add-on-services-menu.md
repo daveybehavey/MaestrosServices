@@ -22,7 +22,7 @@ If you want one added, tell us which and we will include it in your quote.
 - Fence refresh + gutter cleaning
 - Rock work refresh + light pruning
 - Mulch refresh + light pruning
-- Power washing + moss/algae treatment
+- Pressure washing + moss/algae treatment
 
 ## Tracking
 

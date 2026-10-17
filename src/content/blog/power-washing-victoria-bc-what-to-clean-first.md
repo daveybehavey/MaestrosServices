@@ -45,7 +45,7 @@ Driveways are often the strongest first choice when:
 
 Driveway washing can make the whole approach feel cleaner very quickly.
 
-Service page: [/services/power-washing/victoria](/services/power-washing/victoria)
+Service page: [/services/pressure-washing/victoria](/services/pressure-washing/victoria)
 
 ## Walkways And Entries Matter For Safety Too
 
@@ -117,6 +117,6 @@ For a quick quote, send:
 
 Helpful next pages:
 
-- [/services/power-washing/victoria](/services/power-washing/victoria)
-- [/services/power-washing/saanich](/services/power-washing/saanich)
-- [/services/power-washing](/services/power-washing)
+- [/services/pressure-washing/victoria](/services/pressure-washing/victoria)
+- [/services/pressure-washing/saanich](/services/pressure-washing/saanich)
+- [/services/pressure-washing](/services/pressure-washing)

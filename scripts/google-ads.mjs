@@ -375,7 +375,7 @@ const createPowerWashingSearchCampaign = async (accessToken) => {
             adGroup: adGroupResourceName,
             status: "PAUSED",
             ad: {
-              finalUrls: ["https://maestrosservices.com/services/power-washing/"],
+              finalUrls: ["https://maestrosservices.com/services/pressure-washing/"],
               responsiveSearchAd: {
                 headlines: headlines.map((text) => ({ text })),
                 descriptions: descriptions.map((text) => ({ text })),
@@ -441,7 +441,7 @@ const createPowerWashingSearchCampaign = async (accessToken) => {
               adGroup: adGroupResourceName,
               status: "PAUSED",
               ad: {
-                finalUrls: ["https://maestrosservices.com/services/power-washing/"],
+                finalUrls: ["https://maestrosservices.com/services/pressure-washing/"],
                 responsiveSearchAd: {
                   headlines: trustHeadlines.map((text) => ({ text })),
                   descriptions: trustDescriptions.map((text) => ({ text })),
@@ -480,7 +480,7 @@ const addSitelinksToCampaign = async (accessToken, campaignId) => {
     },
     {
       linkText: "Power Washing",
-      finalUrls: ["https://maestrosservices.com/services/power-washing/"],
+      finalUrls: ["https://maestrosservices.com/services/pressure-washing/"],
       description1: "Driveways patios decks",
       description2: "Practical local quotes",
     },

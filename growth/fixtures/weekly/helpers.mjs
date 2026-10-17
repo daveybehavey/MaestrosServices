@@ -6,9 +6,9 @@ export const VERIFIED_CATALOG = {
   services: [
     {
       id: "svc.power-washing",
-      slug: "power-washing",
-      name: "Power Washing",
-      aliases: ["power washing", "pressure washing"],
+      slug: "pressure-washing",
+      name: "Pressure Washing",
+      aliases: ["pressure washing", "power washing", "pressure wash", "power-washing"],
       status: "verified",
     },
     {

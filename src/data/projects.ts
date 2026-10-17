@@ -76,7 +76,7 @@ export const projectProfiles: ProjectProfile[] = [
       "Optional follow-up plan with seasonal upkeep services",
     ],
     relatedServiceHrefs: [
-      { label: "Power Washing", href: "/services/power-washing" },
+      { label: "Pressure Washing", href: "/services/pressure-washing" },
       { label: "Seasonal Cleanups", href: "/services/seasonal-cleanups" },
     ],
   },
