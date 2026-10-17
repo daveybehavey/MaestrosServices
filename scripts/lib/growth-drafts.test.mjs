@@ -372,7 +372,7 @@ test("shouldDraft=true with verified refs creates a candidate draft that PASSes 
     recentPosts: [],
   });
   assert.equal(validation.valid, true);
-  assert.match(packet.gbpPostDraft.draft.summary, /Power Washing/);
+  assert.match(packet.gbpPostDraft.draft.summary, /Pressure Washing/);
   assert.match(packet.gbpPostDraft.draft.summary, /Shawnigan Lake/);
 });
 
