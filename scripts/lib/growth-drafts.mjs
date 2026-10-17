@@ -47,7 +47,7 @@ const NATURAL_WORK_PHRASE = Object.freeze({
   "svc.hedge-trimming": "hedge trimming",
   "svc.garden-bed-maintenance": "garden bed work",
   "svc.weed-control": "weeding",
-  "svc.power-washing": "power washing",
+  "svc.power-washing": "pressure washing",
   "svc.gravel-driveway-installation": "gravel driveway work",
   "svc.fence-work-minor-repairs": "fence repair work",
 });

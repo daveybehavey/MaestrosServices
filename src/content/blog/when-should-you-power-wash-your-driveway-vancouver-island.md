@@ -104,7 +104,7 @@ In those cases, power washing helps the appearance, but it may work best alongsi
 
 Driveway washing often makes the most sense when paired with:
 
-- [Power Washing](/services/power-washing)
+- [Pressure Washing](/services/pressure-washing)
 - [Driveway Grading](/services/driveway-grading)
 - [Moss and Algae Treatment](/services/moss-algae-treatment)
 - [Seasonal Cleanup](/services/seasonal-cleanups)
@@ -131,5 +131,5 @@ If you are in Victoria, Langford, Saanich, Shawnigan Lake, Mill Bay, Duncan, or 
 Start here:
 
 - [Request a quote](/quote)
-- [Power Washing service](/services/power-washing)
+- [Pressure Washing service](/services/pressure-washing)
 - [Service area](/service-area)

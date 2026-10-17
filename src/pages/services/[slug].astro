@@ -41,10 +41,11 @@ const serviceSpecifics: Record<
     trustPoints: string[];
   }
 > = {
-  "power-washing": {
+  "pressure-washing": {
     bestFitTitle: "Best fit when hard surfaces are making the property feel older than it is.",
     bestFitPoints: [
-      "Driveways, patios, entries, or walkways look dark, slippery, or weathered.",
+      "Driveways, sidewalks, decks, fences, or siding look dark, slippery, or weathered.",
+      "You want moss, algae, or grime cleaned off concrete and other exterior surfaces.",
       "You want a fast curb-appeal reset before summer, guests, or listing photos.",
       "You want the surface cleaned carefully without using the same pressure everywhere.",
     ],
@@ -56,8 +57,8 @@ const serviceSpecifics: Record<
     ],
     quoteChecklist: [
       "1 to 3 photos of the surface and any slippery or stained areas",
-      "Your location and whether it is driveway, patio, walkway, fence, or siding",
-      "Whether the priority is appearance, safety, or pre-listing cleanup",
+      "Your location and whether it is driveway, sidewalk, deck, fence, concrete, or siding",
+      "Whether the priority is appearance, safety, moss/algae cleanup, or pre-listing prep",
     ],
     reassurance:
       "We check the material first, adjust pressure to the surface, and leave the area tidy when we are done.",
@@ -306,10 +307,10 @@ const serviceSpecific =
   };
 
 const seoOverrides: Record<string, { title: string; description: string }> = {
-  "power-washing": {
-    title: `Power Washing and Pressure Washing Services | ${business.name}`,
+  "pressure-washing": {
+    title: `Pressure Washing Victoria BC Area | Driveways, Decks, Siding | ${business.name}`,
     description:
-      "Residential power washing and pressure washing for driveways, patios, decks, fences, and exterior surfaces across lower-mid Vancouver Island. Fast quotes, careful surface-specific cleaning, and tidy cleanup.",
+      "Residential pressure washing across lower-mid Vancouver Island for driveways, sidewalks, siding, decks, fences, and concrete. Moss and algae cleanup, careful surface-safe washing, and tidy finish.",
   },
   "driveway-grading": {
     title: `Driveway Grading and Gravel Driveway Repair | ${business.name}`,
@@ -355,7 +356,7 @@ const serviceFormMap: Record<string, string> = {
   "light-pruning": "pruning",
   "moss-algae-treatment": "moss",
   "fence-work-minor-repairs": "fence",
-  "power-washing": "powerwash",
+  "pressure-washing": "powerwash",
   "rock-work-walls": "rock",
   "driveway-grading": "driveway",
   "gravel-driveway-installation": "gravel",

@@ -126,9 +126,9 @@
     },
     {
       "id": "svc.power-washing",
-      "slug": "power-washing",
-      "name": "Power Washing",
-      "aliases": ["power washing", "pressure washing", "power wash"],
+      "slug": "pressure-washing",
+      "name": "Pressure Washing",
+      "aliases": ["pressure washing", "power washing", "power wash", "pressure wash", "power-washing"],
       "status": "verified",
       "source": "gbp:list-posts",
       "sourceReference": "posts:2026-03-02..2026-05-29:power-washing",

@@ -44,7 +44,7 @@ export const serviceAreaFaqs: FAQ[] = [
 export const locationFaqs: FAQ[] = [
   {
     question: "What services do you offer in this area?",
-    answer: "We provide landscaping services including fence work and minor repairs, lawn mowing, hedge trimming, mulching and garden bed refreshes, light pruning, ground-accessible gutter cleaning, moss/algae treatment, power washing, rock work and small wall builds, driveway grading, gravel driveway refreshes, seasonal cleanups, weed control, and yard waste removal.",
+    answer: "We provide landscaping services including fence work and minor repairs, lawn mowing, hedge trimming, mulching and garden bed refreshes, light pruning, ground-accessible gutter cleaning, moss/algae treatment, pressure washing, rock work and small wall builds, driveway grading, gravel driveway refreshes, seasonal cleanups, weed control, and yard waste removal.",
   },
   {
     question: "How do I get a quote for my property?",

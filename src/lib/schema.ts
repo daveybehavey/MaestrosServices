@@ -5,7 +5,7 @@ import type { FAQ } from "../data/faqs";
 
 /** Matches the homepage meta description in src/pages/index.astro */
 const homepageDescription =
-  "Owner-operated landscaping, power washing, driveway work, fence repairs, and cleanups across lower-mid Vancouver Island. Direct replies and low-pressure quotes.";
+  "Owner-operated landscaping, pressure washing, driveway work, fence repairs, and cleanups across lower-mid Vancouver Island. Direct replies and low-pressure quotes.";
 
 const allServiceAreas = locations.map((location) => ({
   "@type": "City" as const,
