@@ -226,7 +226,7 @@ export const regions: Region[] = [
   {
     id: "greater-victoria",
     name: "Greater Victoria",
-    description: "Professional residential landscaping services throughout the Capital Regional District, including lawn maintenance, garden bed care, seasonal cleanups, and property upkeep. The region page connects the city pages to the core service pages and helps visitors quickly find the right local fit.",
+    description: "Professional residential landscaping services throughout the Capital Regional District, including lawn maintenance, garden bed care, seasonal cleanups, and property upkeep. Find your community below to see the services we offer near you.",
     locationIds: locations.filter((l) => l.region === "Greater Victoria").map((l) => l.id),
   },
   {
