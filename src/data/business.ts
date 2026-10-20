@@ -1,3 +1,6 @@
+const googleMapsPlaceUrl =
+  "https://www.google.com/maps/place/Maestros+Services/data=!4m2!3m1!1s0x0:0xee225b1441c0ec49";
+
 export const business = {
   name: "Maestros Services",
   phone: "250-858-1781",
@@ -18,7 +21,7 @@ export const business = {
   socialImage: "/og-image.png?v=4",
   sameAs: [
     "https://www.facebook.com/profile.php?id=61588020354024",
-    "https://www.google.com/maps/place/Maestros+Services/data=!4m2!3m1!1s0x0:0xee225b1441c0ec49",
+    googleMapsPlaceUrl,
   ],
   trackedLinks: {
     googleBusinessQuote:
@@ -30,10 +33,13 @@ export const business = {
   },
   reviewLinks: {
     google: "https://g.page/r/CUnswEEUWyLuEAE/review",
+    googleRead: googleMapsPlaceUrl,
     facebook: "https://www.facebook.com/profile.php?id=61588020354024",
   },
   priceRange: "$$",
   openingHours: ["Mo-Fr 08:00-18:00", "Sa 09:00-16:00"],
+  hoursLabel: "Mon–Fri 8–6 · Sat 9–4 · Closed Sunday",
+  hoursShort: "Mon–Fri 8–6, Sat 9–4",
 } as const;
 
 export type Business = typeof business;
