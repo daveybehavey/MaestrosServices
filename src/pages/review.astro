@@ -6,14 +6,13 @@ import { createBreadcrumbSchema, createOrganizationSchema } from "../lib/schema"
 
 const pageTitle = `Leave a Review | ${business.name}`;
 const pageDescription =
-  "If you had a good experience with Maestros Services, you can leave a quick review or send us a text if something needs attention.";
+  "Share your experience with Maestros Services in a quick Google review. Honest feedback, good or bad, helps local homeowners know what to expect.";
 const canonicalUrl = `${business.siteUrl}/review`;
 const breadcrumbItems = [{ name: "Leave a review", href: "/review" }];
 
-const reviewPrompts = [
-  "What service we helped with, such as mulching, pressure washing, driveway grading, cleanup, fence work, or rock work.",
-  "Your area or community, if you are comfortable sharing it.",
-  "What stood out, such as communication, timing, cleanup, or the final result.",
+const reviewNotes = [
+  "Reviews are public on Google, and they help other homeowners know what to expect when they hire us.",
+  "We read every review. Honest feedback, good or bad, shows us what to keep doing and what to do better.",
 ];
 
 const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(breadcrumbItems)];
@@ -42,11 +41,11 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
           <div class="space-y-5">
             <p class="section-kicker">Thank you</p>
             <h1 class="max-w-3xl text-[2.25rem] font-display leading-[0.98] tracking-tight text-balance sm:text-5xl lg:text-6xl">
-              If we did a good job, a quick review helps a lot.
+              A quick review helps a lot.
             </h1>
             <p class="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg">
-              Short, honest feedback helps local homeowners know what to expect and helps a small,
-              owner-operated business keep growing.
+              Short, honest feedback, good or bad, helps local homeowners know what to expect and
+              helps a small, owner-operated business keep growing.
             </p>
             <div class="flex flex-col gap-3 sm:flex-row">
               <a
@@ -67,28 +66,28 @@ const structuredData = [createOrganizationSchema(), createBreadcrumbSchema(bread
                 data-ga-event="cta_click"
                 data-ga-label="review_issue_text"
               >
-                Need help first?
+                Need help with something?
               </a>
             </div>
           </div>
 
           <div class="surface-card relative z-10 p-5 sm:p-6">
-            <p class="section-kicker">What to mention</p>
+            <p class="section-kicker">Good to know</p>
             <ul class="mt-5 space-y-3 text-sm text-ink-soft">
               {
-                reviewPrompts.map((prompt) => (
+                reviewNotes.map((note) => (
                   <li class="flex gap-3">
                     <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ink/70" />
-                    {prompt}
+                    {note}
                   </li>
                 ))
               }
             </ul>
             <div class="mt-5 rounded-2xl border border-ink/10 bg-white/80 p-4 text-sm text-ink-soft">
-              <p class="font-semibold text-ink">If something needs attention</p>
+              <p class="font-semibold text-ink">Need help with your service?</p>
               <p class="mt-1">
-                Please text or call {business.phone} first so we can understand what happened and
-                help sort it out as quickly as possible.
+                If something about your recent service needs attention, text or call {business.phone}
+                and we will work with you to sort it out as quickly as possible.
               </p>
             </div>
           </div>
