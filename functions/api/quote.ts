@@ -55,18 +55,22 @@ const isRateLimited = (ipAddress: string, now: number) => {
   return false;
 };
 
-const wasRecentlySubmitted = (signature: string, now: number) => {
+// Pure check: never records. A signature is added only by recordSubmission
+// after a successful delivery, so a failed attempt (Turnstile rejection,
+// missing provider key, Resend error) can never consume the duplicate slot
+// and silently swallow the customer's retry as a fake success.
+const isDuplicateSubmission = (signature: string, now: number) => {
   for (const [entrySignature, timestamp] of recentSubmissions.entries()) {
     if (now - timestamp > DUPLICATE_WINDOW_MS) {
       recentSubmissions.delete(entrySignature);
     }
   }
   const previous = recentSubmissions.get(signature);
-  if (previous && now - previous <= DUPLICATE_WINDOW_MS) {
-    return true;
-  }
+  return Boolean(previous && now - previous <= DUPLICATE_WINDOW_MS);
+};
+
+const recordSubmission = (signature: string, now: number) => {
   recentSubmissions.set(signature, now);
-  return false;
 };
 
 const isLikelyLinkSpam = (value: string) => {
@@ -132,7 +136,9 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
 
   const ipAddress = getIpAddress(request);
   if (isRateLimited(ipAddress, now)) {
-    return Response.redirect(redirectOk, 303);
+    // Visible, retryable error: silently showing success here would drop a
+    // real lead the same way the duplicate-poisoning defect below did.
+    return Response.redirect(redirectError, 303);
   }
 
   let formData: FormData;
@@ -228,7 +234,7 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
   }
 
   const duplicateSignature = [phoneDigits, area.toLowerCase(), service.toLowerCase(), details.toLowerCase().slice(0, 160)].join("|");
-  if (wasRecentlySubmitted(duplicateSignature, now)) {
+  if (isDuplicateSubmission(duplicateSignature, now)) {
     return Response.redirect(redirectOk, 303);
   }
 
@@ -361,5 +367,6 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     return Response.redirect(redirectError, 303);
   }
 
+  recordSubmission(duplicateSignature, now);
   return Response.redirect(redirectOk, 303);
 };
