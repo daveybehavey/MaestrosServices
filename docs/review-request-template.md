@@ -18,11 +18,11 @@ https://g.page/r/CUnswEEUWyLuEAE/review
 
 Hi [Name], thanks again for choosing Maestros Services today.
 
-If you were happy with the work, would you mind leaving us a quick Google review? It really helps local homeowners find us.
+Would you mind leaving us a quick Google review? It really helps local homeowners find us.
 
 https://maestrosservices.com/review
 
-If anything needs attention first, just reply here and I will take a look.
+And if anything needs attention, just reply here and I will take a look.
 
 ## SMS Template: Direct Google Link
 
@@ -32,7 +32,7 @@ If you have 30 seconds, a short Google review would really help:
 
 https://g.page/r/CUnswEEUWyLuEAE/review
 
-Mentioning the service and your area helps a lot. Thanks again.
+Thanks again.
 
 ## Follow-Up Template: 2-3 Days Later
 
@@ -56,15 +56,9 @@ That kind of local referral helps a lot.
 
 Hi [Name], I wanted to check in after the work.
 
-If anything did not feel right or needs attention, please reply here before leaving a review. I want to understand what happened and make it right where possible.
+If anything did not feel right or needs attention, please reply here and let me know. I want to understand what happened and make it right where possible.
 
 Thanks again for giving Maestros Services the opportunity.
-
-## What To Ask Them To Mention
-
-- What work was done, such as fence repair, rock work, mulching, power washing, driveway grading, or cleanup
-- Their area or city, if they are comfortable sharing it
-- What they liked, such as communication, reliability, cleanup, timing, or final result
 
 ## Completion Tracking
 
