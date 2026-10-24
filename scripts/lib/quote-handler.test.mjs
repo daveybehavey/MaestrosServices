@@ -48,12 +48,18 @@ const installFetchStub = ({ turnstileResults, resendStatuses }) => {
 const TURNSTILE_OK = { success: true, hostname: "maestrosservices.com", action: "quote_form" };
 const TURNSTILE_FAIL = { success: false, hostname: "maestrosservices.com", action: "quote_form" };
 
-const postQuote = ({ ip, phone, details = "Please trim the hedge along the driveway." }) => {
+const postQuote = ({
+  ip,
+  phone,
+  details = "Please trim the hedge along the driveway.",
+  area = "Victoria",
+  service = "Hedge Trimming",
+}) => {
   const form = new FormData();
   form.set("name", "Test Person");
   form.set("phone", phone);
-  form.set("area", "Victoria");
-  form.set("service", "Hedge Trimming");
+  form.set("area", area);
+  form.set("service", service);
   form.set("details", details);
   form.set("cf-turnstile-response", "test-token");
   const request = new Request("https://maestrosservices.com/api/quote", {
@@ -122,6 +128,56 @@ test("Turnstile failure does not consume the duplicate slot: the retry delivers"
     const retry = await postQuote(attempt);
     assert.equal(redirectParams(retry).get("submitted"), "1");
     assert.equal(calls.resend, 1, "retry after a Turnstile failure must reach the email provider");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("an over-limit area fails closed: visible error, no provider calls", async () => {
+  const calls = installFetchStub({ turnstileResults: [TURNSTILE_OK], resendStatuses: [200] });
+  try {
+    const response = await postQuote({
+      ip: "203.0.113.15",
+      phone: "2505550115",
+      area: "A".repeat(181),
+    });
+    assert.equal(redirectParams(response).get("error"), "1");
+    assert.equal(redirectParams(response).get("submitted"), null);
+    assert.equal(calls.turnstile, 0, "length validation must reject before Turnstile verification");
+    assert.equal(calls.resend, 0, "an over-limit area must never reach the email provider");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("an over-limit service fails closed: visible error, no provider calls", async () => {
+  const calls = installFetchStub({ turnstileResults: [TURNSTILE_OK], resendStatuses: [200] });
+  try {
+    const response = await postQuote({
+      ip: "203.0.113.16",
+      phone: "2505550116",
+      service: "S".repeat(181),
+    });
+    assert.equal(redirectParams(response).get("error"), "1");
+    assert.equal(redirectParams(response).get("submitted"), null);
+    assert.equal(calls.turnstile, 0, "length validation must reject before Turnstile verification");
+    assert.equal(calls.resend, 0, "an over-limit service must never reach the email provider");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("area and service at the length limit are still accepted", async () => {
+  const calls = installFetchStub({ turnstileResults: [TURNSTILE_OK], resendStatuses: [200] });
+  try {
+    const response = await postQuote({
+      ip: "203.0.113.17",
+      phone: "2505550117",
+      area: "A".repeat(180),
+      service: "S".repeat(180),
+    });
+    assert.equal(redirectParams(response).get("submitted"), "1");
+    assert.equal(calls.resend, 1, "boundary-length values must still deliver the lead");
   } finally {
     globalThis.fetch = realFetch;
   }
