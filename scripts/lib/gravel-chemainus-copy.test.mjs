@@ -55,6 +55,28 @@ test("quote form applies service query params on the static quote page", () => {
   assert.match(source, /serviceSelect\.value = serviceParam/);
 });
 
+test("quote feedback panels ship in the static markup, hidden until revealed", () => {
+  const source = read("src/components/QuoteForm.astro");
+  // Static output evaluates the frontmatter once at build time, when no
+  // submitted/error params exist, so gating the panels on those flags would
+  // keep them out of the built HTML entirely (the C1 defect). The panels
+  // must be emitted unconditionally and start hidden instead.
+  assert.equal(source.includes('id="quote-success"'), true);
+  assert.equal(source.includes('id="quote-error"'), true);
+  assert.match(source, /hidden=\{!showSuccessState\}/);
+  assert.match(source, /hidden=\{!showErrorState\}/);
+  assert.equal(source.includes("showSuccessState &&"), false);
+  assert.equal(source.includes("showErrorState &&"), false);
+});
+
+test("quote form reveals the feedback panels from the handler redirect params", () => {
+  const source = read("src/components/QuoteForm.astro");
+  assert.match(source, /feedbackParams\.get\("submitted"\) === "1"/);
+  assert.match(source, /successPanel\.hidden = false/);
+  assert.match(source, /feedbackParams\.get\("error"\) === "1"/);
+  assert.match(source, /errorPanel\.hidden = false/);
+});
+
 test("gravel driveway service still has no verified project evidence records", () => {
   const projectsDir = path.join(root, "growth/projects");
   const files = fs.readdirSync(projectsDir).filter((name) => name.endsWith(".json"));

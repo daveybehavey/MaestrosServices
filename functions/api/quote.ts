@@ -7,6 +7,8 @@ const MAX_NAME_LENGTH = 80;
 const MAX_PHONE_LENGTH = 30;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_DETAILS_LENGTH = 2000;
+const MAX_AREA_LENGTH = 180;
+const MAX_SERVICE_LENGTH = 180;
 const MAX_TRACKING_VALUE_LENGTH = 400;
 const MAX_SHORT_VALUE_LENGTH = 180;
 
@@ -211,6 +213,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: R
     name.length > MAX_NAME_LENGTH ||
     phone.length > MAX_PHONE_LENGTH ||
     email.length > MAX_EMAIL_LENGTH ||
+    area.length > MAX_AREA_LENGTH ||
+    service.length > MAX_SERVICE_LENGTH ||
     timeline.length > MAX_SHORT_VALUE_LENGTH ||
     preferredContact.length > MAX_SHORT_VALUE_LENGTH ||
     details.length > MAX_DETAILS_LENGTH ||

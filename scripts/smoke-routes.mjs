@@ -95,6 +95,14 @@ for (const [label, count] of familyChecks) {
 
 const contentChecks = [
   {
+    // The quote handler redirects back with ?submitted=1 / ?error=1; on a
+    // static page the feedback panels must already be in the built HTML
+    // (hidden) for the client script to reveal them.
+    file: "dist/quote/index.html",
+    includes: ['id="quote-success"', 'id="quote-error"'],
+    excludes: [],
+  },
+  {
     file: "dist/blog/gravel-driveway-preparation-chemainus/index.html",
     includes: ["/quote?service=gravel"],
     excludes: ["service=driveway", "Need help with your yard?"],

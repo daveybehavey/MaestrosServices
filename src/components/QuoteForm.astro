@@ -90,60 +90,58 @@ const showErrorState = error === "1";
     method="POST"
     action="/api/quote"
   >
-    {
-      showSuccessState && (
-        <div
-          id="quote-success"
-          class="rounded-[1.4rem] border border-ink/15 bg-white px-5 py-5 text-ink shadow-fine"
-          tabindex="-1"
-          role="status"
-          aria-live="polite"
+    <div
+      id="quote-success"
+      class="rounded-[1.4rem] border border-ink/15 bg-white px-5 py-5 text-ink shadow-fine"
+      tabindex="-1"
+      role="status"
+      aria-live="polite"
+      hidden={!showSuccessState}
+    >
+      <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Quote request received</p>
+      <h3 class="mt-2 text-2xl font-display font-semibold text-ink sm:text-[2rem]">
+        Thanks, your quote request is in.
+      </h3>
+      <p class="mt-2 text-sm text-ink-soft">
+        We have your details and usually reply within 1 hour during work hours. If you want
+        the fastest follow-up, send photos by text and mention the area plus the service you
+        need.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
+        <span class="rounded-full border border-border bg-paper px-3 py-1.5">Request received</span>
+        <span class="rounded-full border border-border bg-paper px-3 py-1.5">Reply within 1 hour</span>
+        <span class="rounded-full border border-border bg-paper px-3 py-1.5">Text photos anytime</span>
+      </div>
+      <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+        <a
+          class="btn-primary px-5 py-3 text-center"
+          href={business.smsHref}
+          data-ga-event="cta_click"
+          data-ga-label="quote_success_text_photos"
         >
-          <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Quote request received</p>
-          <h3 class="mt-2 text-2xl font-display font-semibold text-ink sm:text-[2rem]">
-            Thanks, your quote request is in.
-          </h3>
-          <p class="mt-2 text-sm text-ink-soft">
-            We have your details and usually reply within 1 hour during work hours. If you want
-            the fastest follow-up, send photos by text and mention the area plus the service you
-            need.
-          </p>
-          <div class="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
-            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Request received</span>
-            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Reply within 1 hour</span>
-            <span class="rounded-full border border-border bg-paper px-3 py-1.5">Text photos anytime</span>
-          </div>
-          <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-            <a
-              class="btn-primary px-5 py-3 text-center"
-              href={business.smsHref}
-              data-ga-event="cta_click"
-              data-ga-label="quote_success_text_photos"
-            >
-              Text photos for a faster quote
-            </a>
-            <a
-              class="btn-secondary px-5 py-3 text-center"
-              href={`tel:${business.phoneTel}`}
-              data-ga-event="cta_click"
-              data-ga-label="quote_success_call_now"
-            >
-              Call {business.phone}
-            </a>
-          </div>
-          <p class="mt-4 text-xs text-ink-soft">
-            No need to resubmit unless something important changed.
-          </p>
-        </div>
-      )
-    }
-    {
-      showErrorState && (
-        <div class="rounded-xl border border-ink/30 bg-white/90 px-4 py-3 text-sm text-ink" role="alert">
-          Something went wrong. Please try again or call/text {business.phone}.
-        </div>
-      )
-    }
+          Text photos for a faster quote
+        </a>
+        <a
+          class="btn-secondary px-5 py-3 text-center"
+          href={`tel:${business.phoneTel}`}
+          data-ga-event="cta_click"
+          data-ga-label="quote_success_call_now"
+        >
+          Call {business.phone}
+        </a>
+      </div>
+      <p class="mt-4 text-xs text-ink-soft">
+        No need to resubmit unless something important changed.
+      </p>
+    </div>
+    <div
+      id="quote-error"
+      class="rounded-xl border border-ink/30 bg-white/90 px-4 py-3 text-sm text-ink"
+      role="alert"
+      hidden={!showErrorState}
+    >
+      Something went wrong. Please try again or call/text {business.phone}.
+    </div>
     <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Takes about 30 seconds</p>
     <div class="flex flex-wrap gap-2 text-[0.62rem] uppercase tracking-[0.22em] text-ink-soft">
       <span class="rounded-full border border-border bg-paper px-3 py-1">Owner-operated</span>
@@ -372,6 +370,17 @@ const showErrorState = error === "1";
   (function () {
     var quoteForm = document.getElementById("quote-form");
     var successPanel = document.getElementById("quote-success");
+    var errorPanel = document.getElementById("quote-error");
+    // Static pages cannot re-render when the quote handler redirects back,
+    // so both feedback panels ship in the HTML hidden and are revealed here
+    // from the same submitted/error query params the handler sets.
+    var feedbackParams = new URLSearchParams(window.location.search);
+    if (successPanel && feedbackParams.get("submitted") === "1") {
+      successPanel.hidden = false;
+    }
+    if (errorPanel && feedbackParams.get("error") === "1") {
+      errorPanel.hidden = false;
+    }
     var startedAtInput = document.getElementById("form-started-at");
     var submitButton = quoteForm ? quoteForm.querySelector('button[type="submit"]') : null;
     var localStorageKey = "ms_attribution_v1";
