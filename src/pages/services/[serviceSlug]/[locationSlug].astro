@@ -104,11 +104,11 @@ if (!isDrivewayService) {
   pageFaqs.push(
     {
       question: `How often should I book ${service.shortName.toLowerCase()} in ${location.name}?`,
-      answer: `Most properties book during ${service.seasonalRelevance.join(", ")}. We can recommend a weekly, bi-weekly, or seasonal schedule based on your yard.`,
+      answer: `It depends on the property and the season. The main seasons for this work are ${service.seasonalRelevance.join(", ")}, and we can recommend a weekly, bi-weekly, or seasonal schedule based on your yard.`,
     },
     {
       question: `Can I combine ${service.shortName.toLowerCase()} with other services in ${location.name}?`,
-      answer: `Absolutely. Many homeowners bundle this service with recurring maintenance, garden bed care, and seasonal cleanup visits.`,
+      answer: `Absolutely. This service can be combined with recurring maintenance, garden bed care, and seasonal cleanup visits — just tell us what you have in mind when you ask for a quote.`,
     },
   );
 }
@@ -146,7 +146,7 @@ if (service.slug === "driveway-grading") {
 if (service.slug === "pressure-washing") {
   pageFaqs.push({
     question: `Do you pressure wash driveways, sidewalks, decks, and siding in ${location.name}?`,
-    answer: `Yes. Pressure washing requests in ${location.name} often include driveways, sidewalks, decks, fences, concrete, and exterior siding. We review the material first and use the right cleaning approach for each surface.`,
+    answer: `Yes. In ${location.name} we pressure wash driveways, sidewalks, decks, fences, concrete, and exterior siding. We review the material first and use the right cleaning approach for each surface.`,
   });
 }
 
@@ -203,7 +203,6 @@ const serviceGoalById: Record<Service["id"], string> = {
 const normalizeFeature = (feature: string) =>
   feature.charAt(0).toLowerCase() + feature.slice(1).replace(/\.$/, "");
 
-const primaryNeighborhood = neighborhoodList[0] ?? location.name;
 const primaryLandmark = landmarkList[0] ?? `${location.name} town core`;
 const seasonNames = service.seasonalRelevance.map(
   (season) => season.charAt(0).toUpperCase() + season.slice(1)
@@ -227,16 +226,16 @@ const localizedHeroNote = isChemainusDrivewayCluster
     : "This page is built for Chemainus homeowners dealing with puddles, ruts, washboarding, and uneven gravel surfaces who want to know if grading is enough before paying for a bigger refresh."
   : null;
 
-const localProofItems = isChemainusGravel
+const localInfoItems = isChemainusGravel
   ? [
       {
-        title: "Common request near Chemainus",
+        title: "When this work fits",
         detail:
-          "Requests usually involve preparation, a surface refresh, or grading when the driveway is thin, rutted, holding water, or breaking down at the edges.",
+          "Driveway preparation, a surface refresh, or grading can help when a driveway is thin, rutted, holding water, or breaking down at the edges.",
       },
       {
-        title: "Seasonal pattern",
-        detail: `${service.shortName} work is strongest in ${seasonSummary}. Scheduling stays flexible around local weather windows.`,
+        title: "Seasonal timing",
+        detail: `${service.shortName} is seasonal work, mainly in ${seasonSummary}. Scheduling stays flexible around local weather windows.`,
       },
       {
         title: "What helps a quote",
@@ -247,12 +246,12 @@ const localProofItems = isChemainusGravel
   : isDrivewayService
   ? [
       {
-        title: `Common request in ${location.name}`,
-        detail: `Requests here usually involve preparation, a surface refresh, or grading when the driveway is thin, rutted, holding water, or breaking down at the edges.`,
+        title: "When this work fits",
+        detail: `Driveway preparation, a surface refresh, or grading can help when a driveway is thin, rutted, holding water, or breaking down at the edges.`,
       },
       {
-        title: `${location.name} seasonal pattern`,
-        detail: `${service.shortName} work here is strongest in ${seasonSummary}. Scheduling stays flexible around local weather windows.`,
+        title: "Seasonal timing",
+        detail: `${service.shortName} is seasonal work, mainly in ${seasonSummary}. Scheduling stays flexible around local weather windows.`,
       },
       {
         title: "What helps a quote",
@@ -262,18 +261,18 @@ const localProofItems = isChemainusGravel
     ]
   : [
       {
-        title: `Common request in ${primaryNeighborhood}`,
-        detail: `Around ${primaryLandmark}, homeowners usually ask for ${normalizeFeature(service.features[0])} to keep properties tidy with minimal disruption.`,
+        title: "What this service covers",
+        detail: `Near ${primaryLandmark}, this service covers ${normalizeFeature(service.features[0])} to keep properties tidy with minimal disruption.`,
       },
       {
-        title: `${location.name} seasonal pattern`,
-        detail: `${service.shortName} bookings here are strongest in ${seasonSummary}. We keep scheduling flexible around local weather windows.`,
+        title: "Seasonal timing",
+        detail: `The main seasons for this work are ${seasonSummary}. We keep scheduling flexible around local weather windows.`,
       },
       {
-        title: `Typical bundled scope`,
+        title: `Combining services`,
         detail: relatedServiceSummary
-          ? `Many quotes in ${location.name} combine this with ${relatedServiceSummary} for ${serviceGoal}.`
-          : `Many quotes in ${location.name} combine this with general yard upkeep for ${serviceGoal}.`,
+          ? `You can combine this with ${relatedServiceSummary} in one quote for ${serviceGoal}.`
+          : `You can combine this with general yard upkeep in one quote for ${serviceGoal}.`,
       },
     ];
 
@@ -394,7 +393,7 @@ const localTrustPoints = isChemainusGravel
               neighborhoodList.length > 0 && !isChemainusGravel && (
                 <div class="mb-5">
                   <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
-                    Neighborhoods we regularly serve
+                    Neighborhoods in {location.name}
                   </p>
                   <div class="flex flex-wrap gap-2">
                     {neighborhoodList.map((name) => (
@@ -426,15 +425,15 @@ const localTrustPoints = isChemainusGravel
           </div>
 
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
-            <p class="section-kicker">Local proof</p>
+            <p class="section-kicker">Good to know</p>
             <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
               {isChemainusGravel
-                ? "What homeowners ask about near Chemainus"
-                : `What homeowners ask for in ${location.name}`}
+                ? "Driveway work near Chemainus"
+                : `What to know about ${service.shortName.toLowerCase()} in ${location.name}`}
             </h2>
             <div class="grid gap-4 sm:grid-cols-3">
               {
-                localProofItems.map((item) => (
+                localInfoItems.map((item) => (
                   <article class="rounded-xl border border-border bg-paper/60 p-4">
                     <h3 class="text-sm font-semibold text-ink">{item.title}</h3>
                     <p class="mt-2 text-xs leading-relaxed text-ink-soft">{item.detail}</p>
