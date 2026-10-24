@@ -33,7 +33,7 @@ export const serviceAreaFaqs: FAQ[] = [
   },
   {
     question: "How quickly can you start in my area?",
-    answer: "Most areas can be scheduled within 3–5 business days, depending on current workload and season. Call or text for the fastest response.",
+    answer: "We try to book quickly. Send a few details and we will confirm the next available time for your area. Call or text for the fastest response.",
   },
   {
     question: "Do you offer services outside the listed areas?",

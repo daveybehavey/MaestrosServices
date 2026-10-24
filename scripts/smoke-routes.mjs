@@ -113,7 +113,7 @@ const contentChecks = [
       "Gravel Driveways outcomes in Chemainus",
       "Do you offer gravel driveways in Chemainus?",
       "Homeowners in Chemainus trust us",
-      "Neighborhoods we regularly serve",
+      "Neighborhoods in Chemainus",
       "Get gravel driveways in Chemainus",
     ],
   },
