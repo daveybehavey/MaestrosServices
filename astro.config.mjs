@@ -14,9 +14,14 @@ export default defineConfig({
       changefreq: 'weekly',
       priority: 0.7,
       serialize(item) {
+        const lastmod = lastmodForSitemapUrl(item.url, blogLastmodByUrl);
+        if (!lastmod) {
+          const { lastmod: _omitted, ...rest } = item;
+          return rest;
+        }
         return {
           ...item,
-          lastmod: lastmodForSitemapUrl(item.url, blogLastmodByUrl),
+          lastmod,
         };
       },
     }),

@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { business } from "../data/business";
-import { SITE_CONTENT_UPDATED } from "../data/siteContentUpdated";
 
 function parseFrontmatterDate(frontmatter: string, key: "pubDate" | "updatedDate"): Date | undefined {
   const match = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
@@ -48,9 +47,14 @@ export function buildBlogLastmodByUrl(
   return byUrl;
 }
 
+/**
+ * Only blog posts carry a real per-page content date. Every other URL returns
+ * undefined so the sitemap omits <lastmod> for it instead of stamping one
+ * shared date on the whole site.
+ */
 export function lastmodForSitemapUrl(
   url: string,
   blogLastmodByUrl: Map<string, Date>,
-): Date {
-  return blogLastmodByUrl.get(url) ?? SITE_CONTENT_UPDATED;
+): Date | undefined {
+  return blogLastmodByUrl.get(url);
 }
