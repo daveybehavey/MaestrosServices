@@ -1,0 +1,12 @@
+-- First-send timestamp for functions/api/quote.ts (PR #31 consolidation
+-- pass). The handler stamps the attempt in the same write that persists
+-- its provider payload, immediately before the first provider call. A
+-- reconciling retry measures the original send's age against the
+-- provider's 24-hour idempotency-key retention window: inside it, a
+-- replay under the original key reconciles the first send; past it, the
+-- replay would be a new send, so nothing is sent and the ambiguous
+-- outcome is preserved for manual reconciliation. Records written
+-- before this column existed carry a payload with no stamp and are
+-- measured from created_at (the payload was persisted in the creation
+-- request, moments before that send).
+ALTER TABLE quote_attempts ADD COLUMN provider_sent_at INTEGER;

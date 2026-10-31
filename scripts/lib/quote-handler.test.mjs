@@ -1356,3 +1356,423 @@ test("the result-page resubmission script disables its submit button on submit",
     assert.equal(calls.resend, 1);
   });
 });
+
+// --- Consolidation pass: the reconciliation state machine -----------------
+// Two invariants, proven at the machine level:
+//
+// I1 (monotonic delivered): once an attempt is delivered, no overlapping
+// reconciliation outcome — a provider error, a provider exception, or a
+// verification failure landing afterwards — may move it out of delivered.
+// I2 (idempotency window): the stored payload may be replayed under the
+// original idempotency key only while the first send is inside the
+// provider's 24-hour retention window for that key. Past the window a
+// replay would be a new send, so nothing is sent and the ambiguous
+// outcome is preserved for manual reconciliation.
+
+const PROVIDER_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+const MACHINE_PAYLOAD = {
+  name: "Alice Example",
+  phone: "2505550100",
+  email: "alice@example.com",
+  area: "Victoria",
+  service: "fence",
+  timeline: "flexible",
+  preferredContact: "text",
+  details: "Repair the front gate.",
+  tracking: {},
+};
+
+const MACHINE_PROVIDER_BODY = JSON.stringify({
+  from: "Maestros Services <quotes@maestrosservices.com>",
+  to: ["quotes@maestrosservices.com"],
+  subject: "New quote request - Alice Example",
+  html: "<p>seeded provider body</p>",
+  text: "seeded provider body",
+});
+
+// Seeds the record an interrupted first send leaves behind: ambiguous,
+// claim held, payload persisted with its first-send stamp.
+const seedAmbiguousAttempt = async (harness, overrides = {}) => {
+  const { createHash } = await import("node:crypto");
+  const content = serializeEnquiryContent(MACHINE_PAYLOAD);
+  const record = {
+    id: "att_machine_seed",
+    submissionId: "sub_machine_seed",
+    reference: "MS-MACHINESEED",
+    createdAt: T - 60 * 1000,
+    updatedAt: T - 60 * 1000,
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload: MACHINE_PAYLOAD,
+    providerPayload: MACHINE_PROVIDER_BODY,
+    providerSentAt: T - 60 * 1000,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+    ...overrides,
+  };
+  await harness.store.createAttempt(record);
+  return record;
+};
+
+// A fetch stub whose Resend calls stay pending until the test settles
+// them, so two overlapping reconciliations can be interleaved exactly.
+// Optionally holds the first Turnstile verification the same way.
+const installOverlapStub = ({ holdFirstTurnstile = false } = {}) => {
+  const state = {
+    turnstile: 0,
+    resend: 0,
+    resendKeys: [],
+    pendingResend: [],
+    heldTurnstileResolve: null,
+  };
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    if (target.startsWith("https://challenges.cloudflare.com/")) {
+      state.turnstile += 1;
+      if (holdFirstTurnstile && state.turnstile === 1) {
+        return new Promise((resolve) => {
+          state.heldTurnstileResolve = resolve;
+        });
+      }
+      return new Response(JSON.stringify(TURNSTILE_OK), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (target === "https://api.resend.com/emails") {
+      state.resend += 1;
+      state.resendKeys.push(init.headers["Idempotency-Key"] ?? null);
+      return new Promise((resolve, reject) => {
+        state.pendingResend.push({ resolve, reject });
+      });
+    }
+    throw new Error(`Unexpected fetch in test: ${target}`);
+  };
+  return state;
+};
+
+const withOverlapStub = async (options, fn) => {
+  const state = installOverlapStub(options);
+  try {
+    return await fn(state);
+  } finally {
+    globalThis.fetch = realFetch;
+    unfreezeNow();
+  }
+};
+
+const waitForCondition = async (condition, label) => {
+  for (let i = 0; i < 1000; i += 1) {
+    if (condition()) return;
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  throw new Error(`timed out waiting for ${label}`);
+};
+
+const flushAsync = async () => {
+  for (let i = 0; i < 25; i += 1) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+};
+
+const resendOkResponse = (id) =>
+  new Response(JSON.stringify({ id }), { status: 200, headers: { "Content-Type": "application/json" } });
+const resendErrorResponse = (status) =>
+  new Response(JSON.stringify({ message: "provider error" }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+
+test("store transitionAttempt: delivered is terminal and a blocked transition reports false", async () => {
+  const store = createMemoryQuoteStore();
+  const { createHash } = await import("node:crypto");
+  const content = serializeEnquiryContent(MACHINE_PAYLOAD);
+  await store.createAttempt({
+    id: "att_transition_contract",
+    submissionId: "sub_transition_contract",
+    reference: "MS-TRANSITION1",
+    createdAt: T,
+    updatedAt: T,
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload: MACHINE_PAYLOAD,
+    providerPayload: MACHINE_PROVIDER_BODY,
+    providerSentAt: T,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+  });
+  assert.equal(
+    await store.transitionAttempt("att_transition_contract", {
+      status: "delivered",
+      providerMessageId: "msg_contract",
+      deliveredAt: T,
+    }),
+    true,
+    "the first confirmation applies"
+  );
+  assert.equal(
+    await store.transitionAttempt("att_transition_contract", {
+      status: "unconfirmed",
+      reasonCode: "provider_unconfirmed",
+    }),
+    false,
+    "a later outcome may not move the attempt out of delivered"
+  );
+  const record = await store.getAttemptById("att_transition_contract");
+  assert.equal(record.status, "delivered");
+  assert.equal(record.providerMessageId, "msg_contract");
+});
+
+test("overlapping reconciliations: a provider error landing after a concurrent confirmation cannot downgrade delivered", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_overlap_err_after_ok",
+    submissionId: "sub_overlap_err_after_ok",
+    reference: "MS-OVERLAPEAO",
+  });
+  await withOverlapStub({}, async (state) => {
+    const postA = harness.post({ submission_id: "sub_overlap_err_after_ok" });
+    const postB = harness.post({ submission_id: "sub_overlap_err_after_ok" });
+    await waitForCondition(() => state.pendingResend.length === 2, "both overlapping sends");
+    assert.deepEqual(state.resendKeys, [seed.id, seed.id], "both reconciliations send under the original key");
+
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_eao"));
+    await flushAsync();
+    assert.equal((await harness.store.getAttemptByReference(seed.reference)).status, "delivered");
+
+    state.pendingResend[1].resolve(resendErrorResponse(503));
+    await Promise.all([postA, postB]);
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "delivered", "a later provider error must not downgrade a confirmed delivery");
+    assert.equal(record.providerMessageId, "msg_overlap_eao");
+    assert.equal(record.claimActive, true);
+  });
+});
+
+test("overlapping reconciliations: a provider exception landing after a concurrent confirmation cannot downgrade delivered", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_overlap_throw_after_ok",
+    submissionId: "sub_overlap_throw_after_ok",
+    reference: "MS-OVERLAPTAO",
+  });
+  await withOverlapStub({}, async (state) => {
+    const postA = harness.post({ submission_id: "sub_overlap_throw_after_ok" });
+    const postB = harness.post({ submission_id: "sub_overlap_throw_after_ok" });
+    await waitForCondition(() => state.pendingResend.length === 2, "both overlapping sends");
+
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_tao"));
+    await flushAsync();
+    assert.equal((await harness.store.getAttemptByReference(seed.reference)).status, "delivered");
+
+    state.pendingResend[1].reject(new Error("resend network failure"));
+    await Promise.all([postA, postB]);
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "delivered", "a later provider exception must not downgrade a confirmed delivery");
+    assert.equal(record.providerMessageId, "msg_overlap_tao");
+  });
+});
+
+test("overlapping reconciliations: an error first and a confirmation second still ends delivered", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_overlap_ok_after_err",
+    submissionId: "sub_overlap_ok_after_err",
+    reference: "MS-OVERLAPOAE",
+  });
+  await withOverlapStub({}, async (state) => {
+    const postA = harness.post({ submission_id: "sub_overlap_ok_after_err" });
+    const postB = harness.post({ submission_id: "sub_overlap_ok_after_err" });
+    await waitForCondition(() => state.pendingResend.length === 2, "both overlapping sends");
+
+    state.pendingResend[0].resolve(resendErrorResponse(503));
+    await flushAsync();
+    assert.equal((await harness.store.getAttemptByReference(seed.reference)).status, "unconfirmed");
+
+    state.pendingResend[1].resolve(resendOkResponse("msg_overlap_oae"));
+    await Promise.all([postA, postB]);
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "delivered", "any confirmation among the reconciliations wins");
+    assert.equal(record.providerMessageId, "msg_overlap_oae");
+  });
+});
+
+test("overlapping reconciliations: two provider errors leave the attempt unconfirmed with its claim held", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_overlap_both_err",
+    submissionId: "sub_overlap_both_err",
+    reference: "MS-OVERLAPBERR",
+  });
+  await withOverlapStub({}, async (state) => {
+    const postA = harness.post({ submission_id: "sub_overlap_both_err" });
+    const postB = harness.post({ submission_id: "sub_overlap_both_err" });
+    await waitForCondition(() => state.pendingResend.length === 2, "both overlapping sends");
+
+    state.pendingResend[0].resolve(resendErrorResponse(503));
+    state.pendingResend[1].resolve(resendErrorResponse(500));
+    await Promise.all([postA, postB]);
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "unconfirmed", "no confirmation among the reconciliations leaves the outcome ambiguous");
+    assert.equal(record.reasonCode, "provider_unconfirmed");
+    assert.equal(record.providerMessageId, null);
+    assert.equal(record.claimActive, true, "the content claim stays held");
+  });
+});
+
+test("overlapping reconciliations: a verification failure landing after a concurrent delivery cannot downgrade it", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_overlap_verify_fail",
+    submissionId: "sub_overlap_verify_fail",
+    reference: "MS-OVERLAPVF1",
+  });
+  await withOverlapStub({ holdFirstTurnstile: true }, async (state) => {
+    // The first request resumes the attempt and parks inside its
+    // challenge verification.
+    const postB = harness.post({ submission_id: "sub_overlap_verify_fail" });
+    await waitForCondition(() => state.turnstile === 1 && state.heldTurnstileResolve, "the held verification");
+
+    // A concurrent retry verifies, replays, and confirms delivery.
+    const postA = harness.post({ submission_id: "sub_overlap_verify_fail" });
+    await waitForCondition(() => state.pendingResend.length === 1, "the concurrent send");
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_vf"));
+    const responseA = await postA;
+    assert.equal(refFromRedirect(responseA), seed.reference);
+    assert.equal((await harness.store.getAttemptByReference(seed.reference)).status, "delivered");
+
+    // The parked request's verification now fails. That establishes
+    // nothing about the confirmed send and must not move the record.
+    state.heldTurnstileResolve(
+      new Response(
+        JSON.stringify({ success: false, hostname: "maestrosservices.example", action: "quote_form" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    const responseB = await postB;
+    assert.equal(refFromRedirect(responseB), seed.reference);
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "delivered", "a late verification failure must not downgrade a confirmed delivery");
+    assert.equal(record.providerMessageId, "msg_overlap_vf");
+    assert.equal((await resultJson(harness, responseB)).json.conversionEligible, true);
+  });
+});
+
+test("a replay past the provider idempotency window sends nothing and preserves the ambiguous outcome", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_window_expired",
+    submissionId: "sub_window_expired",
+    reference: "MS-WINDOWEXP1",
+    createdAt: T - PROVIDER_WINDOW_MS - 5 * 60 * 1000,
+    updatedAt: T - PROVIDER_WINDOW_MS - 5 * 60 * 1000,
+    providerSentAt: T - PROVIDER_WINDOW_MS - 5 * 60 * 1000,
+  });
+  await withStub({}, async (calls) => {
+    const retry = await harness.post({ submission_id: "sub_window_expired" });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 0, "no replay may occur once the provider's idempotency window has expired");
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "unconfirmed", "the ambiguous outcome is preserved for manual reconciliation");
+    assert.equal(record.reasonCode, "provider_unconfirmed");
+    assert.equal(record.claimActive, true, "the content claim stays held");
+    const { html } = await resultHtml(harness, retry);
+    assert.match(html, /We could not confirm delivery/, "the submitter lands on the existing unconfirmed result page");
+  });
+});
+
+test("a stale sending attempt past the provider idempotency window is not replayed either", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_window_stale_sending",
+    submissionId: "sub_window_stale_sending",
+    reference: "MS-WINDOWSTALE",
+    status: "sending",
+    reasonCode: null,
+    createdAt: T - PROVIDER_WINDOW_MS - 60 * 1000,
+    updatedAt: T - PROVIDER_WINDOW_MS - 60 * 1000,
+    providerSentAt: T - PROVIDER_WINDOW_MS - 60 * 1000,
+  });
+  await withStub({}, async (calls) => {
+    const retry = await harness.post({ submission_id: "sub_window_stale_sending" });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 0, "a stale sending attempt past the window must not be replayed");
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "unconfirmed", "the resumed attempt is normalized to the ambiguous state, not sent");
+    assert.equal(record.reasonCode, "provider_unconfirmed");
+    assert.equal(record.claimActive, true);
+  });
+});
+
+test("a replay inside the provider idempotency window replays the stored payload under the original key", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_window_open",
+    submissionId: "sub_window_open",
+    reference: "MS-WINDOWOPEN",
+    createdAt: T - (PROVIDER_WINDOW_MS - 60 * 1000),
+    updatedAt: T - (PROVIDER_WINDOW_MS - 60 * 1000),
+    providerSentAt: T - (PROVIDER_WINDOW_MS - 60 * 1000),
+  });
+  await withStub({}, async (calls) => {
+    const retry = await harness.post({ submission_id: "sub_window_open" });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 1, "inside the window the retry reconciles with the provider");
+    assert.equal(calls.resendKeys[0], seed.id, "the replay uses the original idempotency key");
+    assert.deepEqual(calls.resendBodies[0], JSON.parse(MACHINE_PROVIDER_BODY), "the replayed body is the stored payload");
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "delivered");
+  });
+});
+
+test("a payload-bearing record with no send stamp is measured from its creation (pre-stamp records)", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_window_legacy",
+    submissionId: "sub_window_legacy",
+    reference: "MS-WINDOWLEGACY",
+    createdAt: T - PROVIDER_WINDOW_MS - 60 * 1000,
+    updatedAt: T - 60 * 1000,
+    providerSentAt: null,
+  });
+  await withStub({}, async (calls) => {
+    const retry = await harness.post({ submission_id: "sub_window_legacy" });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 0, "a pre-stamp record created past the window must not be replayed");
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "unconfirmed");
+    assert.equal(record.claimActive, true);
+  });
+});

@@ -23,6 +23,10 @@ const TURNSTILE_VERIFY_ENDPOINT = "https://challenges.cloudflare.com/turnstile/v
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 4;
 const DUPLICATE_WINDOW_MS = 24 * 60 * 60 * 1000;
+// The provider retains an idempotency key for 24 hours. Inside that
+// window a replay under the original key reconciles the original send;
+// past it the same replay is a new send (invariant I2 below).
+const PROVIDER_IDEMPOTENCY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const SENDING_STALE_MS = 15 * 60 * 1000;
 const MIN_COMPLETION_MS = 3500;
 const PROVIDER_TIMEOUT_MS = 10000;
@@ -131,6 +135,13 @@ type AttemptRecord = {
   // differs (HTTP 409) — a rejection that says nothing about whether the
   // original send was accepted.
   providerPayload: string | null;
+  // When the attempt's first provider send was made, stamped in the same
+  // write that persists providerPayload, immediately before that call. A
+  // reconciling retry measures the original send's age against the
+  // provider's idempotency window (invariant I2). Null until the first
+  // send; records persisted before this field existed carry a payload
+  // with no stamp and are measured from createdAt instead.
+  providerSentAt: number | null;
   providerMessageId: string | null;
   providerStatus: number | null;
   recipient: string | null;
@@ -154,6 +165,14 @@ interface QuoteStore {
   // with `code === "QUOTE_CLAIM_CONFLICT"` and the current holder attached.
   createAttempt(record: AttemptRecord): Promise<void>;
   updateAttempt(id: string, patch: Partial<AttemptRecord>): Promise<void>;
+  // The guarded transition every reconciliation outcome goes through
+  // (invariant I1): applies the patch only while the stored record is
+  // not in the terminal "delivered" state, and returns whether it
+  // applied. Atomic in both stores — the memory store's check-and-set is
+  // one synchronous section, and the D1 store's UPDATE carries the same
+  // condition in its WHERE clause — so overlapping reconciliations of
+  // one attempt can never downgrade a confirmed delivery.
+  transitionAttempt(id: string, patch: Partial<AttemptRecord>): Promise<boolean>;
   findClaimHolder(contentHash: string, content: string): Promise<AttemptRecord | null>;
   releaseClaim(id: string): Promise<void>;
   expireDeliveredClaims(cutoff: number): Promise<void>;
@@ -355,6 +374,15 @@ export const createMemoryQuoteStore = (): QuoteStore => {
       if (!record) return;
       attempts.set(id, clone({ ...record, ...patch, id: record.id }));
     },
+    async transitionAttempt(id, patch) {
+      // Synchronous critical section, like createAttempt: the delivered
+      // check and the write cannot interleave with another transition in
+      // this isolate.
+      const record = attempts.get(id);
+      if (!record || record.status === "delivered") return false;
+      attempts.set(id, clone({ ...record, ...patch, id: record.id }));
+      return true;
+    },
     async findClaimHolder(contentHash, content) {
       const holder = findHolderSync(contentHash, content);
       return holder ? clone(holder) : null;
@@ -394,6 +422,7 @@ type AttemptRow = {
   content: string | null;
   payload: string | null;
   provider_payload: string | null;
+  provider_sent_at: number | null;
   provider_message_id: string | null;
   provider_status: number | null;
   recipient: string | null;
@@ -419,6 +448,7 @@ const rowToRecord = (row: AttemptRow): AttemptRecord => ({
   content: row.content,
   payload: row.payload ? (JSON.parse(row.payload) as QuotePayload) : null,
   providerPayload: row.provider_payload ?? null,
+  providerSentAt: row.provider_sent_at ?? null,
   providerMessageId: row.provider_message_id,
   providerStatus: row.provider_status,
   recipient: row.recipient,
@@ -428,6 +458,39 @@ const rowToRecord = (row: AttemptRow): AttemptRecord => ({
   claimActive: row.claim_active === 1,
   deliveredAt: row.delivered_at,
 });
+
+// Column values for an attempt row, in table order without the id (the
+// INSERT binds it first, the UPDATEs bind it last). Shared so every
+// write of the row — plain or guarded — serializes it identically.
+const attemptColumnValues = (record: AttemptRecord): unknown[] => [
+  record.submissionId,
+  record.reference,
+  record.createdAt,
+  record.updatedAt,
+  record.status,
+  record.reasonCode,
+  JSON.stringify(record.fieldErrors),
+  record.riskScore,
+  JSON.stringify(record.riskFlags),
+  record.contentHash,
+  record.content,
+  record.payload ? JSON.stringify(record.payload) : null,
+  record.providerPayload,
+  record.providerSentAt,
+  record.providerMessageId,
+  record.providerStatus,
+  record.recipient,
+  record.separateOf,
+  record.retryAfterSeconds,
+  record.returnTo,
+  record.claimActive ? 1 : 0,
+  record.deliveredAt,
+];
+
+const ATTEMPT_UPDATE_SET_SQL = `submission_id = ?, reference = ?, created_at = ?, updated_at = ?, status = ?,
+  reason_code = ?, field_errors = ?, risk_score = ?, risk_flags = ?, content_hash = ?,
+  content = ?, payload = ?, provider_payload = ?, provider_sent_at = ?, provider_message_id = ?, provider_status = ?, recipient = ?,
+  separate_of = ?, retry_after_seconds = ?, return_to = ?, claim_active = ?, delivered_at = ?`;
 
 const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
   async getAttemptById(id) {
@@ -455,34 +518,11 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
           `INSERT INTO quote_attempts (
             id, submission_id, reference, created_at, updated_at, status, reason_code,
             field_errors, risk_score, risk_flags, content_hash, content, payload,
-            provider_payload, provider_message_id, provider_status, recipient, separate_of,
+            provider_payload, provider_sent_at, provider_message_id, provider_status, recipient, separate_of,
             retry_after_seconds, return_to, claim_active, delivered_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
-        .bind(
-          record.id,
-          record.submissionId,
-          record.reference,
-          record.createdAt,
-          record.updatedAt,
-          record.status,
-          record.reasonCode,
-          JSON.stringify(record.fieldErrors),
-          record.riskScore,
-          JSON.stringify(record.riskFlags),
-          record.contentHash,
-          record.content,
-          record.payload ? JSON.stringify(record.payload) : null,
-          record.providerPayload,
-          record.providerMessageId,
-          record.providerStatus,
-          record.recipient,
-          record.separateOf,
-          record.retryAfterSeconds,
-          record.returnTo,
-          record.claimActive ? 1 : 0,
-          record.deliveredAt
-        )
+        .bind(record.id, ...attemptColumnValues(record))
         .run();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -504,39 +544,23 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
     if (!current) return;
     const next = { ...current, ...patch, id: current.id };
     await db
-      .prepare(
-        `UPDATE quote_attempts SET
-          submission_id = ?, reference = ?, created_at = ?, updated_at = ?, status = ?,
-          reason_code = ?, field_errors = ?, risk_score = ?, risk_flags = ?, content_hash = ?,
-          content = ?, payload = ?, provider_payload = ?, provider_message_id = ?, provider_status = ?, recipient = ?,
-          separate_of = ?, retry_after_seconds = ?, return_to = ?, claim_active = ?, delivered_at = ?
-        WHERE id = ?`
-      )
-      .bind(
-        next.submissionId,
-        next.reference,
-        next.createdAt,
-        next.updatedAt,
-        next.status,
-        next.reasonCode,
-        JSON.stringify(next.fieldErrors),
-        next.riskScore,
-        JSON.stringify(next.riskFlags),
-        next.contentHash,
-        next.content,
-        next.payload ? JSON.stringify(next.payload) : null,
-        next.providerPayload,
-        next.providerMessageId,
-        next.providerStatus,
-        next.recipient,
-        next.separateOf,
-        next.retryAfterSeconds,
-        next.returnTo,
-        next.claimActive ? 1 : 0,
-        next.deliveredAt,
-        id
-      )
+      .prepare(`UPDATE quote_attempts SET ${ATTEMPT_UPDATE_SET_SQL} WHERE id = ?`)
+      .bind(...attemptColumnValues(next), id)
       .run();
+  },
+  async transitionAttempt(id, patch) {
+    const current = await this.getAttemptById(id);
+    if (!current || current.status === "delivered") return false;
+    const next = { ...current, ...patch, id: current.id };
+    // The WHERE clause is the atomic guard: it is evaluated against the
+    // committed row at write time, so a delivery confirmed by a
+    // concurrent reconciliation after the read above still blocks this
+    // write — the outcome is decided by `changes`, not by the read.
+    const result = await db
+      .prepare(`UPDATE quote_attempts SET ${ATTEMPT_UPDATE_SET_SQL} WHERE id = ? AND status <> 'delivered'`)
+      .bind(...attemptColumnValues(next), id)
+      .run();
+    return (result.meta?.changes ?? 0) > 0;
   },
   async findClaimHolder(contentHash, content) {
     const row = await db
@@ -1010,6 +1034,7 @@ const baseAttempt = (partial: Partial<AttemptRecord>): AttemptRecord => ({
   content: null,
   payload: null,
   providerPayload: null,
+  providerSentAt: null,
   providerMessageId: null,
   providerStatus: null,
   recipient: null,
@@ -1201,6 +1226,50 @@ const buildEmail = (payload: QuotePayload, record: AttemptRecord, toEmail: strin
     toEmail,
   };
 };
+
+// ---------------------------------------------------------------------------
+// The reconciliation state machine
+//
+// An attempt's lifecycle after creation, and the only transitions the
+// reconciliation paths below may take:
+//
+//   sending     -- provider 200 + message ID --------------> delivered
+//   sending     -- provider non-OK (attempt not resumed) ---> rejected
+//   sending     -- outcome not established ----------------> unconfirmed
+//   unconfirmed -- provider 200 + message ID --------------> delivered
+//   unconfirmed -- outcome still not established ----------> unconfirmed
+//   sending     -- stale, observed by a conflicting --------> unconfirmed
+//                  submission (normalization)
+//   (a resumed attempt whose verification fails in a later request takes
+//   no transition at all beyond being held at unconfirmed)
+//
+// delivered and rejected are terminal. Two invariants govern every
+// transition, and the rest of this handler exists to keep them true:
+//
+//   I1 — DELIVERED IS MONOTONIC. Once an attempt is delivered, no
+//   reconciliation outcome — a provider error, a network exception, an
+//   OK response without a message ID, or a verification failure in an
+//   overlapping request — may move it out of delivered. Every outcome
+//   write after an attempt's creation therefore goes through the
+//   store's guarded transitionAttempt, never updateAttempt: the guard
+//   is atomic in both stores, so two overlapping reconciliations of one
+//   attempt resolve to "delivered if any of them confirmed", regardless
+//   of the order their outcomes land. Writes that are not reconciliation
+//   outcomes (persisting the provider payload and its send stamp,
+//   recording a retry's risk telemetry) keep updateAttempt: they merge
+//   onto the stored record and carry no status.
+//
+//   I2 — REPLAYS ARE BOUNDED BY THE PROVIDER'S IDEMPOTENCY WINDOW. The
+//   provider retains an idempotency key for PROVIDER_IDEMPOTENCY_WINDOW_MS;
+//   inside that window replaying the stored payload under the original
+//   key reconciles the first send, but past it the replay is a NEW send
+//   that can duplicate an accepted email. A resumed attempt whose first
+//   send (providerSentAt, or createdAt for records persisted before the
+//   stamp existed) is older than the window is therefore never replayed:
+//   it stays unconfirmed with its claim held, and the submitter lands on
+//   the existing unconfirmed result page until the attempt is reconciled
+//   manually.
+// ---------------------------------------------------------------------------
 
 const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response> => {
   const toEmail = (env.TO_EMAIL ?? "quotes@maestrosservices.com").trim() || "quotes@maestrosservices.com";
@@ -1472,12 +1541,32 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
           });
           return rejectAndRedirect(record);
         } else {
+          let holderNow = holder;
           if (holder.status === "sending" && now - holder.updatedAt > SENDING_STALE_MS) {
-            await store.updateAttempt(holder.id, {
+            // The stale-sending normalization is a reconciliation
+            // transition like any other (invariant I1): if a concurrent
+            // reconciliation confirmed the holder in the meantime, the
+            // guarded write is blocked and this submission is a
+            // duplicate of a delivered enquiry, not an unconfirmed one.
+            const applied = await store.transitionAttempt(holder.id, {
               status: "unconfirmed",
               reasonCode: "provider_unconfirmed",
               updatedAt: now,
             });
+            if (!applied) holderNow = (await store.getAttemptById(holder.id)) ?? holder;
+          }
+          if (holderNow.status === "delivered") {
+            const record = baseAttempt({
+              submissionId,
+              status: "rejected",
+              reasonCode: "duplicate",
+              separateOf: holderNow.reference,
+              payload,
+              returnTo,
+              createdAt: now,
+              updatedAt: now,
+            });
+            return rejectAndRedirect(record);
           }
           const record = baseAttempt({
             submissionId,
@@ -1522,8 +1611,12 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       // email, while telling the customer nothing was sent. The attempt
       // stays unconfirmed (a stale "sending" record is normalized to the
       // same classification the claim path already gives it) until a retry
-      // reconciles it with the provider under its original key.
-      await store.updateAttempt(attempt.id, {
+      // reconciles it with the provider under its original key. The write
+      // goes through the guarded transition (invariant I1): if an
+      // overlapping reconciliation already confirmed this attempt, the
+      // verification failure must not downgrade it, and the result page
+      // the submitter is redirected to renders the delivered record.
+      await store.transitionAttempt(attempt.id, {
         status: "unconfirmed",
         reasonCode: "provider_unconfirmed",
         updatedAt: Date.now(),
@@ -1581,6 +1674,15 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   // the original send. Persisting before the call means even a send whose
   // acceptance response is lost leaves the exact body behind for its
   // retry.
+  // A persisted payload means a first send already happened: this call
+  // would replay it under the original idempotency key, which the
+  // provider only honours inside its retention window (invariant I2).
+  // The first send's age is read from its stamp, falling back to the
+  // record's creation for payloads persisted before the stamp existed
+  // (the payload was persisted in the creation request, moments before
+  // that send).
+  const firstSendAt = attempt.providerPayload ? attempt.providerSentAt ?? attempt.createdAt : null;
+
   let providerBody = attempt.providerPayload;
   if (!providerBody) {
     const email = buildEmail(attempt.payload ?? payload, attempt, toEmail);
@@ -1591,8 +1693,17 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       html: email.html,
       text: email.text,
     });
-    await store.updateAttempt(attempt.id, { providerPayload: providerBody, updatedAt: Date.now() });
+    // The first-send stamp is written with the payload, immediately
+    // before the first provider call below, so a later retry can
+    // measure the original send's age against the idempotency window.
+    const sentAt = Date.now();
+    await store.updateAttempt(attempt.id, {
+      providerPayload: providerBody,
+      providerSentAt: sentAt,
+      updatedAt: sentAt,
+    });
     attempt.providerPayload = providerBody;
+    attempt.providerSentAt = sentAt;
   }
 
   if (resumedAmbiguousAttempt) {
@@ -1601,6 +1712,24 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
     await store.updateAttempt(attempt.id, { riskScore: score, riskFlags: flags, updatedAt: Date.now() });
     attempt.riskScore = score;
     attempt.riskFlags = flags;
+  }
+
+  if (firstSendAt !== null && Date.now() - firstSendAt > PROVIDER_IDEMPOTENCY_WINDOW_MS) {
+    // Invariant I2: the provider no longer retains the original
+    // idempotency key, so replaying the stored payload would send a
+    // second email rather than reconcile the first — and no response
+    // could establish the original send's outcome. Send nothing: the
+    // attempt stays unconfirmed with its claim held (the guarded write
+    // only normalizes a stale "sending" record; an overlapping
+    // confirmation still wins), and the submitter lands on the existing
+    // unconfirmed result page until the attempt is reconciled manually.
+    await store.transitionAttempt(attempt.id, {
+      status: "unconfirmed",
+      reasonCode: "provider_unconfirmed",
+      updatedAt: Date.now(),
+    });
+    alertOperational("provider_replay_window_expired", { reference: attempt.reference, at: Date.now() });
+    return redirectToResult(request, attempt.reference);
   }
 
   let response: Response;
@@ -1618,7 +1747,10 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
   } catch {
-    await store.updateAttempt(attempt.id, {
+    // A network exception establishes nothing about the send (invariant
+    // I1 applies to this write like every outcome write: an overlapping
+    // reconciliation may already have confirmed the attempt).
+    await store.transitionAttempt(attempt.id, {
       status: "unconfirmed",
       reasonCode: "provider_unconfirmed",
       updatedAt: Date.now(),
@@ -1636,7 +1768,7 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       // submission re-send the same enquiry under a new idempotency key,
       // duplicating a possibly accepted email. The attempt stays
       // unconfirmed with its claim held until a retry reconciles it.
-      await store.updateAttempt(attempt.id, {
+      await store.transitionAttempt(attempt.id, {
         status: "unconfirmed",
         reasonCode: "provider_unconfirmed",
         providerStatus: response.status,
@@ -1644,7 +1776,7 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       });
       return redirectToResult(request, attempt.reference);
     }
-    await store.updateAttempt(attempt.id, {
+    await store.transitionAttempt(attempt.id, {
       status: "rejected",
       reasonCode: "provider_failed",
       providerStatus: response.status,
@@ -1663,7 +1795,7 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   }
   if (!providerMessageId) {
     // HTTP OK without a usable acceptance body is not delivery evidence.
-    await store.updateAttempt(attempt.id, {
+    await store.transitionAttempt(attempt.id, {
       status: "unconfirmed",
       reasonCode: "provider_unconfirmed",
       providerStatus: response.status,
@@ -1673,7 +1805,10 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   }
 
   const deliveredAt = Date.now();
-  await store.updateAttempt(attempt.id, {
+  // The confirmation itself goes through the guarded transition: if an
+  // overlapping reconciliation already delivered the attempt, this write
+  // is a no-op and the first confirmation stands (invariant I1).
+  await store.transitionAttempt(attempt.id, {
     status: "delivered",
     providerMessageId,
     providerStatus: response.status,
