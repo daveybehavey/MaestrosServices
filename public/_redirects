@@ -1,3 +1,5 @@
 /sitemap.xml /sitemap-index.xml 301
+/contact /#quote 301
+/contact/ /#quote 301
 /services/power-washing /services/pressure-washing 301
 /services/power-washing/* /services/pressure-washing/:splat 301
