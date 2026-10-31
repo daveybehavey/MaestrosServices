@@ -169,6 +169,13 @@ type QuoteEnv = {
   TO_EMAIL?: string;
   FROM_EMAIL?: string;
   PUBLIC_TURNSTILE_SITE_KEY?: string;
+  // The same public analytics configuration the site build uses
+  // (src/components/SEOHead.astro), read here as Pages runtime variables so
+  // result-page resubmission forms can run the confirmed-delivery
+  // conversion path (see resubmissionForm).
+  PUBLIC_GA_ID?: string;
+  PUBLIC_GOOGLE_ADS_ID?: string;
+  PUBLIC_GOOGLE_ADS_QUOTE_LABEL?: string;
   QUOTE_DB?: D1DatabaseLike;
   QUOTE_ALLOW_MEMORY_STORE?: string;
   __quoteStore?: QuoteStore;
@@ -640,6 +647,14 @@ const resubmissionForm = (
   const payload = record.payload;
   if (!payload) return "";
   const siteKey = (env.PUBLIC_TURNSTILE_SITE_KEY ?? "").trim();
+  // Confirmed-delivery conversion tracking for this form (below): the same
+  // public analytics IDs the site build is configured with, embedded so the
+  // standalone result page can run QuoteForm.astro's verify-then-fire path.
+  const analyticsConfig = JSON.stringify({
+    gaId: (env.PUBLIC_GA_ID ?? "").trim(),
+    googleAdsId: (env.PUBLIC_GOOGLE_ADS_ID ?? "").trim(),
+    quoteLabel: (env.PUBLIC_GOOGLE_ADS_QUOTE_LABEL ?? "").trim(),
+  }).replace(/</g, "\\u003c");
   return `
 <h2 style="margin-top:2rem;">Your entries</h2>
 <form method="POST" action="/api/quote">
@@ -659,6 +674,7 @@ const resubmissionForm = (
   ${siteKey ? `<div class="cf-turnstile" data-sitekey="${escapeHtml(siteKey)}" data-action="quote_form"></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>` : ""}
   <button type="submit">${escapeHtml(submitLabel)}</button>
 </form>
+<script>window.__MS_QUOTE_RESULT_ANALYTICS__ = ${analyticsConfig};</script>
 <script>
   (function () {
     var started = document.querySelector('input[name="form_started_at"]');
@@ -670,6 +686,129 @@ const resubmissionForm = (
       id.name = "submission_id";
       id.value = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "sub_" + Date.now() + "_" + Math.random().toString(36).slice(2);
       form.appendChild(id);
+    }
+    var idInput = form ? form.querySelector('input[name="submission_id"]') : null;
+    var submissionId = idInput ? idInput.value : "";
+
+    // Confirmed-delivery conversion tracking — the same path the main
+    // quote form runs (src/components/QuoteForm.astro): a lead conversion
+    // fires only after the handler's durable record confirms delivery for
+    // the reference this submission produced, and the reference-keyed
+    // session-storage flag deduplicates it, so repeat views or a second
+    // submission flow can never double-count the lead. A native
+    // (no-JavaScript) submission still works exactly as before; the
+    // delivered result page itself stays inert — landing on it fires
+    // nothing.
+    var sendResultLeadSuccess = function (eventId) {
+      var cfg = window.__MS_QUOTE_RESULT_ANALYTICS__ || {};
+      if (!eventId || (!cfg.gaId && !cfg.googleAdsId)) return;
+      var eventKey = "ms_quote_success:" + eventId;
+      try {
+        if (window.sessionStorage.getItem(eventKey)) return;
+      } catch (e) {}
+      window.dataLayer = window.dataLayer || [];
+      if (!window.gtag) {
+        window.gtag = function () {
+          window.dataLayer.push(arguments);
+        };
+      }
+      window.gtag("js", new Date());
+      if (cfg.gaId) {
+        window.gtag("config", cfg.gaId, { anonymize_ip: true, send_page_view: false });
+      }
+      if (cfg.googleAdsId) {
+        window.gtag("config", cfg.googleAdsId);
+      }
+      var attribution = {};
+      try {
+        attribution = JSON.parse(window.localStorage.getItem("ms_attribution_v1") || "{}") || {};
+      } catch (e) {}
+      window.gtag("event", "generate_lead", {
+        event_category: "form",
+        event_label: "quote_form_success",
+        lead_event_id: eventId,
+        page_group: "site",
+        page_type: "default",
+        page_template: "default",
+        utm_source: attribution.utm_source || "(not set)",
+        utm_medium: attribution.utm_medium || "(not set)",
+        utm_campaign: attribution.utm_campaign || "(not set)"
+      });
+      if (cfg.quoteLabel) {
+        window.gtag("event", "conversion", { send_to: cfg.quoteLabel });
+      }
+      try {
+        window.sessionStorage.setItem(eventKey, "1");
+      } catch (e) {}
+      var primaryId = cfg.gaId || cfg.googleAdsId;
+      if (primaryId) {
+        var script = document.createElement("script");
+        script.async = true;
+        script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(primaryId);
+        document.head.appendChild(script);
+      }
+    };
+
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        if (!window.fetch || !window.FormData) return;
+        event.preventDefault();
+        var formData = new FormData(form);
+        fetch(form.action, {
+          method: "POST",
+          body: formData,
+          credentials: "same-origin",
+          redirect: "follow"
+        })
+          .then(function (response) {
+            var nextUrl = response.url || "";
+            var ref = null;
+            try {
+              ref = new URL(nextUrl, window.location.origin).searchParams.get("ref");
+            } catch (e) {
+              ref = null;
+            }
+            if (ref) {
+              // Verify the stored outcome before counting a conversion,
+              // then show the result page — the same order the main quote
+              // form uses.
+              return fetch("/api/quote?ref=" + encodeURIComponent(ref) + "&format=json", {
+                credentials: "same-origin"
+              })
+                .then(function (verifyResponse) {
+                  return verifyResponse.json();
+                })
+                .then(function (result) {
+                  if (result && result.conversionEligible) {
+                    sendResultLeadSuccess(ref);
+                  }
+                })
+                .catch(function () {})
+                .then(function () {
+                  window.location.assign(nextUrl);
+                });
+            }
+            if (response.status >= 400) {
+              // A server-rendered terminal page returned inline (for
+              // example a rate limit): display it as-is.
+              return response.text().then(function (html) {
+                document.open();
+                document.write(html);
+                document.close();
+              });
+            }
+            window.location.assign(nextUrl || form.action);
+          })
+          .catch(function () {
+            // Never fall back to a native resubmission: the first attempt
+            // may already have been accepted, and a blind resend could
+            // double-send it. Land on this submission's status page
+            // instead, which renders whatever the durable record holds.
+            if (submissionId) {
+              window.location.assign("/api/quote?submission=" + encodeURIComponent(submissionId));
+            }
+          });
+      });
     }
   })();
 </script>`;
@@ -1148,6 +1287,12 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   // Attempt-identity reconciliation: a retry of the same submission id with
   // the same content resumes the existing attempt instead of double-sending.
   let attempt: AttemptRecord | null = null;
+  // True when the attempt was resumed in an ambiguous state ("sending" gone
+  // stale, or "unconfirmed"): an earlier invocation may already have handed
+  // it to the provider without confirmation. Such an attempt's state and
+  // content claim must survive any verification failure in a later request
+  // (see finalizeRejection).
+  let resumedAmbiguousAttempt = false;
   const existing = await store.getLatestAttemptBySubmissionId(submissionId);
   if (existing && existing.content !== null) {
     if (existing.content !== serialized) {
@@ -1180,6 +1325,7 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       return redirectToResult(request, existing.reference);
     } else if (existing.status === "sending" || existing.status === "unconfirmed") {
       attempt = existing;
+      resumedAmbiguousAttempt = true;
     }
   }
 
@@ -1296,6 +1442,26 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   }
 
   const finalizeRejection = async (reasonCode: string) => {
+    if (resumedAmbiguousAttempt) {
+      // A resumed attempt may already have been accepted by the provider —
+      // its earlier send ended without confirmation, so its outcome is
+      // unknown. A challenge or configuration failure in THIS request
+      // (missing token, failed/unavailable verification, unconfigured
+      // challenge or provider) establishes nothing about that send, so it
+      // must not overwrite the ambiguous state or release the content
+      // claim: either would let a later fresh submission re-send the same
+      // enquiry under a new idempotency key and duplicate an accepted
+      // email, while telling the customer nothing was sent. The attempt
+      // stays unconfirmed (a stale "sending" record is normalized to the
+      // same classification the claim path already gives it) until a retry
+      // reconciles it with the provider under its original key.
+      await store.updateAttempt(attempt.id, {
+        status: "unconfirmed",
+        reasonCode: "provider_unconfirmed",
+        updatedAt: Date.now(),
+      });
+      return redirectToResult(request, attempt.reference);
+    }
     await store.updateAttempt(attempt.id, {
       status: "rejected",
       reasonCode,

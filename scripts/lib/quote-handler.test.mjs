@@ -923,6 +923,219 @@ test("forged result references and bare status params confirm nothing", async ()
   assert.deepEqual(await unknownJson.json(), { error: "not_found" });
 });
 
+// --- Fix round (Codex P1): ambiguous state survives failed verification ----
+// A resumed `unconfirmed` attempt may already have been accepted by the
+// provider. A missing/failed/unavailable challenge on the retry establishes
+// nothing about that earlier send, so the record must stay unconfirmed with
+// its content claim held — overwriting it as rejected would release the
+// claim and let a fresh submission re-send under a new idempotency key.
+
+test("resumed unconfirmed attempt: a missing challenge preserves state, claim, and idempotency key", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw", { status: 200 }] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_p1_missing" });
+    const firstRef = refFromRedirect(first);
+    const stuck = await harness.store.getAttemptByReference(firstRef);
+    assert.equal(stuck.status, "unconfirmed");
+    assert.equal(stuck.claimActive, true);
+    assert.equal(calls.resend, 1);
+
+    // Retry of the same submission without a challenge token.
+    const retry = await harness.post({ submission_id: "sub_p1_missing", "cf-turnstile-response": null });
+    assert.equal(refFromRedirect(retry), firstRef, "the retry must land on the original attempt");
+    const preserved = await harness.store.getAttemptByReference(firstRef);
+    assert.equal(preserved.status, "unconfirmed", "ambiguous state must survive a missing challenge");
+    assert.equal(preserved.reasonCode, "provider_unconfirmed");
+    assert.equal(preserved.claimActive, true, "the content claim must stay held");
+    assert.equal(calls.resend, 1, "no second provider send may occur");
+    assert.equal(calls.turnstile, 1, "a missing token short-circuits before verification");
+
+    // A fresh submission of the same content is still suppressed — no send
+    // under a new idempotency key.
+    const fresh = await harness.post();
+    assert.equal((await resultJson(harness, fresh)).json.reasonCode, "delivery_unconfirmed_exists");
+    assert.equal(calls.resend, 1);
+
+    // A retry that passes the challenge reconciles with the SAME key.
+    const reconciled = await harness.post({ submission_id: "sub_p1_missing" });
+    assert.equal((await resultJson(harness, reconciled)).json.status, "delivered");
+    assert.equal(calls.resend, 2);
+    assert.equal(calls.resendKeys[1], calls.resendKeys[0], "the reconciling retry reuses the original idempotency key");
+  });
+});
+
+test("resumed unconfirmed attempt: a failed challenge verification preserves state and claim", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub(
+    {
+      turnstile: [TURNSTILE_OK, { success: false, hostname: "maestrosservices.example", action: "quote_form" }],
+      resend: ["throw"],
+    },
+    async (calls) => {
+      const first = await harness.post({ submission_id: "sub_p1_failed" });
+      const firstRef = refFromRedirect(first);
+      assert.equal((await harness.store.getAttemptByReference(firstRef)).status, "unconfirmed");
+
+      const retry = await harness.post({ submission_id: "sub_p1_failed" });
+      assert.equal(refFromRedirect(retry), firstRef);
+      const preserved = await harness.store.getAttemptByReference(firstRef);
+      assert.equal(preserved.status, "unconfirmed", "a failed verification must not overwrite the ambiguous attempt");
+      assert.equal(preserved.claimActive, true);
+      assert.equal(calls.resend, 1, "no second provider send may occur");
+
+      const fresh = await harness.post();
+      assert.equal((await resultJson(harness, fresh)).json.reasonCode, "delivery_unconfirmed_exists");
+      assert.equal(calls.resend, 1, "a fresh submission must not send while the claim is held");
+    }
+  );
+});
+
+test("resumed unconfirmed attempt: an unavailable challenge verification preserves state and claim", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ turnstile: [TURNSTILE_OK, "throw"], resend: ["throw"] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_p1_unavailable" });
+    const firstRef = refFromRedirect(first);
+    const retry = await harness.post({ submission_id: "sub_p1_unavailable" });
+    assert.equal(refFromRedirect(retry), firstRef);
+    const preserved = await harness.store.getAttemptByReference(firstRef);
+    assert.equal(preserved.status, "unconfirmed");
+    assert.equal(preserved.claimActive, true);
+    assert.equal(calls.resend, 1);
+  });
+});
+
+test("resumed stale sending attempt: a missing challenge normalizes to unconfirmed and holds the claim", async () => {
+  const harness = makeHarness();
+  const payload = {
+    name: "Alice Example",
+    phone: "2505550100",
+    email: "alice@example.com",
+    area: "Victoria",
+    service: "fence",
+    timeline: "flexible",
+    preferredContact: "text",
+    details: "Repair the front gate.",
+    tracking: {},
+  };
+  const content = serializeEnquiryContent(payload);
+  // Seed the record a crashed invocation would leave behind: created as
+  // "sending", never finalized, claim held.
+  const { createHash } = await import("node:crypto");
+  const contentHash = createHash("sha256").update(content).digest("hex");
+  await harness.store.createAttempt({
+    id: "att_stale_sending_seed",
+    submissionId: "sub_p1_stale",
+    reference: "MS-STALESEED1",
+    createdAt: T,
+    updatedAt: T,
+    status: "sending",
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash,
+    content,
+    payload,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+  });
+  // Resume it after the sending window has gone stale, with no token.
+  freezeNow(T + 16 * 60 * 1000);
+  await withStub({}, async (calls) => {
+    const retry = await harness.post({ submission_id: "sub_p1_stale", "cf-turnstile-response": null });
+    assert.equal(refFromRedirect(retry), "MS-STALESEED1");
+    const preserved = await harness.store.getAttemptByReference("MS-STALESEED1");
+    assert.equal(preserved.status, "unconfirmed", "a stale sending attempt is ambiguous, not rejected");
+    assert.equal(preserved.reasonCode, "provider_unconfirmed");
+    assert.equal(preserved.claimActive, true);
+    assert.equal(calls.resend, 0, "no provider send may occur");
+  });
+});
+
+// --- Fix round (Codex P2): result-page resubmission conversion tracking ----
+// Result pages are standalone documents: the resubmission form must carry
+// the same confirmed-delivery tracking path as the main quote form
+// (verify the durable record, then fire generate_lead + the Ads conversion,
+// deduplicated by reference), while the delivered result page itself stays
+// inert — a bare page view fires nothing (checklist 30).
+
+const ANALYTICS_ENV = {
+  PUBLIC_GA_ID: "G-TEST123",
+  PUBLIC_GOOGLE_ADS_ID: "AW-TEST456",
+  PUBLIC_GOOGLE_ADS_QUOTE_LABEL: "AW-TEST456/quote-label",
+};
+
+const assertResubmissionTracking = (html, label) => {
+  assert.ok(html.includes("__MS_QUOTE_RESULT_ANALYTICS__"), `${label}: analytics config must be embedded`);
+  assert.ok(html.includes("G-TEST123"), `${label}: GA id must be embedded`);
+  assert.ok(html.includes("AW-TEST456/quote-label"), `${label}: Ads quote label must be embedded`);
+  assert.ok(html.includes("ms_quote_success:"), `${label}: reference-keyed dedupe must be present`);
+  assert.ok(html.includes("format=json"), `${label}: the record must be verified before firing`);
+  assert.ok(html.includes('gtag("event", "generate_lead"'), `${label}: generate_lead must be wired`);
+  assert.ok(html.includes('gtag("event", "conversion"'), `${label}: the Ads conversion must be wired`);
+  assert.equal(
+    html.split('gtag("event", "generate_lead"').length - 1,
+    1,
+    `${label}: exactly one generate_lead call site`
+  );
+};
+
+test("result-page resubmission forms carry the confirmed-delivery conversion path; delivered pages stay inert", async () => {
+  freezeNow(T);
+  const harness = makeHarness(ANALYTICS_ENV);
+  await withStub({}, async (calls) => {
+    // A validation rejection renders the native correction form.
+    const bad = await harness.post({ phone: "123" });
+    const { html: rejectedHtml } = await resultHtml(harness, bad);
+    assertResubmissionTracking(rejectedHtml, "validation result page");
+
+    // A delivered result page viewed bare carries no conversion wiring.
+    const good = await harness.post();
+    const { html: deliveredHtml } = await resultHtml(harness, good);
+    assert.equal(deliveredHtml.includes("__MS_QUOTE_RESULT_ANALYTICS__"), false, "delivered page must not embed the tracker");
+    assert.equal(deliveredHtml.includes("generate_lead"), false, "delivered page must not fire on a bare view");
+
+    // A duplicate refusal renders the separate-enquiry form with tracking.
+    const repeat = await harness.post();
+    const { html: duplicateHtml } = await resultHtml(harness, repeat);
+    assert.match(duplicateHtml, /No new email was sent/);
+    assertResubmissionTracking(duplicateHtml, "duplicate result page");
+    assert.equal(calls.resend, 1);
+  });
+});
+
+test("result-page resubmission to delivered: exactly one provider send, conversion-eligible for the new reference only", async () => {
+  freezeNow(T);
+  const harness = makeHarness(ANALYTICS_ENV);
+  await withStub({}, async (calls) => {
+    const bad = await harness.post({ phone: "123" });
+    const badResult = await resultJson(harness, bad);
+    assert.equal(badResult.json.reasonCode, "validation_failed");
+    assert.equal(badResult.json.conversionEligible, false);
+    assert.equal(calls.resend, 0);
+
+    // The corrected resubmission (what the result-page form posts) delivers
+    // exactly once and is the one conversion-eligible record.
+    const corrected = await harness.post({ submission_id: "sub_corrected_once" });
+    const correctedResult = await resultJson(harness, corrected);
+    assert.equal(correctedResult.json.status, "delivered");
+    assert.equal(correctedResult.json.conversionEligible, true);
+    assert.equal(calls.resend, 1, "the resubmission must produce exactly one provider send");
+
+    const record = await harness.store.getAttemptByReference(correctedResult.ref);
+    assert.equal(record.providerMessageId, "msg_1");
+  });
+});
+
 // --- Submission identity conflicts ------------------------------------------
 
 test("the same submission id with changed content is a visible conflict, not a send", async () => {
