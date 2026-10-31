@@ -15,12 +15,12 @@ const {
   returnTo = `${Astro.url.pathname}#quote`,
 } = Astro.props;
 
-const submitted = Astro.url.searchParams.get("submitted");
-const error = Astro.url.searchParams.get("error");
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
-const showSuccessState = submitted === "1";
-const showErrorState = error === "1";
+// Submission feedback is no longer selected from query parameters: the
+// handler redirects to a server-rendered result page keyed by an
+// unguessable reference, so a hand-typed ?submitted=1 shows nothing and
+// fires no conversion. See functions/api/quote.ts (S55-6A).
 ---
 
 <div class="grid gap-10 lg:grid-cols-[0.92fr_1.08fr]">
@@ -91,56 +91,15 @@ const showErrorState = error === "1";
     action="/api/quote"
   >
     <div
-      id="quote-success"
-      class="rounded-[1.4rem] border border-ink/15 bg-white px-5 py-5 text-ink shadow-fine"
-      tabindex="-1"
-      role="status"
-      aria-live="polite"
-      hidden={!showSuccessState}
-    >
-      <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Quote request received</p>
-      <h3 class="mt-2 text-2xl font-display font-semibold text-ink sm:text-[2rem]">
-        Thanks, your quote request is in.
-      </h3>
-      <p class="mt-2 text-sm text-ink-soft">
-        We have your details and usually reply within 1 hour during work hours. If you want
-        the fastest follow-up, send photos by text and mention the area plus the service you
-        need.
-      </p>
-      <div class="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
-        <span class="rounded-full border border-border bg-paper px-3 py-1.5">Request received</span>
-        <span class="rounded-full border border-border bg-paper px-3 py-1.5">Reply within 1 hour</span>
-        <span class="rounded-full border border-border bg-paper px-3 py-1.5">Text photos anytime</span>
-      </div>
-      <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-        <a
-          class="btn-primary px-5 py-3 text-center"
-          href={business.smsHref}
-          data-ga-event="cta_click"
-          data-ga-label="quote_success_text_photos"
-        >
-          Text photos for a faster quote
-        </a>
-        <a
-          class="btn-secondary px-5 py-3 text-center"
-          href={`tel:${business.phoneTel}`}
-          data-ga-event="cta_click"
-          data-ga-label="quote_success_call_now"
-        >
-          Call {business.phone}
-        </a>
-      </div>
-      <p class="mt-4 text-xs text-ink-soft">
-        No need to resubmit unless something important changed.
-      </p>
-    </div>
-    <div
-      id="quote-error"
+      id="quote-unconfirmed"
       class="rounded-xl border border-ink/30 bg-white/90 px-4 py-3 text-sm text-ink"
       role="alert"
-      hidden={!showErrorState}
+      hidden
     >
-      Something went wrong. Please try again or call/text {business.phone}.
+      <p class="font-semibold">We could not confirm your submission was sent.</p>
+      <p class="mt-1">
+        Your entries are still here. <a id="quote-unconfirmed-status" class="underline" href="/api/quote">Check your submission status</a> before sending another, or call/text {business.phone}.
+      </p>
     </div>
     <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Takes about 30 seconds</p>
     <div class="flex flex-wrap gap-2 text-[0.62rem] uppercase tracking-[0.22em] text-ink-soft">
@@ -157,6 +116,7 @@ const showErrorState = error === "1";
         name="name"
         autocomplete="name"
         placeholder="Your name"
+        maxlength="80"
         required
       />
     </div>
@@ -171,6 +131,7 @@ const showErrorState = error === "1";
         inputmode="tel"
         autocomplete="tel"
         placeholder="(250) 858-1781"
+        maxlength="30"
         required
       />
     </div>
@@ -184,6 +145,7 @@ const showErrorState = error === "1";
         type="email"
         autocomplete="email"
         placeholder="you@email.com"
+        maxlength="254"
       />
     </div>
 
@@ -196,6 +158,7 @@ const showErrorState = error === "1";
         autocomplete="address-level2"
         placeholder="Town or neighborhood"
         value={preselectedArea || ""}
+        maxlength="180"
         required
       />
     </div>
@@ -291,7 +254,8 @@ const showErrorState = error === "1";
         class="mt-2 min-h-[96px] w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm focus:border-ink/40 focus:outline-none focus:ring-2 focus:ring-ink/10 sm:min-h-[120px]"
         id="details"
         name="details"
-        placeholder="Tell us about your yard, access, and timing."></textarea>
+        placeholder="Tell us about your yard, access, and timing."
+        maxlength="2000"></textarea>
     </div>
 
     <div class="rounded-xl border border-border bg-paper/70 p-4 text-sm text-ink-soft">
@@ -321,6 +285,7 @@ const showErrorState = error === "1";
 
     <!-- Honeypot -->
     <input type="hidden" name="return_to" value={returnTo} />
+    <input type="hidden" id="submission-id" name="submission_id" value="" />
     <input type="hidden" id="utm-source" name="utm_source" value="" />
     <input type="hidden" id="utm-medium" name="utm_medium" value="" />
     <input type="hidden" id="utm-campaign" name="utm_campaign" value="" />
@@ -369,18 +334,8 @@ const showErrorState = error === "1";
 <script is:inline>
   (function () {
     var quoteForm = document.getElementById("quote-form");
-    var successPanel = document.getElementById("quote-success");
-    var errorPanel = document.getElementById("quote-error");
-    // Static pages cannot re-render when the quote handler redirects back,
-    // so both feedback panels ship in the HTML hidden and are revealed here
-    // from the same submitted/error query params the handler sets.
-    var feedbackParams = new URLSearchParams(window.location.search);
-    if (successPanel && feedbackParams.get("submitted") === "1") {
-      successPanel.hidden = false;
-    }
-    if (errorPanel && feedbackParams.get("error") === "1") {
-      errorPanel.hidden = false;
-    }
+    var unconfirmedPanel = document.getElementById("quote-unconfirmed");
+    var unconfirmedStatusLink = document.getElementById("quote-unconfirmed-status");
     var startedAtInput = document.getElementById("form-started-at");
     var submitButton = quoteForm ? quoteForm.querySelector('button[type="submit"]') : null;
     var localStorageKey = "ms_attribution_v1";
@@ -483,84 +438,111 @@ const showErrorState = error === "1";
     if (startedAtInput) {
       startedAtInput.value = String(Date.now());
     }
-    if (window.gtag) {
-      var ensureGoogleAdsLoaded = function () {
+    var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
+
+    // Attempt identity (S55-6A A4): a submission ID that stays stable
+    // across retries of the unchanged payload and is regenerated as soon
+    // as any business field changes. The server uses it to reconcile
+    // retries instead of double-sending.
+    var submissionIdInput = document.getElementById("submission-id");
+    var submissionStorageKey = "ms_quote_submission_v1";
+    var businessFieldIds = ["name", "phone", "email", "area", "service", "timeline", "preferred-contact", "details"];
+    var newSubmissionId = function () {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "sub_" + Date.now() + "_" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    };
+    var businessFingerprint = function () {
+      return businessFieldIds
+        .map(function (id) {
+          var field = document.getElementById(id);
+          return field ? String(field.value || "") : "";
+        })
+        .join("\n");
+    };
+    var storedSubmission = null;
+    try {
+      storedSubmission = JSON.parse(window.sessionStorage.getItem(submissionStorageKey) || "null");
+    } catch (e) {
+      storedSubmission = null;
+    }
+    var currentSubmissionId =
+      storedSubmission && storedSubmission.fingerprint === businessFingerprint() && storedSubmission.id
+        ? storedSubmission.id
+        : newSubmissionId();
+    var persistSubmissionId = function () {
+      try {
+        window.sessionStorage.setItem(
+          submissionStorageKey,
+          JSON.stringify({ id: currentSubmissionId, fingerprint: businessFingerprint() })
+        );
+      } catch (e) {}
+    };
+    if (submissionIdInput) submissionIdInput.value = currentSubmissionId;
+    persistSubmissionId();
+    businessFieldIds.forEach(function (id) {
+      var field = document.getElementById(id);
+      if (!field) return;
+      var regenerate = function () {
+        currentSubmissionId = newSubmissionId();
+        if (submissionIdInput) submissionIdInput.value = currentSubmissionId;
+        persistSubmissionId();
+      };
+      field.addEventListener("input", regenerate);
+      field.addEventListener("change", regenerate);
+    });
+
+    // A lead conversion fires only after the server confirms, from its
+    // durable record, that this reference was actually delivered. Query
+    // parameters alone never produce one.
+    var sendLeadSuccess = function (eventId) {
+      if (!window.gtag || !eventId) return;
+      var eventKey = "ms_quote_success:" + eventId;
+      try {
+        if (window.sessionStorage.getItem(eventKey)) return;
+      } catch (e) {}
+      window.gtag("event", "generate_lead", {
+        event_category: "form",
+        event_label: "quote_form_success",
+        lead_event_id: eventId,
+        page_group: analyticsContext.pageGroup || "site",
+        page_type: analyticsContext.pageType || "default",
+        page_template: analyticsContext.pageTemplate || "default",
+        utm_source: attribution.utm_source || "(not set)",
+        utm_medium: attribution.utm_medium || "(not set)",
+        utm_campaign: attribution.utm_campaign || "(not set)",
+      });
+      var adsConversions = window.__MS_GOOGLE_ADS_CONVERSIONS__ || {};
+      if (adsConversions.quote) {
         if (window.__MS_LOAD_GOOGLE_ADS) {
           window.__MS_LOAD_GOOGLE_ADS();
         }
-      };
-      var analyticsContext = window.__MS_ANALYTICS_CONTEXT__ || {};
-      var urlParams = new URLSearchParams(window.location.search);
-      var submittedStatus = urlParams.get("submitted");
-      var errorStatus = urlParams.get("error");
-      var leadEventId = urlParams.get("lead_event_id");
-      var successEventKey = "ms_quote_success:" + (leadEventId || (window.location.pathname + window.location.search));
-      var errorEventKey = "ms_quote_error:" + window.location.pathname + window.location.search;
-      var sendLeadSuccess = function (eventId) {
-        var eventKey = "ms_quote_success:" + (eventId || (window.location.pathname + window.location.search));
-        if (window.sessionStorage.getItem(eventKey)) return;
-        window.gtag("event", "generate_lead", {
-          event_category: "form",
-          event_label: "quote_form_success",
-          lead_event_id: eventId || "(not set)",
-          page_group: analyticsContext.pageGroup || "site",
-          page_type: analyticsContext.pageType || "default",
-          page_template: analyticsContext.pageTemplate || "default",
-          utm_source: attribution.utm_source || "(not set)",
-          utm_medium: attribution.utm_medium || "(not set)",
-          utm_campaign: attribution.utm_campaign || "(not set)",
+        window.gtag("event", "conversion", {
+          send_to: adsConversions.quote,
         });
-        var adsConversions = window.__MS_GOOGLE_ADS_CONVERSIONS__ || {};
-        if (adsConversions.quote) {
-          ensureGoogleAdsLoaded();
-          window.gtag("event", "conversion", {
-            send_to: adsConversions.quote,
-          });
-        }
+      }
+      try {
         window.sessionStorage.setItem(eventKey, "1");
-      };
+      } catch (e) {}
+    };
 
-      if (submittedStatus === "1" && !window.sessionStorage.getItem(successEventKey)) {
-        sendLeadSuccess(leadEventId);
-      }
+    if (quoteForm) {
+      quoteForm.addEventListener("submit", function (event) {
+        if (!window.fetch || !window.FormData) return;
 
-      if (submittedStatus === "1" && successPanel) {
-        window.requestAnimationFrame(function () {
-          successPanel.scrollIntoView({ behavior: "smooth", block: "center" });
-          successPanel.focus({ preventScroll: true });
-        });
-      }
+        event.preventDefault();
 
-      if (errorStatus === "1" && !window.sessionStorage.getItem(errorEventKey)) {
-        window.gtag("event", "form_submit_error", {
-          event_category: "form",
-          event_label: "quote_form_error",
-          page_group: analyticsContext.pageGroup || "site",
-          page_type: analyticsContext.pageType || "default",
-          page_template: analyticsContext.pageTemplate || "default",
-        });
-        window.sessionStorage.setItem(errorEventKey, "1");
-      }
+        if (submitButton instanceof HTMLButtonElement) {
+          submitButton.disabled = true;
+          submitButton.textContent = "Sending...";
+        }
 
-      if (quoteForm) {
-        quoteForm.addEventListener("submit", function (event) {
-          if (!window.fetch || !window.FormData) return;
+        var restoreButton = function () {
+          if (!(submitButton instanceof HTMLButtonElement)) return;
+          submitButton.disabled = false;
+          submitButton.textContent = "Get my free quote";
+        };
 
-          event.preventDefault();
-
-          if (submitButton instanceof HTMLButtonElement) {
-            submitButton.disabled = true;
-            submitButton.textContent = "Sending...";
-          }
-
-          var restoreButton = function () {
-            if (!(submitButton instanceof HTMLButtonElement)) return;
-            submitButton.disabled = false;
-            submitButton.textContent = "Get my free quote";
-          };
-
-          var formData = new FormData(quoteForm);
-
+        if (window.gtag) {
           window.gtag("event", "form_submit", {
             event_category: "form",
             event_label: "quote_form",
@@ -568,43 +550,71 @@ const showErrorState = error === "1";
             page_type: analyticsContext.pageType || "default",
             page_template: analyticsContext.pageTemplate || "default",
           });
+        }
 
-          fetch(quoteForm.action, {
-            method: "POST",
-            body: formData,
-            credentials: "same-origin",
-            redirect: "follow",
-          })
-            .then(function (response) {
-              var nextUrl = response.url || quoteForm.action;
-              var nextParams = new URL(nextUrl, window.location.origin).searchParams;
-              if (nextParams.get("submitted") === "1") {
-                sendLeadSuccess(nextParams.get("lead_event_id"));
-              } else if (
-                nextParams.get("error") === "1" &&
-                !window.sessionStorage.getItem(errorEventKey)
-              ) {
-                window.gtag("event", "form_submit_error", {
-                  event_category: "form",
-                  event_label: "quote_form_error",
-                  page_group: analyticsContext.pageGroup || "site",
-                  page_type: analyticsContext.pageType || "default",
-                  page_template: analyticsContext.pageTemplate || "default",
+        var formData = new FormData(quoteForm);
+
+        fetch(quoteForm.action, {
+          method: "POST",
+          body: formData,
+          credentials: "same-origin",
+          redirect: "follow",
+        })
+          .then(function (response) {
+            var nextUrl = response.url || "";
+            var ref = null;
+            try {
+              ref = new URL(nextUrl, window.location.origin).searchParams.get("ref");
+            } catch (e) {
+              ref = null;
+            }
+            if (ref) {
+              // The handler redirected to the server-rendered result page
+              // for this reference. Verify the stored outcome before
+              // counting a conversion, then show the result page.
+              return fetch("/api/quote?ref=" + encodeURIComponent(ref) + "&format=json", {
+                credentials: "same-origin",
+              })
+                .then(function (verifyResponse) {
+                  return verifyResponse.json();
+                })
+                .then(function (result) {
+                  if (result && result.conversionEligible) {
+                    sendLeadSuccess(ref);
+                  }
+                })
+                .catch(function () {})
+                .then(function () {
+                  window.location.assign(nextUrl);
                 });
-                window.sessionStorage.setItem(errorEventKey, "1");
-              }
-              window.location.assign(nextUrl);
-            })
-            .catch(function () {
-              restoreButton();
-              quoteForm.submit();
-            });
-        });
-
-        quoteForm.addEventListener("submit", function () {
-          // Native submit fallback when JS interception is unavailable.
-        });
-      }
+            }
+            if (response.status >= 400) {
+              // A server-rendered terminal page returned inline (for
+              // example a rate limit): display it as-is.
+              return response.text().then(function (html) {
+                document.open();
+                document.write(html);
+                document.close();
+              });
+            }
+            window.location.assign(nextUrl || quoteForm.action);
+          })
+          .catch(function () {
+            // Never fall back to a native resubmission: the first attempt
+            // may already have been accepted, and a blind resend could
+            // double-send it. Keep the entries and point at the status
+            // check for this submission instead.
+            restoreButton();
+            if (unconfirmedStatusLink && submissionIdInput) {
+              unconfirmedStatusLink.href =
+                "/api/quote?submission=" + encodeURIComponent(submissionIdInput.value);
+            }
+            if (unconfirmedPanel) {
+              unconfirmedPanel.hidden = false;
+              unconfirmedPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          });
+      });
     }
   })();
 </script>
