@@ -1136,6 +1136,27 @@ test("result-page resubmission to delivered: exactly one provider send, conversi
   });
 });
 
+// Holds the first two submission-id lookups for `submissionId` until both
+// have arrived, so two concurrent requests both observe "no attempt yet"
+// before either can create one — the double-click window, made
+// deterministic.
+const armLookupBarrier = (store, submissionId) => {
+  const original = store.getLatestAttemptBySubmissionId.bind(store);
+  let arrived = 0;
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  store.getLatestAttemptBySubmissionId = async (id) => {
+    if (id === submissionId && arrived < 2) {
+      arrived += 1;
+      if (arrived === 2) release();
+      await gate;
+    }
+    return original(id);
+  };
+};
+
 // --- Submission identity conflicts ------------------------------------------
 
 test("the same submission id with changed content is a visible conflict, not a send", async () => {
@@ -1147,6 +1168,191 @@ test("the same submission id with changed content is a visible conflict, not a s
     const changed = await harness.post({ submission_id: "sub_conflict", details: "A different job entirely." });
     const { json } = await resultJson(harness, changed);
     assert.equal(json.reasonCode, "submission_conflict");
+    assert.equal(calls.resend, 1);
+  });
+});
+
+// --- Fix round 2 (Codex P2-A): replay the original provider payload -------
+// The attempt id is the provider idempotency key, and the provider rejects
+// a reused key whose payload differs (HTTP 409). Risk flags are
+// time-dependent, so rebuilding the email on a reconciling retry can
+// change its subject/HTML/text under the same key; the resulting 409 was
+// then treated as a definitive failure, marking a possibly accepted
+// attempt rejected and releasing its claim. The original payload must be
+// persisted and replayed byte-for-byte, and a retry response that does
+// not establish the original send's outcome must preserve the ambiguity.
+
+test("reconciling retry replays the original provider payload byte-for-byte under the original key", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw", { status: 200 }] }, async (calls) => {
+    // The first submission completes fast, so its email carries the
+    // review-requested flag; the send then loses its acceptance response.
+    const first = await harness.post({ submission_id: "sub_p2a_replay", form_started_at: String(T - 100) });
+    const firstRef = refFromRedirect(first);
+    const stuck = await harness.store.getAttemptByReference(firstRef);
+    assert.equal(stuck.status, "unconfirmed");
+    assert.equal(calls.resend, 1);
+    assert.match(calls.resendBodies[0].subject, /^\[Review requested\]/);
+
+    // The retry arrives after the fast-completion window: a fresh risk
+    // assessment is unflagged, so rebuilding the email here would change
+    // it under the same idempotency key.
+    const retry = await harness.post({ submission_id: "sub_p2a_replay", form_started_at: String(T - 10000) });
+    assert.equal(refFromRedirect(retry), firstRef);
+    assert.equal((await resultJson(harness, retry)).json.status, "delivered");
+    assert.equal(calls.resend, 2);
+    assert.equal(calls.resendKeys[1], calls.resendKeys[0], "the retry must reuse the original idempotency key");
+    assert.equal(
+      JSON.stringify(calls.resendBodies[1]),
+      JSON.stringify(calls.resendBodies[0]),
+      "the retry must replay the original provider payload byte-for-byte"
+    );
+    const record = await harness.store.getAttemptByReference(firstRef);
+    assert.ok(record.providerPayload, "the original provider payload must be persisted on the record");
+    assert.deepEqual(JSON.parse(record.providerPayload), calls.resendBodies[0]);
+  });
+});
+
+test("a non-establishing provider response on a reconciling retry preserves the ambiguous state and claim", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw", { status: 409 }] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_p2a_conflict" });
+    const firstRef = refFromRedirect(first);
+    assert.equal((await harness.store.getAttemptByReference(firstRef)).status, "unconfirmed");
+    assert.equal(calls.resend, 1);
+
+    // A 409 on the retry establishes only that the idempotency key was
+    // already used — nothing about whether the original send was
+    // accepted — so it must not resolve the attempt as rejected.
+    const retry = await harness.post({ submission_id: "sub_p2a_conflict" });
+    assert.equal(refFromRedirect(retry), firstRef);
+    const preserved = await harness.store.getAttemptByReference(firstRef);
+    assert.equal(preserved.status, "unconfirmed", "a 409 on a reconciling retry must not mark the attempt rejected");
+    assert.equal(preserved.reasonCode, "provider_unconfirmed");
+    assert.equal(preserved.providerStatus, 409);
+    assert.equal(preserved.claimActive, true, "the content claim must stay held");
+    assert.equal(calls.resend, 2);
+
+    // The held claim still suppresses a fresh submission of the same
+    // content — no send under a new idempotency key.
+    const fresh = await harness.post();
+    assert.equal((await resultJson(harness, fresh)).json.reasonCode, "delivery_unconfirmed_exists");
+    assert.equal(calls.resend, 2);
+  });
+});
+
+test("a resumed attempt with no persisted payload builds its email from the stored payload and risk, not the retry's", async () => {
+  const harness = makeHarness();
+  const payload = {
+    name: "Alice Example",
+    phone: "2505550100",
+    email: "alice@example.com",
+    area: "Victoria",
+    service: "fence",
+    timeline: "flexible",
+    preferredContact: "text",
+    details: "Repair the front gate.",
+    tracking: {},
+  };
+  const content = serializeEnquiryContent(payload);
+  const { createHash } = await import("node:crypto");
+  const contentHash = createHash("sha256").update(content).digest("hex");
+  // Seed a pre-existing ambiguous record with no persisted provider
+  // payload (the state an invocation that stopped before its first send
+  // leaves behind), assessed unflagged at submission time.
+  await harness.store.createAttempt({
+    id: "att_p2a_legacy_seed",
+    submissionId: "sub_p2a_legacy",
+    reference: "MS-LEGACYSEED",
+    createdAt: T,
+    updatedAt: T,
+    status: "sending",
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash,
+    content,
+    payload,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+  });
+  freezeNow(T + 16 * 60 * 1000);
+  await withStub({}, async (calls) => {
+    // The retry itself completes instantly (a fresh assessment would flag
+    // it), but the email must be the one the original assessment produced.
+    const retry = await harness.post({
+      submission_id: "sub_p2a_legacy",
+      form_started_at: String(T + 16 * 60 * 1000),
+    });
+    assert.equal(refFromRedirect(retry), "MS-LEGACYSEED");
+    assert.equal(calls.resend, 1);
+    assert.equal(
+      calls.resendBodies[0].subject,
+      "New quote request - Alice Example",
+      "the email must be built from the stored (unflagged) risk assessment, not the retry's fresh one"
+    );
+    const record = await harness.store.getAttemptByReference("MS-LEGACYSEED");
+    assert.equal(record.status, "delivered");
+    assert.ok(record.providerPayload, "the built payload must be persisted for any further retry");
+    assert.deepEqual(JSON.parse(record.providerPayload), calls.resendBodies[0]);
+  });
+});
+
+// --- Fix round 2 (Codex P2-B): separate-enquiry submission identity -------
+// The separate-enquiry override deliberately bypasses content-repeat
+// suppression, but retries of that ONE separate submission (a double-click
+// on the result-page form) must still not multiply: two concurrent
+// submissions carrying the same submission id resolve to a single attempt
+// and a single provider send.
+
+test("concurrent separate-enquiry submissions of one submission id produce exactly one send", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    // The original enquiry delivers and holds the content claim.
+    const original = await harness.post();
+    const originalRef = refFromRedirect(original);
+    assert.equal(calls.resend, 1);
+
+    // Hold both submission-id lookups until both have arrived, so both
+    // requests observe "no attempt yet" before either can create one.
+    armLookupBarrier(harness.store, "sub_separate_race");
+    const [a, b] = await Promise.all([
+      harness.post({ submission_id: "sub_separate_race", separate_enquiry: "1" }),
+      harness.post({ submission_id: "sub_separate_race", separate_enquiry: "1" }),
+    ]);
+    assert.equal(calls.resend, 2, "exactly one separate-enquiry send may occur");
+    const refA = refFromRedirect(a);
+    const refB = refFromRedirect(b);
+    assert.equal(refA, refB, "both submissions must resolve to the same attempt");
+    assert.notEqual(refA, originalRef);
+    const record = await harness.store.getAttemptByReference(refA);
+    assert.equal(record.status, "delivered");
+    assert.equal(record.separateOf, originalRef);
+  });
+});
+
+test("the result-page resubmission script disables its submit button on submit", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    await harness.post();
+    const repeat = await harness.post();
+    const { html } = await resultHtml(harness, repeat);
+    assert.match(html, /No new email was sent/);
+    assert.ok(
+      html.includes("submitButton.disabled = true"),
+      "the resubmission form must disable its submit button on submit (defence in depth)"
+    );
     assert.equal(calls.resend, 1);
   });
 });

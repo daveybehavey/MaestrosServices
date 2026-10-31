@@ -123,6 +123,14 @@ type AttemptRecord = {
   contentHash: string | null;
   content: string | null;
   payload: QuotePayload | null;
+  // The exact provider request body of this attempt's send, persisted
+  // before the first provider call. A reconciling retry replays it
+  // byte-for-byte under the same idempotency key (the attempt id): risk
+  // flags are time-dependent, so rebuilding the email on a retry could
+  // change it, and the provider rejects a reused key whose payload
+  // differs (HTTP 409) — a rejection that says nothing about whether the
+  // original send was accepted.
+  providerPayload: string | null;
   providerMessageId: string | null;
   providerStatus: number | null;
   recipient: string | null;
@@ -385,6 +393,7 @@ type AttemptRow = {
   content_hash: string | null;
   content: string | null;
   payload: string | null;
+  provider_payload: string | null;
   provider_message_id: string | null;
   provider_status: number | null;
   recipient: string | null;
@@ -409,6 +418,7 @@ const rowToRecord = (row: AttemptRow): AttemptRecord => ({
   contentHash: row.content_hash,
   content: row.content,
   payload: row.payload ? (JSON.parse(row.payload) as QuotePayload) : null,
+  providerPayload: row.provider_payload ?? null,
   providerMessageId: row.provider_message_id,
   providerStatus: row.provider_status,
   recipient: row.recipient,
@@ -445,9 +455,9 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
           `INSERT INTO quote_attempts (
             id, submission_id, reference, created_at, updated_at, status, reason_code,
             field_errors, risk_score, risk_flags, content_hash, content, payload,
-            provider_message_id, provider_status, recipient, separate_of,
+            provider_payload, provider_message_id, provider_status, recipient, separate_of,
             retry_after_seconds, return_to, claim_active, delivered_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           record.id,
@@ -463,6 +473,7 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
           record.contentHash,
           record.content,
           record.payload ? JSON.stringify(record.payload) : null,
+          record.providerPayload,
           record.providerMessageId,
           record.providerStatus,
           record.recipient,
@@ -497,7 +508,7 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
         `UPDATE quote_attempts SET
           submission_id = ?, reference = ?, created_at = ?, updated_at = ?, status = ?,
           reason_code = ?, field_errors = ?, risk_score = ?, risk_flags = ?, content_hash = ?,
-          content = ?, payload = ?, provider_message_id = ?, provider_status = ?, recipient = ?,
+          content = ?, payload = ?, provider_payload = ?, provider_message_id = ?, provider_status = ?, recipient = ?,
           separate_of = ?, retry_after_seconds = ?, return_to = ?, claim_active = ?, delivered_at = ?
         WHERE id = ?`
       )
@@ -514,6 +525,7 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
         next.contentHash,
         next.content,
         next.payload ? JSON.stringify(next.payload) : null,
+        next.providerPayload,
         next.providerMessageId,
         next.providerStatus,
         next.recipient,
@@ -750,7 +762,18 @@ const resubmissionForm = (
     };
 
     if (form) {
+      var submitted = false;
       form.addEventListener("submit", function (event) {
+        // Defence in depth against double-clicks: the server atomically
+        // deduplicates retries of this one submission, but a second
+        // submit should never leave the browser either.
+        if (submitted) {
+          event.preventDefault();
+          return;
+        }
+        submitted = true;
+        var submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
         if (!window.fetch || !window.FormData) return;
         event.preventDefault();
         var formData = new FormData(form);
@@ -986,6 +1009,7 @@ const baseAttempt = (partial: Partial<AttemptRecord>): AttemptRecord => ({
   contentHash: null,
   content: null,
   payload: null,
+  providerPayload: null,
   providerMessageId: null,
   providerStatus: null,
   recipient: null,
@@ -1366,10 +1390,53 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       // over the original's claim; the original stays the suppression
       // holder until its 24-hour claim expires. The original's reference is
       // kept on this attempt so the business email can link the two.
+      //
+      // Bypassing the content claim must not leave this submission itself
+      // unguarded: two concurrent requests carrying the same submission id
+      // (a double-click on the result-page form) both pass the lookup
+      // above before either creates its attempt, and without a guard both
+      // would insert and send. So the attempt claims a submission-scoped
+      // key through the same atomic claim primitive — a key derived from
+      // the submission id and the content hash, stored in the claim's hash
+      // slot (the record's content itself stays the exact serialized
+      // enquiry, so submission reconciliation above is unaffected, and the
+      // original's real content claim is never matched by it). Creation is
+      // atomic in both stores, so exactly one of the racing requests
+      // inserts; the other reconciles onto the winner below.
       const holder = await store.findClaimHolder(contentHash, serialized);
-      const withOrigin = { ...fresh, separateOf: holder && holder.content === serialized ? holder.reference : null };
-      await store.createAttempt(withOrigin);
-      attempt = withOrigin;
+      const separateClaimHash = await sha256Hex(`maestros-quote-separate-v1|${submissionId}|${contentHash}`);
+      const withOrigin = {
+        ...fresh,
+        separateOf: holder && holder.content === serialized ? holder.reference : null,
+        contentHash: separateClaimHash,
+        claimActive: true,
+      };
+      try {
+        await store.createAttempt(withOrigin);
+        attempt = withOrigin;
+      } catch (error) {
+        const claimHolder = (error as { holder?: AttemptRecord }).holder ?? null;
+        if (!claimHolder || claimHolder.submissionId !== submissionId) throw error;
+        // A concurrent request for this very separate submission won the
+        // claim; reconcile onto its attempt instead of sending again.
+        if (claimHolder.status === "delivered") {
+          return redirectToResult(request, claimHolder.reference);
+        }
+        if (claimHolder.status === "sending" && now - claimHolder.updatedAt <= SENDING_STALE_MS) {
+          return redirectToResult(request, claimHolder.reference);
+        }
+        if (claimHolder.status === "sending" || claimHolder.status === "unconfirmed") {
+          attempt = claimHolder;
+          resumedAmbiguousAttempt = true;
+        } else {
+          // The holder is terminally rejected; its claim is released by
+          // the rejection paths, so a live claim here is inconsistent —
+          // proceed without one rather than suppress a legitimate retry.
+          const unclaimed = { ...withOrigin, claimActive: false };
+          await store.createAttempt(unclaimed);
+          attempt = unclaimed;
+        }
+      }
     } else {
       await store.expireDeliveredClaims(now - DUPLICATE_WINDOW_MS);
       try {
@@ -1427,11 +1494,12 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       }
     }
   } else {
-    // Reconcile: refresh risk telemetry on the resumed attempt; its content
-    // claim and Resend idempotency key (the attempt id) are unchanged, so a
-    // retry can never blind-resend.
-    await store.updateAttempt(attempt.id, { riskScore: score, riskFlags: flags, updatedAt: now });
-    attempt = { ...attempt, riskScore: score, riskFlags: flags };
+    // Reconcile: the resumed attempt keeps its stored risk assessment for
+    // anything that shapes the provider payload — the payload is built
+    // from (or replayed as) the original below. This request's fresh risk
+    // telemetry is recorded on the record only after that payload is
+    // secured (see the send path), so a retry can never change the email
+    // under the attempt's unchanged idempotency key.
   }
 
   if (!attempt) {
@@ -1503,7 +1571,38 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
     return finalizeRejection("provider_not_configured");
   }
 
-  const email = buildEmail(payload, attempt, toEmail);
+  // The provider payload is persisted before the first provider call and
+  // replayed byte-for-byte on every reconciling retry. The email is built
+  // from the attempt's stored payload and stored risk assessment — never
+  // from this request's fresh inputs — because risk flags are
+  // time-dependent (a fast submission retried seconds later scores
+  // differently) and the provider rejects a reused idempotency key whose
+  // payload differs (HTTP 409), a response that establishes nothing about
+  // the original send. Persisting before the call means even a send whose
+  // acceptance response is lost leaves the exact body behind for its
+  // retry.
+  let providerBody = attempt.providerPayload;
+  if (!providerBody) {
+    const email = buildEmail(attempt.payload ?? payload, attempt, toEmail);
+    providerBody = JSON.stringify({
+      from: fromEmail,
+      to: [email.toEmail],
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
+    });
+    await store.updateAttempt(attempt.id, { providerPayload: providerBody, updatedAt: Date.now() });
+    attempt.providerPayload = providerBody;
+  }
+
+  if (resumedAmbiguousAttempt) {
+    // Record this request's risk telemetry only now that the provider
+    // payload is frozen, so it can never shape the email a retry sends.
+    await store.updateAttempt(attempt.id, { riskScore: score, riskFlags: flags, updatedAt: Date.now() });
+    attempt.riskScore = score;
+    attempt.riskFlags = flags;
+  }
+
   let response: Response;
   try {
     response = await fetch(RESEND_ENDPOINT, {
@@ -1515,13 +1614,7 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
         // provider dedupes a retry of an ambiguously accepted send.
         "Idempotency-Key": attempt.id,
       },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [email.toEmail],
-        subject: email.subject,
-        html: email.html,
-        text: email.text,
-      }),
+      body: providerBody,
       signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
   } catch {
@@ -1534,6 +1627,23 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   }
 
   if (!response.ok) {
+    if (resumedAmbiguousAttempt) {
+      // A non-OK response to a reconciling retry does not establish the
+      // original send's outcome: the provider may already have accepted
+      // that send, and an error here (a 409 for a reused key, a transient
+      // 5xx) speaks only to this request. Resolving the attempt as
+      // rejected would release its content claim and let a fresh
+      // submission re-send the same enquiry under a new idempotency key,
+      // duplicating a possibly accepted email. The attempt stays
+      // unconfirmed with its claim held until a retry reconciles it.
+      await store.updateAttempt(attempt.id, {
+        status: "unconfirmed",
+        reasonCode: "provider_unconfirmed",
+        providerStatus: response.status,
+        updatedAt: Date.now(),
+      });
+      return redirectToResult(request, attempt.reference);
+    }
     await store.updateAttempt(attempt.id, {
       status: "rejected",
       reasonCode: "provider_failed",
