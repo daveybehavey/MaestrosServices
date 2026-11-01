@@ -460,8 +460,8 @@ const rowToRecord = (row: AttemptRow): AttemptRecord => ({
 });
 
 // Column values for an attempt row, in table order without the id (the
-// INSERT binds it first, the UPDATEs bind it last). Shared so every
-// write of the row — plain or guarded — serializes it identically.
+// INSERT binds it first). The patch writes below serialize each supplied
+// field through attemptFieldColumnValue, which mirrors this exactly.
 const attemptColumnValues = (record: AttemptRecord): unknown[] => [
   record.submissionId,
   record.reference,
@@ -487,12 +487,70 @@ const attemptColumnValues = (record: AttemptRecord): unknown[] => [
   record.deliveredAt,
 ];
 
-const ATTEMPT_UPDATE_SET_SQL = `submission_id = ?, reference = ?, created_at = ?, updated_at = ?, status = ?,
-  reason_code = ?, field_errors = ?, risk_score = ?, risk_flags = ?, content_hash = ?,
-  content = ?, payload = ?, provider_payload = ?, provider_sent_at = ?, provider_message_id = ?, provider_status = ?, recipient = ?,
-  separate_of = ?, retry_after_seconds = ?, return_to = ?, claim_active = ?, delivered_at = ?`;
+// Field -> column for scoped patch writes, in table order. The D1
+// store's update paths generate an UPDATE naming ONLY the columns a
+// patch supplies, applied to the committed row: a partial patch (the
+// provider-payload persist, a retry's risk telemetry) can never
+// rewrite a column it did not name, so it cannot erase a delivery a
+// concurrent reconciliation committed in the meantime. The full-row
+// UPDATE this replaced did exactly that — it restored the stale
+// status and null message ID of its pre-confirmation read over the
+// confirmed row (Codex P2, PR #31).
+const ATTEMPT_PATCH_COLUMNS: ReadonlyArray<readonly [Exclude<keyof AttemptRecord, "id">, string]> = [
+  ["submissionId", "submission_id"],
+  ["reference", "reference"],
+  ["createdAt", "created_at"],
+  ["updatedAt", "updated_at"],
+  ["status", "status"],
+  ["reasonCode", "reason_code"],
+  ["fieldErrors", "field_errors"],
+  ["riskScore", "risk_score"],
+  ["riskFlags", "risk_flags"],
+  ["contentHash", "content_hash"],
+  ["content", "content"],
+  ["payload", "payload"],
+  ["providerPayload", "provider_payload"],
+  ["providerSentAt", "provider_sent_at"],
+  ["providerMessageId", "provider_message_id"],
+  ["providerStatus", "provider_status"],
+  ["recipient", "recipient"],
+  ["separateOf", "separate_of"],
+  ["retryAfterSeconds", "retry_after_seconds"],
+  ["returnTo", "return_to"],
+  ["claimActive", "claim_active"],
+  ["deliveredAt", "delivered_at"],
+];
 
-const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
+// Serializes one field's value exactly as attemptColumnValues does for
+// the full row, so a scoped patch write stores identical bytes.
+const attemptFieldColumnValue = (key: keyof AttemptRecord, value: unknown): unknown => {
+  switch (key) {
+    case "fieldErrors":
+    case "riskFlags":
+      return JSON.stringify(value ?? []);
+    case "payload":
+      return value ? JSON.stringify(value) : null;
+    case "claimActive":
+      return value ? 1 : 0;
+    default:
+      return value;
+  }
+};
+
+// The SET assignments + bind values for a patch, in table order
+// regardless of the patch literal's own key order.
+const attemptPatchAssignments = (patch: Partial<AttemptRecord>) => {
+  const assignments: string[] = [];
+  const values: unknown[] = [];
+  for (const [key, column] of ATTEMPT_PATCH_COLUMNS) {
+    if (!Object.prototype.hasOwnProperty.call(patch, key)) continue;
+    assignments.push(`${column} = ?`);
+    values.push(attemptFieldColumnValue(key, patch[key]));
+  }
+  return { assignments, values };
+};
+
+export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
   async getAttemptById(id) {
     const row = await db.prepare("SELECT * FROM quote_attempts WHERE id = ?").bind(id).first<AttemptRow>();
     return row ? rowToRecord(row) : null;
@@ -540,25 +598,33 @@ const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
     }
   },
   async updateAttempt(id, patch) {
-    const current = await this.getAttemptById(id);
-    if (!current) return;
-    const next = { ...current, ...patch, id: current.id };
+    // Column-scoped by construction: the UPDATE names only the columns
+    // the patch supplies and applies them to the committed row — no
+    // read, no merge, no full-row rewrite (see ATTEMPT_PATCH_COLUMNS).
+    // A patch for a missing id matches no row, the same no-op the
+    // memory store performs.
+    const { assignments, values } = attemptPatchAssignments(patch);
+    if (!assignments.length) return;
     await db
-      .prepare(`UPDATE quote_attempts SET ${ATTEMPT_UPDATE_SET_SQL} WHERE id = ?`)
-      .bind(...attemptColumnValues(next), id)
+      .prepare(`UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ?`)
+      .bind(...values, id)
       .run();
   },
   async transitionAttempt(id, patch) {
-    const current = await this.getAttemptById(id);
-    if (!current || current.status === "delivered") return false;
-    const next = { ...current, ...patch, id: current.id };
-    // The WHERE clause is the atomic guard: it is evaluated against the
-    // committed row at write time, so a delivery confirmed by a
-    // concurrent reconciliation after the read above still blocks this
-    // write — the outcome is decided by `changes`, not by the read.
+    // A single guarded statement: the WHERE clause is the atomic
+    // guard, evaluated against the committed row at write time, so a
+    // delivery confirmed by a concurrent reconciliation blocks this
+    // write and `changes` — not any prior read — decides whether it
+    // applied. The SET clause is scoped to the patch columns, so the
+    // transition also cannot erase non-outcome fields (the persisted
+    // payload, risk telemetry) a concurrent write just landed.
+    const { assignments, values } = attemptPatchAssignments(patch);
+    if (!assignments.length) return false;
     const result = await db
-      .prepare(`UPDATE quote_attempts SET ${ATTEMPT_UPDATE_SET_SQL} WHERE id = ? AND status <> 'delivered'`)
-      .bind(...attemptColumnValues(next), id)
+      .prepare(
+        `UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ? AND status <> 'delivered'`
+      )
+      .bind(...values, id)
       .run();
     return (result.meta?.changes ?? 0) > 0;
   },
@@ -1281,8 +1347,9 @@ const buildEmail = (payload: QuotePayload, record: AttemptRecord, toEmail: strin
 //   attempt resolve to "delivered if any of them confirmed", regardless
 //   of the order their outcomes land. Writes that are not reconciliation
 //   outcomes (persisting the provider payload and its send stamp,
-//   recording a retry's risk telemetry) keep updateAttempt: they merge
-//   onto the stored record and carry no status.
+//   recording a retry's risk telemetry) keep updateAttempt: they carry
+//   no status, and in the D1 store they are column-scoped writes, so
+//   they cannot rewrite a status a concurrent reconciliation committed.
 //
 //   I2 — REPLAYS ARE BOUNDED BY THE PROVIDER'S IDEMPOTENCY WINDOW. The
 //   provider retains an idempotency key for PROVIDER_IDEMPOTENCY_WINDOW_MS;

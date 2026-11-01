@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  createD1QuoteStore,
   createMemoryQuoteStore,
   onRequest,
   onRequestPost,
@@ -1947,4 +1948,245 @@ test("tracking values with HTML metacharacters are escaped in the form and round
     assert.equal(record.payload.tracking.referrer, tricky.referrer);
     assert.ok(calls.resendBodies[0].text.includes(`UTM source: ${tricky.utm_source}`));
   });
+});
+
+// ---------------------------------------------------------------------------
+// D1 store: column-scoped patch writes (Codex P2, PR #31).
+//
+// Production runs the D1 store, whose read and write are separate steps
+// the synchronous memory store cannot interleave — which is why the
+// memory-store regression tests could not express this race: a retry's
+// telemetry-only updateAttempt read the unconfirmed row, a concurrent
+// reconciliation confirmed delivery through transitionAttempt, and the
+// telemetry write's full-row UPDATE then restored the stale status and
+// null message ID over the confirmed delivery. This fake answers
+// SELECTs immediately from the committed rows but captures UPDATE
+// executions and applies them only when the test flushes them, so two
+// overlapping store writes land in a controlled order against the row
+// as committed at that moment — the semantics D1/SQLite gives the real
+// statements.
+// ---------------------------------------------------------------------------
+
+const normalizeSql = (sql) => sql.replace(/\s+/g, " ").trim();
+
+const createFakeD1 = () => {
+  const rows = new Map();
+  const statements = [];
+  const pendingUpdates = [];
+
+  const applyInsert = (sql, binds) => {
+    const match = /^INSERT INTO quote_attempts \(([^)]+)\) VALUES/.exec(normalizeSql(sql));
+    assert.ok(match, `fake D1 cannot apply INSERT: ${sql}`);
+    const row = {};
+    match[1]
+      .split(",")
+      .map((column) => column.trim())
+      .forEach((column, i) => {
+        row[column] = binds[i];
+      });
+    rows.set(row.id, row);
+    return 1;
+  };
+
+  const applyUpdate = (sql, binds) => {
+    const match = /^UPDATE quote_attempts SET (.+) WHERE (.+)$/.exec(normalizeSql(sql));
+    assert.ok(match, `fake D1 cannot apply UPDATE: ${sql}`);
+    const [, setClause, whereClause] = match;
+    let bindIndex = 0;
+    const sets = setClause.split(",").map((part) => {
+      const assignment = /^([a-z_]+) = (.+)$/.exec(part.trim());
+      assert.ok(assignment, `fake D1 cannot parse assignment: ${part}`);
+      const value = assignment[2] === "?" ? binds[bindIndex++] : Number(assignment[2]);
+      return [assignment[1], value];
+    });
+    assert.ok(
+      whereClause === "id = ?" || whereClause === "id = ? AND status <> 'delivered'",
+      `fake D1 cannot apply UPDATE with WHERE: ${whereClause}`
+    );
+    const row = rows.get(binds[bindIndex]);
+    if (!row) return 0;
+    if (whereClause.includes("status <> 'delivered'") && row.status === "delivered") return 0;
+    for (const [column, value] of sets) row[column] = value;
+    return 1;
+  };
+
+  const db = {
+    prepare(sql) {
+      let binds = [];
+      const statement = {
+        bind(...values) {
+          binds = values;
+          return statement;
+        },
+        async first() {
+          statements.push({ sql, binds: [...binds] });
+          assert.ok(
+            /^SELECT \* FROM quote_attempts WHERE id = \?$/.test(normalizeSql(sql)),
+            `fake D1 cannot answer SELECT: ${sql}`
+          );
+          const row = rows.get(binds[0]);
+          return row ? { ...row } : null;
+        },
+        run() {
+          statements.push({ sql, binds: [...binds] });
+          if (/^UPDATE\b/.test(normalizeSql(sql))) {
+            // Deferred: the statement executes only when the test
+            // flushes it, against the row committed at that moment.
+            return new Promise((resolve) => {
+              pendingUpdates.push({ sql, binds: [...binds], resolve });
+            });
+          }
+          return Promise.resolve({ meta: { changes: applyInsert(sql, binds) } });
+        },
+      };
+      return statement;
+    },
+  };
+
+  // Applies one captured UPDATE (the first matching the predicate) and
+  // resolves the store call that issued it.
+  const flushUpdate = (predicate) => {
+    const index = pendingUpdates.findIndex((entry) => predicate(entry.sql));
+    assert.ok(index >= 0, "fake D1 has no pending UPDATE matching the predicate");
+    const [entry] = pendingUpdates.splice(index, 1);
+    entry.resolve({ meta: { changes: applyUpdate(entry.sql, entry.binds) } });
+  };
+
+  return { db, rows, statements, pendingUpdates, flushUpdate };
+};
+
+const settleStoreCalls = async () => {
+  for (let i = 0; i < 5; i += 1) await new Promise((resolve) => setImmediate(resolve));
+};
+
+const d1SeedRecord = (overrides = {}) => ({
+  id: "att_d1scoped0000000000001",
+  submissionId: "sub_d1_scoped",
+  reference: "MS-D1SCOPED01",
+  createdAt: T,
+  updatedAt: T,
+  status: "unconfirmed",
+  reasonCode: "provider_unconfirmed",
+  fieldErrors: [],
+  riskScore: 3,
+  riskFlags: [],
+  contentHash: "d1_scoped_hash",
+  content: "v1:[]",
+  payload: null,
+  providerPayload: "{\"frozen\":true}",
+  providerSentAt: T,
+  providerMessageId: null,
+  providerStatus: null,
+  recipient: "owner@example.test",
+  separateOf: null,
+  retryAfterSeconds: null,
+  returnTo: null,
+  claimActive: true,
+  deliveredAt: null,
+  ...overrides,
+});
+
+test("D1 store: a telemetry patch landing after a concurrent delivery confirmation cannot erase it", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const seed = d1SeedRecord();
+  await store.createAttempt(seed);
+
+  // A retry records its risk telemetry (a non-outcome patch)...
+  const telemetry = store.updateAttempt(seed.id, {
+    riskScore: 41,
+    riskFlags: ["burst"],
+    updatedAt: T + 1000,
+  });
+  await settleStoreCalls();
+  // ...while an overlapping reconciliation confirms delivery.
+  const confirmation = store.transitionAttempt(seed.id, {
+    status: "delivered",
+    providerMessageId: "msg_race_winner",
+    providerStatus: 200,
+    deliveredAt: T + 2000,
+    updatedAt: T + 2000,
+  });
+  await settleStoreCalls();
+  assert.equal(fake.pendingUpdates.length, 2, "both writes are captured before either lands");
+
+  // The telemetry statement names only its own columns.
+  const telemetryStatement = fake.pendingUpdates.find(
+    (entry) => !entry.sql.includes("status <> 'delivered'")
+  );
+  assert.ok(telemetryStatement, "the telemetry UPDATE is pending");
+  assert.equal(
+    normalizeSql(telemetryStatement.sql),
+    "UPDATE quote_attempts SET updated_at = ?, risk_score = ?, risk_flags = ? WHERE id = ?"
+  );
+  assert.deepEqual(telemetryStatement.binds, [T + 1000, 41, JSON.stringify(["burst"]), seed.id]);
+
+  // Land the confirmation first, then the telemetry write — the order
+  // that erased the delivery under the full-row UPDATE.
+  fake.flushUpdate((sql) => sql.includes("status <> 'delivered'"));
+  fake.flushUpdate(() => true);
+  const [, applied] = await Promise.all([telemetry, confirmation]);
+  assert.equal(applied, true);
+
+  const final = await store.getAttemptById(seed.id);
+  assert.equal(final.status, "delivered");
+  assert.equal(final.providerMessageId, "msg_race_winner");
+  assert.equal(final.providerStatus, 200);
+  assert.equal(final.deliveredAt, T + 2000);
+  // The telemetry patch still lands — on its own columns only.
+  assert.equal(final.riskScore, 41);
+  assert.deepEqual(final.riskFlags, ["burst"]);
+});
+
+test("D1 store: transition writes are scoped to the patch columns and the delivered guard still decides", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const seed = d1SeedRecord();
+  await store.createAttempt(seed);
+
+  const confirm = store.transitionAttempt(seed.id, {
+    status: "delivered",
+    providerMessageId: "msg_scoped",
+    deliveredAt: T + 5000,
+    updatedAt: T + 5000,
+  });
+  await settleStoreCalls();
+  assert.equal(fake.pendingUpdates.length, 1);
+  assert.equal(
+    normalizeSql(fake.pendingUpdates[0].sql),
+    "UPDATE quote_attempts SET updated_at = ?, status = ?, provider_message_id = ?, delivered_at = ? WHERE id = ? AND status <> 'delivered'"
+  );
+  assert.deepEqual(fake.pendingUpdates[0].binds, [T + 5000, "delivered", "msg_scoped", T + 5000, seed.id]);
+  fake.flushUpdate(() => true);
+  assert.equal(await confirm, true);
+
+  // A second transition against the now-delivered row is refused by the
+  // guard, and nothing is rewritten.
+  const downgrade = store.transitionAttempt(seed.id, {
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    updatedAt: T + 6000,
+  });
+  await settleStoreCalls();
+  fake.flushUpdate(() => true);
+  assert.equal(await downgrade, false);
+  const final = await store.getAttemptById(seed.id);
+  assert.equal(final.status, "delivered");
+  assert.equal(final.providerMessageId, "msg_scoped");
+  assert.equal(final.updatedAt, T + 5000);
+});
+
+test("D1 store: patch writes against a missing id are no-ops, matching the memory store", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const patch = store.updateAttempt("att_missing", { riskScore: 1, updatedAt: T });
+  const transition = store.transitionAttempt("att_missing", { status: "delivered", updatedAt: T });
+  await settleStoreCalls();
+  assert.equal(fake.pendingUpdates.length, 2);
+  fake.flushUpdate(() => true);
+  fake.flushUpdate(() => true);
+  await patch;
+  assert.equal(await transition, false);
+  assert.equal(await store.getAttemptById("att_missing"), null);
+  assert.equal(fake.rows.size, 0);
 });
