@@ -1776,3 +1776,175 @@ test("a payload-bearing record with no send stamp is measured from its creation 
     assert.equal(record.claimActive, true);
   });
 });
+
+// --- Fix round (Codex P2): result-page resubmissions keep attribution -----
+// The POST handler reads attribution exclusively from submitted form
+// fields. The main quote form fills its hidden tracking inputs from local
+// storage, but the server-rendered result-page forms (validation-error
+// correction + "Send as a separate enquiry") only preserved the business
+// fields — a campaign-originated lead who resubmitted from a result page
+// silently lost every UTM value, click ID, landing page, and referrer in
+// the delivered enquiry. The result-page forms now carry the stored
+// record's tracking as escaped hidden inputs.
+
+const CAMPAIGN_TRACKING = {
+  utm_source: "google",
+  utm_medium: "cpc",
+  utm_campaign: "spring-cleanup-2026",
+  utm_content: "headline-a",
+  utm_term: "landscaping victoria",
+  gclid: "gclid-abc123",
+  fbclid: "fbclid-def456",
+  msclkid: "msclkid-ghi789",
+  landing_page: "https://maestrosservices.com/landscaping/",
+  referrer: "https://www.google.com/",
+  page_title: "Landscaping Services | Maestros",
+  page_path: "/landscaping/",
+};
+
+const decodeHtmlEntities = (value) =>
+  value
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+// The fields a browser would submit from the result page's resubmission
+// form: every named input's value, each select's chosen option, and each
+// textarea's content, with attribute entities decoded the way the HTML
+// parser decodes them before submission.
+const formFieldsFromHtml = (html) => {
+  const formMatch = html.match(/<form method="POST" action="\/api\/quote">([\s\S]*?)<\/form>/);
+  assert.ok(formMatch, "result page must render the resubmission form");
+  const formHtml = formMatch[1];
+  const fields = {};
+  for (const match of formHtml.matchAll(/<input\b[^>]*>/g)) {
+    const name = match[0].match(/\bname="([^"]+)"/);
+    if (!name) continue;
+    const value = match[0].match(/\bvalue="([^"]*)"/);
+    fields[name[1]] = decodeHtmlEntities(value ? value[1] : "");
+  }
+  for (const match of formHtml.matchAll(/<select\b[^>]*\bname="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)) {
+    const selected = match[2].match(/<option value="([^"]*)" selected>/);
+    const first = match[2].match(/<option value="([^"]*)">/);
+    fields[match[1]] = decodeHtmlEntities((selected ?? first)?.[1] ?? "");
+  }
+  for (const match of formHtml.matchAll(/<textarea\b[^>]*\bname="([^"]+)"[^>]*>([\s\S]*?)<\/textarea>/g)) {
+    fields[match[1]] = decodeHtmlEntities(match[2]);
+  }
+  return fields;
+};
+
+const assertAttributionInEmail = (body, label) => {
+  assert.ok(body.text.includes("Attribution:"), `${label}: email must carry the attribution section`);
+  assert.ok(body.text.includes("UTM source: google"), `${label}: UTM source`);
+  assert.ok(body.text.includes("UTM campaign: spring-cleanup-2026"), `${label}: UTM campaign`);
+  assert.ok(body.text.includes("gclid: gclid-abc123"), `${label}: gclid`);
+  assert.ok(body.text.includes("Landing page: https://maestrosservices.com/landscaping/"), `${label}: landing page`);
+  assert.ok(body.text.includes("Referrer: https://www.google.com/"), `${label}: referrer`);
+};
+
+test("attribution survives the validation-correction resubmission path end-to-end", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const bad = await harness.post({ phone: "123", ...CAMPAIGN_TRACKING });
+    assert.equal((await resultJson(harness, bad)).json.reasonCode, "validation_failed");
+    assert.equal(calls.resend, 0);
+
+    // The correction form renders the stored attribution as hidden inputs.
+    const { html } = await resultHtml(harness, bad);
+    const formFields = formFieldsFromHtml(html);
+    for (const [field, value] of Object.entries(CAMPAIGN_TRACKING)) {
+      assert.equal(formFields[field], value, `correction form must carry ${field}`);
+    }
+
+    // Submit what the form carries, with the phone corrected — the way a
+    // visitor fixing the validation error would.
+    const corrected = await harness.post({
+      ...formFields,
+      phone: "2505550100",
+      form_started_at: String(T - 5000),
+    });
+    const { ref, json } = await resultJson(harness, corrected);
+    assert.equal(json.status, "delivered");
+    assert.equal(calls.resend, 1);
+    const record = await harness.store.getAttemptByReference(ref);
+    assert.deepEqual(record.payload.tracking, CAMPAIGN_TRACKING);
+    assertAttributionInEmail(calls.resendBodies[0], "corrected resubmission");
+  });
+});
+
+test("attribution survives the separate-enquiry resubmission path end-to-end", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const first = await harness.post({ ...CAMPAIGN_TRACKING });
+    const { ref: originalRef } = await resultJson(harness, first);
+    assert.equal(calls.resend, 1);
+    assertAttributionInEmail(calls.resendBodies[0], "original submission");
+
+    // The unchanged repeat is refused as a duplicate and renders the
+    // separate-enquiry form — carrying the original attribution.
+    const repeat = await harness.post({ ...CAMPAIGN_TRACKING });
+    const { html } = await resultHtml(harness, repeat);
+    assert.match(html, /No new email was sent/);
+    const formFields = formFieldsFromHtml(html);
+    assert.equal(formFields.separate_enquiry, "1");
+    for (const [field, value] of Object.entries(CAMPAIGN_TRACKING)) {
+      assert.equal(formFields[field], value, `separate-enquiry form must carry ${field}`);
+    }
+
+    const separate = await harness.post({ ...formFields, form_started_at: String(T - 5000) });
+    const { ref, json } = await resultJson(harness, separate);
+    assert.equal(json.status, "delivered");
+    assert.notEqual(ref, originalRef);
+    assert.equal(calls.resend, 2);
+    const record = await harness.store.getAttemptByReference(ref);
+    assert.equal(record.separateOf, originalRef);
+    assert.deepEqual(record.payload.tracking, CAMPAIGN_TRACKING);
+    assertAttributionInEmail(calls.resendBodies[1], "separate-enquiry resubmission");
+  });
+});
+
+test("tracking values with HTML metacharacters are escaped in the form and round-trip intact", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const tricky = {
+    utm_source: 'google"><script>alert(1)</script>',
+    utm_campaign: "spring & 'cleanup' <2026>",
+    referrer: 'https://example.com/?a=1&b="2"',
+  };
+  await withStub({}, async (calls) => {
+    const bad = await harness.post({ phone: "123", ...tricky });
+    const { html } = await resultHtml(harness, bad);
+
+    // The rendered hidden inputs escape the values for the attribute
+    // context: no raw metacharacter can break out of the value.
+    assert.ok(!html.includes('value="google">'), "a raw quote must not terminate the attribute");
+    assert.ok(!html.includes("<script>alert(1)</script>"), "no raw markup from a tracking value");
+    assert.ok(html.includes("google&quot;&gt;&lt;script&gt;"), "the value must be entity-escaped");
+    assert.ok(html.includes("spring &amp; &#39;cleanup&#39; &lt;2026&gt;"), "ampersand, quote, and angles escaped");
+
+    // A browser decodes the entities on submission, so the delivered
+    // record carries the original values byte-for-byte.
+    const formFields = formFieldsFromHtml(html);
+    assert.equal(formFields.utm_source, tricky.utm_source);
+    assert.equal(formFields.utm_campaign, tricky.utm_campaign);
+    assert.equal(formFields.referrer, tricky.referrer);
+    const corrected = await harness.post({
+      ...formFields,
+      phone: "2505550100",
+      form_started_at: String(T - 5000),
+    });
+    const { ref, json } = await resultJson(harness, corrected);
+    assert.equal(json.status, "delivered");
+    assert.equal(calls.resend, 1);
+    const record = await harness.store.getAttemptByReference(ref);
+    assert.equal(record.payload.tracking.utm_source, tricky.utm_source);
+    assert.equal(record.payload.tracking.utm_campaign, tricky.utm_campaign);
+    assert.equal(record.payload.tracking.referrer, tricky.referrer);
+    assert.ok(calls.resendBodies[0].text.includes(`UTM source: ${tricky.utm_source}`));
+  });
+});

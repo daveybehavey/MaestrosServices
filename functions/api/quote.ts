@@ -672,6 +672,28 @@ const optionsHtml = (values: readonly string[], labels: Record<string, string>, 
     )
     .join("");
 
+// The attribution fields the POST handler reads from the submitted form
+// (see the payload construction in handleQuotePost). The main quote form
+// carries them as hidden inputs restored from local storage; a result-page
+// resubmission has no such restore, so the form below carries the stored
+// record's values instead — otherwise a campaign-originated lead that
+// corrects an error or sends as a separate enquiry silently loses its
+// source attribution in the delivered enquiry.
+const TRACKING_FORM_FIELDS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+  "gclid",
+  "fbclid",
+  "msclkid",
+  "landing_page",
+  "referrer",
+  "page_title",
+  "page_path",
+] as const;
+
 // A fresh attempt of the same (or corrected) content: new submission
 // identity, values preserved. `separate` marks the S55-6A A4 "Send as a
 // separate enquiry" override, which bypasses content-repeat suppression.
@@ -703,6 +725,9 @@ const resubmissionForm = (
   <label>Best way to reply <select name="preferred_contact">${optionsHtml(QUOTE_CONTACT_VALUES, QUOTE_CONTACT_LABELS, payload.preferredContact)}</select></label>
   <label>Details (optional) <textarea name="details" maxlength="${MAX_DETAILS_LENGTH}">${escapeHtml(payload.details)}</textarea></label>
   <input type="hidden" name="return_to" value="${escapeHtml(record.returnTo ?? "/#quote")}" />
+  ${TRACKING_FORM_FIELDS.map(
+    (field) => `<input type="hidden" name="${field}" value="${escapeHtml(payload.tracking[field] ?? "")}" />`
+  ).join("\n  ")}
   <input type="hidden" name="form_started_at" value="" />
   <div aria-hidden="true" style="display:none;"><label>Company <input name="company" tabindex="-1" autocomplete="off" /></label></div>
   <div aria-hidden="true" style="display:none;"><label>Website <input name="website" tabindex="-1" autocomplete="off" /></label></div>
