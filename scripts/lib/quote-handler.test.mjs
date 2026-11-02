@@ -294,6 +294,134 @@ test("fifth enquiry from one IP in the window is a visible 429; the store is sha
   });
 });
 
+// --- Residuals item 2: a 429 must not lose the customer's content --------
+// The limiter still counts before any parsing, but a rejected request's
+// bounded entries are preserved on its record, so the 429 page shows
+// them back with a send-again form and a later resubmission starts from
+// the customer's text — never from a blank form.
+
+const driveToRateLimit = async (harness, ip) => {
+  for (let i = 0; i < 4; i += 1) {
+    const response = await harness.post({ phone: `250555030${i}`, details: `Job number ${i}` }, { ip });
+    assert.equal((await resultJson(harness, response)).json.status, "delivered");
+  }
+};
+
+test("429 preservation: the rejected request's entries are stored bounded and shown back", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.21";
+    await driveToRateLimit(harness, ip);
+    const limited = await harness.post(
+      { submission_id: "sub_429_keep", phone: "2505550399", details: "Fifth job — keep my text" },
+      { ip }
+    );
+    assert.equal(limited.status, 429);
+    assert.ok(Number(limited.headers.get("retry-after")) > 0);
+    const html = await limited.text();
+    assert.match(html, /Too many requests/);
+    assert.ok(html.includes("Fifth job — keep my text"), "the 429 page shows the preserved entries");
+    assert.ok(html.includes("Send again"), "the 429 page offers the send-again form");
+
+    const record = await harness.store.getLatestAttemptBySubmissionId("sub_429_keep");
+    assert.ok(record, "the 429 record carries the real submission id");
+    assert.equal(record.reasonCode, "rate_limited");
+    assert.equal(record.payload?.details, "Fifth job — keep my text");
+    assert.equal(record.payload?.phone, "2505550399");
+    assert.equal(record.content, null, "a preservation record is not an attempt identity");
+    assert.equal(record.contentHash, null);
+    assert.equal(record.claimActive, false, "a preservation record never holds a claim");
+    assert.equal(calls.resend, 4, "the rate-limited request never reaches the provider");
+
+    // The status page for that submission renders the preserved entries.
+    const statusPage = await harness.get("submission=sub_429_keep");
+    assert.equal(statusPage.status, 200);
+    const statusHtml = await statusPage.text();
+    assert.match(statusHtml, /Too many requests/);
+    assert.ok(statusHtml.includes("Fifth job — keep my text"));
+  });
+});
+
+test("429 preservation: oversized fields are clamped to the storage bounds", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async () => {
+    const ip = "198.51.100.22";
+    await driveToRateLimit(harness, ip);
+    const limited = await harness.post(
+      { submission_id: "sub_429_clamp", details: "x".repeat(2100) },
+      { ip }
+    );
+    assert.equal(limited.status, 429);
+    const record = await harness.store.getLatestAttemptBySubmissionId("sub_429_clamp");
+    assert.equal(record.payload?.details.length, 2000, "stored details are clamped to MAX_DETAILS_LENGTH");
+  });
+});
+
+test("429 preservation: an unparseable body still gets a 429 and still consumes budget", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.23";
+    await driveToRateLimit(harness, ip);
+    const garbage = new Request(`${HOST}/api/quote`, {
+      method: "POST",
+      headers: { Origin: HOST, "Content-Type": "multipart/form-data", "CF-Connecting-IP": ip },
+      body: "garbage without a boundary",
+    });
+    const limited = await onRequestPost({ request: garbage, env: harness.env });
+    assert.equal(limited.status, 429, "preservation failure must not break the 429 response");
+    const html = await limited.text();
+    assert.match(html, /Too many requests/);
+    assert.ok(!html.includes("Send again"), "an unparseable body falls back to the payload-less page");
+    const sixth = await harness.post({ phone: "2505550310", details: "Sixth job" }, { ip });
+    assert.equal(sixth.status, 429, "the malformed request still consumed rate budget");
+    assert.equal(calls.resend, 4);
+  });
+});
+
+test("429 preservation: after the window rolls the preserved content sends as a fresh attempt", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.24";
+    await driveToRateLimit(harness, ip);
+    const limited = await harness.post(
+      { submission_id: "sub_429_roll", phone: "2505550399", details: "Fifth job — keep my text" },
+      { ip }
+    );
+    assert.equal(limited.status, 429);
+    const preserved = await harness.store.getLatestAttemptBySubmissionId("sub_429_roll");
+
+    freezeNow(T + 600001);
+    const resent = await harness.post(
+      { submission_id: "sub_429_roll", phone: "2505550399", details: "Fifth job — keep my text" },
+      { ip }
+    );
+    const { ref, json } = await resultJson(harness, resent);
+    assert.equal(json.status, "delivered");
+    assert.notEqual(ref, preserved.reference, "the resubmission is a fresh attempt, not a resume of the 429 record");
+    assert.equal(calls.resend, 5);
+    const after = await harness.store.getLatestAttemptBySubmissionId("sub_429_roll");
+    assert.equal(after.status, "delivered");
+    assert.equal(after.id, (await harness.store.getAttemptByReference(ref)).id);
+  });
+});
+
+test("the quote form keeps the filled form on a 429 instead of replacing the document", () => {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const source = fs.readFileSync(path.join(here, "../../src/components/QuoteForm.astro"), "utf8");
+  const branch = source.indexOf("response.status === 429");
+  assert.ok(branch !== -1, "the fetch handler must special-case 429");
+  assert.ok(
+    branch < source.indexOf("response.status >= 400"),
+    "the 429 branch must run before the document-replacement branch"
+  );
+  assert.ok(source.includes('id="quote-rate-limited"'), "the inline rate-limit panel must exist");
+  assert.ok(source.includes('headers.get("Retry-After")'), "the wait comes from the Retry-After header");
+});
+
 // --- Checklist 7: malformed form body -------------------------------------
 
 test("malformed multipart body is visibly rejected with a metadata-only record", async () => {

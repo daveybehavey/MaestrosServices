@@ -336,6 +336,64 @@ const validateReturnTo = (requestUrl: string, returnTo: string) => {
   return fallback;
 };
 
+// The submitted business fields, extracted exactly as the main POST
+// path reads them. The rate-limit path uses the same extraction to
+// preserve a rejected request's entries (see handleQuotePost).
+const payloadFromFormData = (formData: FormData): QuotePayload => ({
+  name: getValue(formData, "name"),
+  phone: getValue(formData, "phone"),
+  email: getValue(formData, "email"),
+  area: getValue(formData, "area"),
+  service: getValue(formData, "service"),
+  timeline: getValue(formData, "timeline"),
+  preferredContact: getValue(formData, "preferred_contact"),
+  details: getValue(formData, "details"),
+  tracking: {
+    utm_source: getValue(formData, "utm_source"),
+    utm_medium: getValue(formData, "utm_medium"),
+    utm_campaign: getValue(formData, "utm_campaign"),
+    utm_content: getValue(formData, "utm_content"),
+    utm_term: getValue(formData, "utm_term"),
+    gclid: getValue(formData, "gclid"),
+    fbclid: getValue(formData, "fbclid"),
+    msclkid: getValue(formData, "msclkid"),
+    landing_page: getValue(formData, "landing_page"),
+    referrer: getValue(formData, "referrer"),
+    page_title: getValue(formData, "page_title"),
+    page_path: getValue(formData, "page_path"),
+  },
+});
+
+// A client-supplied submission id is kept only in the accepted format;
+// anything else gets a server-generated id (the main path's rule).
+const validSubmissionId = (raw: string) =>
+  /^[A-Za-z0-9_-]{8,80}$/.test(raw) ? raw : `srv_${randomToken(16).toLowerCase()}`;
+
+// Bounds a payload for retention on a rate-limit record: every field
+// clamped to the same MAX_* bound validation enforces, so a preserved
+// record never stores more than a validated attempt could carry. The
+// record never sends and a resubmission is a fresh validated attempt,
+// so clamping loses nothing legitimate.
+const clampPayloadForRetention = (payload: QuotePayload): QuotePayload => {
+  const clamp = (value: string, max: number) => (value.length > max ? value.slice(0, max) : value);
+  return {
+    name: clamp(payload.name, MAX_NAME_LENGTH),
+    phone: clamp(payload.phone, MAX_PHONE_LENGTH),
+    email: clamp(payload.email, MAX_EMAIL_LENGTH),
+    area: clamp(payload.area, MAX_AREA_LENGTH),
+    service: clamp(payload.service, MAX_SERVICE_LENGTH),
+    timeline: clamp(payload.timeline, MAX_SHORT_VALUE_LENGTH),
+    preferredContact: clamp(payload.preferredContact, MAX_SHORT_VALUE_LENGTH),
+    details: clamp(payload.details, MAX_DETAILS_LENGTH),
+    tracking: Object.fromEntries(
+      Object.entries(payload.tracking).map(([key, value]) => [
+        key,
+        clamp(value, key === "page_title" ? MAX_SHORT_VALUE_LENGTH : MAX_TRACKING_VALUE_LENGTH),
+      ])
+    ),
+  };
+};
+
 const alertOperational = (event: string, detail: Record<string, unknown>) => {
   // Operational alert + independent ingress record substitute: structured
   // log line captured by the platform log stream. Raw payloads, challenge
@@ -1541,14 +1599,43 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
     const count = await store.incrementRate(ipDigest, windowStart);
     if (count > MAX_REQUESTS_PER_WINDOW) {
       const retryAfterSeconds = Math.max(1, Math.ceil((windowStart + RATE_WINDOW_MS - now) / 1000));
-      const record = baseAttempt({
+      let record = baseAttempt({
         status: "rejected",
         reasonCode: "rate_limited",
         retryAfterSeconds,
         createdAt: now,
         updatedAt: now,
       });
-      await store.createAttempt(record);
+      // Preserve the customer's entries on the rejection record: the
+      // limiter has already counted this request (the counting order
+      // above is unchanged — abuse posture intact), and parsing now,
+      // before responding, lets the 429 page show the entries back
+      // with a send-again form instead of discarding them. The stored
+      // payload is clamped to the field bounds; content/contentHash
+      // stay null and claimActive stays false, so this preservation
+      // record can never suppress, claim, or be resumed as an attempt
+      // (the POST reconciliation path ignores a latest-by-submission
+      // record whose content is null). A body that cannot be parsed
+      // falls back to the payload-less record, and a failed
+      // preservation write still returns the 429 page rendered from
+      // the in-memory record.
+      try {
+        const formData = await request.formData();
+        record = {
+          ...record,
+          submissionId: validSubmissionId(getValue(formData, "submission_id")),
+          payload: clampPayloadForRetention(payloadFromFormData(formData)),
+          returnTo: validateReturnTo(request.url, getValue(formData, "return_to")),
+        };
+      } catch {
+        // Keep the payload-less record: preservation must never break
+        // the 429 response itself.
+      }
+      try {
+        await store.createAttempt(record);
+      } catch {
+        alertOperational("rate_limit_record_failed", { reference: record.reference, at: now });
+      }
       alertOperational("rate_limited", { reference: record.reference, at: now });
       return new Response(resultPageHtml(record, env, toEmail), {
         status: 429,
@@ -1571,33 +1658,9 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
 
   const returnTo = validateReturnTo(request.url, getValue(formData, "return_to"));
   const separateEnquiry = getValue(formData, "separate_enquiry") === "1";
-  const submittedIdRaw = getValue(formData, "submission_id");
-  const submissionId = /^[A-Za-z0-9_-]{8,80}$/.test(submittedIdRaw) ? submittedIdRaw : `srv_${randomToken(16).toLowerCase()}`;
+  const submissionId = validSubmissionId(getValue(formData, "submission_id"));
 
-  const payload: QuotePayload = {
-    name: getValue(formData, "name"),
-    phone: getValue(formData, "phone"),
-    email: getValue(formData, "email"),
-    area: getValue(formData, "area"),
-    service: getValue(formData, "service"),
-    timeline: getValue(formData, "timeline"),
-    preferredContact: getValue(formData, "preferred_contact"),
-    details: getValue(formData, "details"),
-    tracking: {
-      utm_source: getValue(formData, "utm_source"),
-      utm_medium: getValue(formData, "utm_medium"),
-      utm_campaign: getValue(formData, "utm_campaign"),
-      utm_content: getValue(formData, "utm_content"),
-      utm_term: getValue(formData, "utm_term"),
-      gclid: getValue(formData, "gclid"),
-      fbclid: getValue(formData, "fbclid"),
-      msclkid: getValue(formData, "msclkid"),
-      landing_page: getValue(formData, "landing_page"),
-      referrer: getValue(formData, "referrer"),
-      page_title: getValue(formData, "page_title"),
-      page_path: getValue(formData, "page_path"),
-    },
-  };
+  const payload = payloadFromFormData(formData);
   const serialized = serializeEnquiryContent(payload);
   const { score, flags } = scoreRisk({
     honeypot: getValue(formData, "company"),
