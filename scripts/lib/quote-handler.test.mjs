@@ -608,6 +608,87 @@ test("flagged submission with no challenge available is visibly rejected, never 
   });
 });
 
+test("a flagged submission is recorded in its flagged state on every rejection path", async () => {
+  freezeNow(T);
+  // Core path: honeypot-flagged, challenge fails — the durable record
+  // keeps the score and flags that made it flagged, so the operator can
+  // see why it was held.
+  const challenged = makeHarness();
+  await withStub(
+    { turnstile: [{ success: false, hostname: "maestrosservices.example", action: "quote_form" }] },
+    async (calls) => {
+      freezeNow(T);
+      const response = await challenged.post({ company: "Example Household" });
+      const { ref, json } = await resultJson(challenged, response);
+      assert.equal(json.reasonCode, "challenge_failed");
+      const record = await challenged.store.getAttemptByReference(ref);
+      assert.equal(record.riskScore, 2);
+      assert.ok(record.riskFlags.includes("honeypot_populated"));
+      assert.equal(calls.resend, 0);
+    }
+  );
+
+  // Validation path: flagged AND invalid — the rejection record still
+  // carries the flagged state, not a clean score.
+  const invalid = makeHarness();
+  await withStub({}, async (calls) => {
+    freezeNow(T);
+    const response = await invalid.post({ company: "Example Household", phone: "" });
+    const { ref, json } = await resultJson(invalid, response);
+    assert.equal(json.reasonCode, "validation_failed");
+    const record = await invalid.store.getAttemptByReference(ref);
+    assert.equal(record.riskScore, 2);
+    assert.ok(record.riskFlags.includes("honeypot_populated"));
+    assert.equal(calls.resend, 0);
+  });
+
+  // Duplicate path: an unchanged repeat that arrives flagged is
+  // suppressed as a duplicate, and the suppression record shows the flags.
+  const repeat = makeHarness();
+  await withStub({}, async (calls) => {
+    freezeNow(T);
+    const first = await repeat.post();
+    assert.equal((await resultJson(repeat, first)).json.status, "delivered");
+    const second = await repeat.post({ company: "Example Household" });
+    const { ref, json } = await resultJson(repeat, second);
+    assert.equal(json.reasonCode, "duplicate");
+    const record = await repeat.store.getAttemptByReference(ref);
+    assert.equal(record.riskScore, 2);
+    assert.ok(record.riskFlags.includes("honeypot_populated"));
+    assert.equal(calls.resend, 1, "the flagged repeat must not send a second email");
+  });
+});
+
+test("a repeat differing only by the documented normalization is a duplicate; a corrected enquiry is not", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const first = await harness.post({ details: "Line one\nLine two" });
+    const { ref: firstRef } = await resultJson(harness, first);
+    assert.equal((await harness.store.getAttemptByReference(firstRef)).status, "delivered");
+
+    // Same business content: CRLF line endings and outer whitespace are
+    // the documented transport normalization, so this is the same
+    // enquiry — suppressed as a duplicate, no second send.
+    const repeat = await harness.post({ name: "  Alice Example  ", details: "Line one\r\nLine two" });
+    const { json: repeatJson } = await resultJson(harness, repeat);
+    assert.equal(repeatJson.reasonCode, "duplicate");
+    assert.equal(calls.resend, 1);
+
+    // A corrected enquiry — fixed email, details appended — is a NEW
+    // enquiry from the same contact: recorded as its own attempt and
+    // delivered, never swallowed by the first one's duplicate claim.
+    const corrected = await harness.post({
+      email: "alice.corrected@example.com",
+      details: "Line one\nLine two\nPlus the side gate, corrected.",
+    });
+    const { ref: correctedRef, json: correctedJson } = await resultJson(harness, corrected);
+    assert.equal(correctedJson.status, "delivered");
+    assert.notEqual(correctedRef, firstRef);
+    assert.equal(calls.resend, 2);
+  });
+});
+
 // --- Checklist 18/19/20: duplicate identity --------------------------------
 
 test("changed name, email, timeline, or reply preference each deliver independently", async () => {
