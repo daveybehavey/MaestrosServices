@@ -2047,7 +2047,12 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   let providerMessageId: string | null = null;
   try {
     const body = (await response.json()) as { id?: unknown };
-    if (typeof body.id === "string" && body.id) providerMessageId = body.id;
+    // Only a non-empty trimmed id is acceptance evidence: a
+    // whitespace-only id identifies nothing, so it falls into the
+    // unconfirmed path below exactly like a missing id. The stored
+    // value is the trimmed id.
+    const id = typeof body.id === "string" ? body.id.trim() : "";
+    if (id) providerMessageId = id;
   } catch {
     providerMessageId = null;
   }

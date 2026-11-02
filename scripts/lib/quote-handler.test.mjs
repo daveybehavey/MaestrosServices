@@ -863,6 +863,31 @@ test("provider error matrix: explicit failures and unconfirmed outcomes, never s
   });
 });
 
+test("whitespace-only provider ID is not acceptance evidence; a padded ID is stored trimmed", async () => {
+  freezeNow(T);
+  const blank = makeHarness();
+  await withStub({ resend: [{ status: 200, body: { id: "   " } }] }, async (calls) => {
+    const response = await blank.post();
+    const { ref, json } = await resultJson(blank, response);
+    assert.equal(json.status, "unconfirmed");
+    assert.equal(json.reasonCode, "provider_unconfirmed");
+    assert.equal(json.conversionEligible, false);
+    const record = await blank.store.getAttemptByReference(ref);
+    assert.equal(record.providerMessageId, null, "a whitespace-only id must not be stored as delivery evidence");
+    assert.equal(record.claimActive, true, "the claim stays held while the outcome is unconfirmed");
+    assert.equal(calls.resend, 1);
+  });
+
+  const padded = makeHarness();
+  await withStub({ resend: [{ status: 200, body: { id: " msg_123 " } }] }, async () => {
+    const response = await padded.post();
+    const { ref, json } = await resultJson(padded, response);
+    assert.equal(json.status, "delivered");
+    const record = await padded.store.getAttemptByReference(ref);
+    assert.equal(record.providerMessageId, "msg_123", "the stored provider id is the trimmed value");
+  });
+});
+
 test("ambiguous acceptance reconciles on retry with the same idempotency key — no blind resend", async () => {
   freezeNow(T);
   const harness = makeHarness();
