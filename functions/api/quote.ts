@@ -6,6 +6,16 @@
 //   VISIBLY REJECTED — the submitter gets an explicit rejection/failure
 //                    result (server-rendered result page keyed by an
 //                    unguessable reference) and a durable rejection record.
+//   UNCONFIRMED    — the provider outcome could not be established; the
+//                    record says so plainly and is never reported as sent.
+// "sending" is transient, not terminal: an invocation that dies mid-send
+// can strand a row in it, so any observation of a stale "sending" record
+// — a status read (GET) or a conflicting submission — normalizes it to
+// "unconfirmed", the truthful state for an outcome nobody established.
+// An "unconfirmed" record older than the provider's idempotency window
+// can no longer be reconciled by a retry; it requires manual
+// reconciliation against the provider dashboard (operator runbook:
+// stranded-sending and aged-unconfirmed lookups on quote_attempts).
 // No spam, timing, duplicate, validation, configuration, or provider-failure
 // branch returns apparent success without delivery evidence, and feedback is
 // never selected from query parameters alone: `?submitted=1` means nothing
@@ -862,10 +872,15 @@ const TRACKING_FORM_FIELDS = [
 // A fresh attempt of the same (or corrected) content: new submission
 // identity, values preserved. `separate` marks the S55-6A A4 "Send as a
 // separate enquiry" override, which bypasses content-repeat suppression.
+// `submissionId` instead pins the form to an existing attempt identity:
+// the unconfirmed page's retry-confirmation form carries the record's
+// own submission id, so POSTing it resumes that very attempt in the
+// pipeline rather than opening a new one (the inline script below keeps
+// a pre-rendered submission_id input instead of generating one).
 const resubmissionForm = (
   record: AttemptRecord,
   env: QuoteEnv,
-  { separate, submitLabel }: { separate: boolean; submitLabel: string }
+  { separate, submitLabel, submissionId }: { separate: boolean; submitLabel: string; submissionId?: string }
 ) => {
   const payload = record.payload;
   if (!payload) return "";
@@ -890,6 +905,7 @@ const resubmissionForm = (
   <label>Best way to reply <select name="preferred_contact">${optionsHtml(QUOTE_CONTACT_VALUES, QUOTE_CONTACT_LABELS, payload.preferredContact)}</select></label>
   <label>Details (optional) <textarea name="details" maxlength="${MAX_DETAILS_LENGTH}">${escapeHtml(payload.details)}</textarea></label>
   <input type="hidden" name="return_to" value="${escapeHtml(record.returnTo ?? "/#quote")}" />
+  ${submissionId ? `<input type="hidden" name="submission_id" value="${escapeHtml(submissionId)}" />` : ""}
   ${TRACKING_FORM_FIELDS.map(
     (field) => `<input type="hidden" name="${field}" value="${escapeHtml(payload.tracking[field] ?? "")}" />`
   ).join("\n  ")}
@@ -1128,12 +1144,30 @@ ${contactLine(toEmail)}`
   }
 
   if (record.status === "unconfirmed") {
+    // While the attempt is still inside the provider's idempotency
+    // window, the page offers a retry-confirmation form pinned to this
+    // attempt's own submission id: POSTing it resumes this attempt and
+    // replays its frozen provider payload under the original key, so
+    // the retry can reconcile the original send instead of opening a
+    // new enquiry. Past the window a retry could never resolve the
+    // attempt (invariant I2), so no form is rendered — only the
+    // contact-direct copy.
+    const firstSendAt = record.providerSentAt ?? record.createdAt;
+    const retryForm =
+      record.payload && record.submissionId && Date.now() - firstSendAt <= PROVIDER_IDEMPOTENCY_WINDOW_MS
+        ? resubmissionForm(record, env, {
+            separate: false,
+            submitLabel: "Retry sending my request",
+            submissionId: record.submissionId,
+          })
+        : "";
     return pageShell(
       "Delivery could not be confirmed",
       `<h1 tabindex="-1">We could not confirm delivery</h1>
 <p>Your request (reference <span class="ref">${escapeHtml(record.reference)}</span>) may or may not have reached our email service — the confirmation did not come back, so it is <strong>not</strong> counted as sent. Please do not assume we have it.</p>
 <p><a href="/api/quote?ref=${escapeHtml(record.reference)}">Check the status of this submission</a> before sending another, or contact us directly and mention your reference.</p>
 ${record.payload ? payloadSummary(record.payload) : ""}
+${retryForm}
 ${contactLine(toEmail)}`
     );
   }
@@ -1429,7 +1463,8 @@ const buildEmail = (payload: QuotePayload, record: AttemptRecord, toEmail: strin
 //   unconfirmed -- provider 200 + message ID --------------> delivered
 //   unconfirmed -- outcome still not established ----------> unconfirmed
 //   sending     -- stale, observed by a conflicting --------> unconfirmed
-//                  submission (normalization)
+//                  submission or a status read (GET)
+//                  (normalization on observation)
 //   (a resumed attempt whose verification fails in a later request takes
 //   no transition at all beyond being held at unconfirmed)
 //
@@ -2118,11 +2153,36 @@ const handleQuoteGet = async ({ request, env }: QuoteContext): Promise<Response>
   }
   const reference = params.get("ref") ?? "";
   const submission = params.get("submission") ?? "";
-  const record = reference
+  let record = reference
     ? await store.getAttemptByReference(reference)
     : submission
       ? await store.getLatestAttemptBySubmissionId(submission)
       : null;
+  if (record && record.status === "sending" && Date.now() - record.updatedAt > SENDING_STALE_MS) {
+    // Normalize on observation: a "sending" record nobody finalized
+    // within the stale window belongs to an invocation that died
+    // mid-send; its outcome was never established, so the truthful
+    // state is "unconfirmed" — the same normalization the claim path
+    // applies when a conflicting submission observes the stale holder.
+    // This is the read path's only write: one bounded, guarded
+    // transition (invariant I1 — if an overlapping reconciliation
+    // delivered the attempt in the meantime, the transition is a no-op)
+    // and never a provider call, so the status page stays safe to poll.
+    // The record is then re-read and rendered from the fresh copy.
+    const now = Date.now();
+    const applied = await store.transitionAttempt(record.id, {
+      status: "unconfirmed",
+      reasonCode: "provider_unconfirmed",
+      updatedAt: now,
+    });
+    if (applied) {
+      alertOperational("stranded_sending_normalized", {
+        reference: record.reference,
+        ageMs: now - record.updatedAt,
+      });
+    }
+    record = (await store.getAttemptById(record.id)) ?? record;
+  }
   if (!record) {
     if (params.get("format") === "json") {
       return new Response(JSON.stringify({ error: "not_found" }), {

@@ -1168,6 +1168,230 @@ test("resumed stale sending attempt: a missing challenge normalizes to unconfirm
   });
 });
 
+// --- Residuals item 1: stranded `sending` reconciliation -------------------
+// A row stranded in "sending" by a dead invocation normalizes to
+// "unconfirmed" when observed (status read), the unconfirmed page offers
+// a retry-confirmation form inside the provider window, and nothing ever
+// auto-sends. Seeds mirror the stale-sending seed above.
+
+const seedStrandedAttempt = async (harness, overrides = {}) => {
+  const payload = {
+    name: "Alice Example",
+    phone: "2505550100",
+    email: "alice@example.com",
+    area: "Victoria",
+    service: "fence",
+    timeline: "flexible",
+    preferredContact: "text",
+    details: "Repair the front gate.",
+    tracking: {},
+  };
+  const content = serializeEnquiryContent(payload);
+  const { createHash } = await import("node:crypto");
+  const record = {
+    id: "att_stranded_seed",
+    submissionId: "sub_stranded_seed",
+    reference: "MS-STRANDED1",
+    createdAt: T,
+    updatedAt: T,
+    status: "sending",
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload,
+    providerPayload: null,
+    providerSentAt: null,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+    ...overrides,
+  };
+  await harness.store.createAttempt(record);
+  return record;
+};
+
+test("stranded sending: a status read past the stale window normalizes it to unconfirmed", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness);
+  freezeNow(T + 16 * 60 * 1000);
+  await withStub({}, async (calls) => {
+    const page = await harness.get("ref=MS-STRANDED1");
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.match(html, /could not confirm delivery/i);
+    const record = await harness.store.getAttemptByReference("MS-STRANDED1");
+    assert.equal(record.status, "unconfirmed");
+    assert.equal(record.reasonCode, "provider_unconfirmed");
+    assert.equal(record.claimActive, true, "normalization preserves the ambiguity — the claim stays held");
+
+    const verify = await harness.get("ref=MS-STRANDED1&format=json");
+    const json = await verify.json();
+    assert.equal(json.status, "unconfirmed", "the verify response reports the normalized state");
+    assert.equal(json.conversionEligible, false);
+    assert.equal(calls.resend, 0, "a status read never contacts the provider");
+    assert.equal(calls.turnstile, 0);
+  });
+
+  // The by-submission read path normalizes the same way.
+  const bySubmission = makeHarness();
+  await seedStrandedAttempt(bySubmission);
+  freezeNow(T + 16 * 60 * 1000);
+  await withStub({}, async () => {
+    const verify = await bySubmission.get("submission=sub_stranded_seed&format=json");
+    assert.equal((await verify.json()).status, "unconfirmed");
+    assert.equal((await bySubmission.store.getAttemptByReference("MS-STRANDED1")).status, "unconfirmed");
+  });
+});
+
+test("stranded sending: a fresh sending record is left untouched by status reads", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness);
+  freezeNow(T + 5 * 60 * 1000);
+  await withStub({}, async () => {
+    const page = await harness.get("ref=MS-STRANDED1");
+    const html = await page.text();
+    assert.match(html, /being processed/i);
+    const record = await harness.store.getAttemptByReference("MS-STRANDED1");
+    assert.equal(record.status, "sending");
+    assert.equal(record.updatedAt, T, "no write may occur inside the stale window");
+  });
+});
+
+test("stranded sending: a delivery landing mid-read wins over the normalization", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness);
+  freezeNow(T + 16 * 60 * 1000);
+  // A store wrapper whose guarded transition first commits the delivery
+  // an overlapping reconciliation just confirmed: the GET's
+  // normalization must then no-op and render the delivered record.
+  const inner = harness.store;
+  let raced = false;
+  const racingStore = {
+    ...inner,
+    async transitionAttempt(id, patch) {
+      if (!raced) {
+        raced = true;
+        await inner.updateAttempt(id, {
+          status: "delivered",
+          providerMessageId: "msg_race_winner",
+          deliveredAt: T + 16 * 60 * 1000,
+          updatedAt: T + 16 * 60 * 1000,
+        });
+      }
+      return inner.transitionAttempt(id, patch);
+    },
+  };
+  const env = { ...harness.env, __quoteStore: racingStore };
+  await withStub({}, async () => {
+    const page = await onRequest({ request: new Request(`${HOST}/api/quote?ref=MS-STRANDED1`), env });
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /Quote request accepted/);
+    const verify = await onRequest({
+      request: new Request(`${HOST}/api/quote?ref=MS-STRANDED1&format=json`),
+      env,
+    });
+    assert.equal((await verify.json()).conversionEligible, true);
+    assert.equal((await inner.getAttemptByReference("MS-STRANDED1")).status, "delivered");
+  });
+});
+
+test("unconfirmed page: retry-confirmation form inside the provider window, none past it", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness, {
+    id: "att_unconfirmed_seed",
+    submissionId: "sub_unconfirmed_seed",
+    reference: "MS-UNCONFIRM1",
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    providerPayload: "{}",
+    providerSentAt: T - 60 * 60 * 1000,
+  });
+  freezeNow(T);
+  await withStub({}, async () => {
+    const page = await harness.get("ref=MS-UNCONFIRM1");
+    const html = await page.text();
+    assert.match(html, /could not confirm delivery/i);
+    assert.ok(
+      html.includes('name="submission_id" value="sub_unconfirmed_seed"'),
+      "the retry form carries the record's own submission id"
+    );
+    assert.ok(html.includes("Retry sending my request"), "the retry form is offered inside the window");
+  });
+
+  const expired = makeHarness();
+  await seedStrandedAttempt(expired, {
+    id: "att_expired_seed",
+    submissionId: "sub_expired_seed",
+    reference: "MS-EXPIRED1",
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    providerPayload: "{}",
+    providerSentAt: T - 25 * 60 * 60 * 1000,
+    createdAt: T - 25 * 60 * 60 * 1000,
+    updatedAt: T - 25 * 60 * 60 * 1000,
+  });
+  freezeNow(T);
+  await withStub({}, async () => {
+    const page = await expired.get("ref=MS-EXPIRED1");
+    const html = await page.text();
+    assert.match(html, /could not confirm delivery/i);
+    assert.ok(!html.includes("Retry sending my request"), "past the window no retry form is offered");
+    assert.ok(!html.includes('name="submission_id"'), "past the window the page carries no submission form");
+  });
+});
+
+test("unconfirmed retry form: POSTing it reconciles the same attempt under the original key", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw", { status: 200 }] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_retry_form" });
+    const { ref } = await resultJson(harness, first);
+    const stuck = await harness.store.getAttemptByReference(ref);
+    assert.equal(stuck.status, "unconfirmed");
+    assert.ok(stuck.providerPayload, "the first send's payload is frozen on the record");
+
+    const page = await harness.get(`ref=${ref}`);
+    const html = await page.text();
+    assert.ok(html.includes('name="submission_id" value="sub_retry_form"'));
+    assert.ok(html.includes("Retry sending my request"));
+
+    const retry = await harness.post({ submission_id: "sub_retry_form" });
+    const { ref: retryRef, json } = await resultJson(harness, retry);
+    assert.equal(json.status, "delivered");
+    assert.equal(retryRef, ref, "the retry reconciles the same attempt — no second record");
+    assert.equal(calls.resend, 2);
+    assert.equal(calls.resendKeys[1], calls.resendKeys[0], "the replay uses the original idempotency key");
+    assert.deepEqual(calls.resendBodies[1], calls.resendBodies[0], "the replay sends the frozen payload");
+  });
+});
+
+test("unconfirmed retry past the provider window sends nothing and stays unconfirmed", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw"] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_window_retry" });
+    const { ref } = await resultJson(harness, first);
+    assert.equal((await harness.store.getAttemptByReference(ref)).status, "unconfirmed");
+
+    freezeNow(T + 25 * 60 * 60 * 1000);
+    const page = await harness.get(`ref=${ref}`);
+    assert.ok(!(await page.text()).includes("Retry sending my request"));
+
+    const retry = await harness.post({ submission_id: "sub_window_retry" });
+    const { json } = await resultJson(harness, retry);
+    assert.equal(json.status, "unconfirmed");
+    assert.equal(calls.resend, 1, "past the window the stored payload is never replayed");
+  });
+});
+
 // --- Fix round (Codex P2): result-page resubmission conversion tracking ----
 // Result pages are standalone documents: the resubmission form must carry
 // the same confirmed-delivery tracking path as the main quote form
