@@ -4,7 +4,10 @@
  */
 
 import {
+  GBP_OAUTH_PAIR_FAILURE_MESSAGE,
+  GBP_SHARED_CLIENT_FALLBACK_MESSAGE,
   WORKFLOW_FORBIDDEN_COMMAND_PATTERNS,
+  gbpOAuthPairState,
   listWorkflowActionUses,
   stripSensitiveFields,
 } from "./growth-weekly-ci.mjs";
@@ -82,11 +85,28 @@ export const assessReviewWatchConfig = (env = process.env) => {
     if (labels[name] === "no") missingRequired.push(name);
   }
 
+  // Pair-integrity guard: a half-set GBP OAuth pair mixes credentials
+  // across OAuth clients at token exchange (invalid_client), even though
+  // the OR-semantics above can assemble a client ID and secret. Fail
+  // closed; both-set or both-unset stays valid.
+  const pair = gbpOAuthPairState(labels);
+  const fallbacks = [];
+  if (
+    pair.bothUnset &&
+    labels.GOOGLE_OAUTH_CLIENT_ID === "yes" &&
+    labels.GOOGLE_OAUTH_CLIENT_SECRET === "yes"
+  ) {
+    fallbacks.push(GBP_SHARED_CLIENT_FALLBACK_MESSAGE);
+  }
+  const configured = missingRequired.length === 0 && !pair.halfSet;
+
   return {
-    configured: missingRequired.length === 0,
+    configured,
     labels,
     missingRequired,
-    failureClass: missingRequired.length ? "configuration_failure" : null,
+    gbpPairHalfSet: pair.halfSet,
+    fallbacks,
+    failureClass: configured ? null : "configuration_failure",
   };
 };
 
@@ -107,6 +127,20 @@ export const formatReviewWatchConfigSummary = (assessment) => {
     lines.push("Required GBP/OAuth configuration: missing");
     for (const name of assessment.missingRequired ?? []) {
       lines.push(`  - missing: ${name}`);
+    }
+    if (assessment.gbpPairHalfSet) {
+      lines.push(
+        `  - configuration error: ${GBP_OAUTH_PAIR_FAILURE_MESSAGE}`
+      );
+    }
+  }
+  if (assessment.fallbacks?.length) {
+    lines.push("");
+    lines.push(
+      "Optional fallbacks in use (visibility only; collection behaviour unchanged):"
+    );
+    for (const fallback of assessment.fallbacks) {
+      lines.push(`- ${fallback}`);
     }
   }
   lines.push("");

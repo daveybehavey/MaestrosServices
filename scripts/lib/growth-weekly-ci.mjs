@@ -5,6 +5,10 @@
 
 import { WEEKLY_SAFETY } from "./growth-weekly.mjs";
 import { sanitizeCollectorResultForCi } from "./growth-collector-diagnostics.mjs";
+import {
+  DEFAULT_SITE_URL,
+  resolveReportingSiteConfig,
+} from "./google-reporting-config.mjs";
 
 export const GROWTH_CI_SOURCE = "github_actions_shadow";
 
@@ -45,6 +49,78 @@ export const CI_OPTIONAL_SECRET_NAMES = Object.freeze([
   "GOOGLE_GBP_OAUTH_CLIENT_ID",
   "GOOGLE_GBP_OAUTH_CLIENT_SECRET",
 ]);
+
+/**
+ * The dedicated GBP OAuth client resolves field-by-field (GBP name
+ * preferred, shared client as fallback — see resolveGbpOAuthConfig in
+ * scripts/lib/gbp.mjs), so a half-set pair silently mixes credentials
+ * across two OAuth clients and fails token exchange with invalid_client.
+ * Both preflight assessors therefore treat a half-set pair as a
+ * configuration failure: the pair must be set together or not at all.
+ */
+export const GBP_OAUTH_PAIR_FAILURE_MESSAGE =
+  "GBP OAuth client pair must be set together or not at all: " +
+  "GOOGLE_GBP_OAUTH_CLIENT_ID and GOOGLE_GBP_OAUTH_CLIENT_SECRET resolve " +
+  "independently, so a half-set pair mixes credentials across OAuth " +
+  "clients and fails token exchange (invalid_client). Set both names or " +
+  "neither.";
+
+export const GBP_SHARED_CLIENT_FALLBACK_MESSAGE =
+  "GBP shared-client fallback: GOOGLE_GBP_OAUTH_CLIENT_ID and " +
+  "GOOGLE_GBP_OAUTH_CLIENT_SECRET are unset, so GBP collectors use the " +
+  "shared OAuth client (GOOGLE_OAUTH_CLIENT_ID / " +
+  "GOOGLE_OAUTH_CLIENT_SECRET) with GOOGLE_GBP_OAUTH_REFRESH_TOKEN.";
+
+/** Presence state of the dedicated GBP OAuth pair, from yes/no labels. */
+export const gbpOAuthPairState = (labels = {}) => {
+  const clientIdSet = labels.GOOGLE_GBP_OAUTH_CLIENT_ID === "yes";
+  const clientSecretSet = labels.GOOGLE_GBP_OAUTH_CLIENT_SECRET === "yes";
+  return {
+    clientIdSet,
+    clientSecretSet,
+    halfSet: clientIdSet !== clientSecretSet,
+    bothUnset: !clientIdSet && !clientSecretSet,
+  };
+};
+
+/**
+ * Optional fallbacks currently in use, as human-readable names
+ * (visibility only; collection behaviour is unchanged). The preflight
+ * CLIs surface each entry as a GitHub Actions ::warning annotation.
+ * Shadow workflow only: the review-watch assessor computes its own.
+ */
+export const collectCiFallbacks = (env, labels) => {
+  const fallbacks = [];
+  const pair = gbpOAuthPairState(labels);
+  if (
+    pair.bothUnset &&
+    labels.GOOGLE_OAUTH_CLIENT_ID === "yes" &&
+    labels.GOOGLE_OAUTH_CLIENT_SECRET === "yes"
+  ) {
+    fallbacks.push(GBP_SHARED_CLIENT_FALLBACK_MESSAGE);
+  }
+  let site = null;
+  try {
+    site = resolveReportingSiteConfig(env);
+  } catch {
+    site = null;
+  }
+  const siteUrl = site?.siteUrl ?? DEFAULT_SITE_URL;
+  const searchConsoleProperty =
+    site?.searchConsoleProperty ??
+    `sc-domain:${new URL(DEFAULT_SITE_URL).host}`;
+  if (labels.SITE_URL === "no") {
+    fallbacks.push(
+      `SITE_URL fallback: SITE_URL is unset, so the site URL defaults to ${siteUrl}.`
+    );
+  }
+  if (labels.GOOGLE_SEARCH_CONSOLE_PROPERTY === "no") {
+    fallbacks.push(
+      `Search Console property fallback: GOOGLE_SEARCH_CONSOLE_PROPERTY is unset, so queries use ${searchConsoleProperty}.`
+    );
+  }
+  return fallbacks;
+};
 
 const FORBIDDEN_KEY_PATTERN =
   /^(reviewerdisplayname|comment|ownerreply|client_secret|clientsecret|refresh_token|refreshtoken|access_token|accesstoken|authorization|password|passwd|api[_-]?key|private[_-]?key|secret|token)$/i;
@@ -108,12 +184,16 @@ export const assessCiConfig = (env = process.env) => {
   const optionalPresent = CI_OPTIONAL_SECRET_NAMES.filter(
     (name) => labels[name] === "yes"
   );
+  const gbpPairHalfSet = gbpOAuthPairState(labels).halfSet;
+  const configured = missingRequired.length === 0 && !gbpPairHalfSet;
   return {
-    configured: missingRequired.length === 0,
+    configured,
     labels,
     missingRequired,
     optionalPresent,
-    failureClass: missingRequired.length ? "configuration_failure" : null,
+    gbpPairHalfSet,
+    fallbacks: collectCiFallbacks(env, labels),
+    failureClass: configured ? null : "configuration_failure",
   };
 };
 
@@ -129,13 +209,28 @@ export const formatCiConfigSummary = (assessment) => {
   } else {
     lines.push("Required configuration: MISSING.");
     lines.push("Live collection stopped. Fixture data was not substituted.");
-    lines.push("");
-    lines.push("Configure these GitHub Actions secret NAMES (values never logged):");
-    for (const name of assessment.missingRequired) {
-      lines.push(`- ${name}`);
+    if (assessment.gbpPairHalfSet) {
+      lines.push("");
+      lines.push(`Configuration error: ${GBP_OAUTH_PAIR_FAILURE_MESSAGE}`);
+    }
+    if (assessment.missingRequired.length) {
+      lines.push("");
+      lines.push("Configure these GitHub Actions secret NAMES (values never logged):");
+      for (const name of assessment.missingRequired) {
+        lines.push(`- ${name}`);
+      }
     }
     lines.push("");
     lines.push("Failure class: configuration_failure");
+  }
+  if (assessment.fallbacks?.length) {
+    lines.push("");
+    lines.push(
+      "Optional fallbacks in use (visibility only; collection behaviour unchanged):"
+    );
+    for (const fallback of assessment.fallbacks) {
+      lines.push(`- ${fallback}`);
+    }
   }
   return `${lines.join("\n")}\n`;
 };
