@@ -46,6 +46,11 @@ if (isMain) {
     const assessment = assessReviewWatchConfig(process.env);
     const summary = formatReviewWatchConfigSummary(assessment);
     process.stdout.write(summary);
+    // Surface optional fallbacks as GitHub Actions annotations. Stdout
+    // only: these lines are never written into the summary/JSON artifacts.
+    for (const fallback of assessment.fallbacks ?? []) {
+      console.log(`::warning title=Growth Ops fallback::${fallback}`);
+    }
     if (options.summaryPath) {
       fs.mkdirSync(path.dirname(path.resolve(options.summaryPath)), { recursive: true });
       fs.writeFileSync(options.summaryPath, summary, "utf8");

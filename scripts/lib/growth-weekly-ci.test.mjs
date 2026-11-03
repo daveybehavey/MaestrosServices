@@ -247,6 +247,84 @@ test("config preflight reports labels only and fails closed when required missin
   assert.equal(present.labels.GOOGLE_GBP_OAUTH_CLIENT_ID, "no");
 });
 
+test("config preflight fails closed on a half-set GBP OAuth pair", () => {
+  const base = {
+    GOOGLE_OAUTH_CLIENT_ID: "x",
+    GOOGLE_OAUTH_CLIENT_SECRET: "x",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "x",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "x",
+    GOOGLE_GA4_PROPERTY_ID: "p",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  };
+
+  const idOnly = assessCiConfig({ ...base, GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-id" });
+  assert.equal(idOnly.configured, false);
+  assert.equal(idOnly.failureClass, "configuration_failure");
+  assert.equal(idOnly.gbpPairHalfSet, true);
+  assert.equal(idOnly.missingRequired.length, 0);
+  assert.match(formatCiConfigSummary(idOnly), /set together or not at all/);
+
+  const secretOnly = assessCiConfig({
+    ...base,
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-secret",
+  });
+  assert.equal(secretOnly.configured, false);
+  assert.equal(secretOnly.failureClass, "configuration_failure");
+  assert.equal(secretOnly.gbpPairHalfSet, true);
+
+  const bothSet = assessCiConfig({
+    ...base,
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-id",
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-secret",
+  });
+  assert.equal(bothSet.configured, true);
+  assert.equal(bothSet.gbpPairHalfSet, false);
+});
+
+test("config preflight names optional fallbacks in use", () => {
+  const base = {
+    GOOGLE_OAUTH_CLIENT_ID: "x",
+    GOOGLE_OAUTH_CLIENT_SECRET: "x",
+    GOOGLE_OAUTH_REFRESH_TOKEN: "x",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "x",
+    GOOGLE_GA4_PROPERTY_ID: "p",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  };
+
+  // Production shape today: every optional unset, every fallback live.
+  const productionShape = assessCiConfig({ ...base });
+  assert.equal(productionShape.configured, true);
+  assert.ok(
+    productionShape.fallbacks.some((f) => f.includes("shared OAuth client"))
+  );
+  assert.ok(
+    productionShape.fallbacks.some((f) =>
+      f.includes("sc-domain:maestrosservices.com")
+    )
+  );
+  assert.ok(
+    productionShape.fallbacks.some((f) =>
+      f.includes("https://maestrosservices.com")
+    )
+  );
+  assert.match(
+    formatCiConfigSummary(productionShape),
+    /Optional fallbacks in use/
+  );
+
+  const pinned = assessCiConfig({
+    ...base,
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-id",
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-secret",
+    GOOGLE_SEARCH_CONSOLE_PROPERTY: "sc-domain:maestrosservices.com",
+    SITE_URL: "https://maestrosservices.com",
+  });
+  assert.equal(pinned.configured, true);
+  assert.deepEqual(pinned.fallbacks, []);
+});
+
 test("exporter writes sanitized files from fixtures without leaking PII", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "growth-ci-export-"));
   try {

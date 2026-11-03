@@ -17,6 +17,7 @@ import {
   auditGrowthReviewWatchWorkflow,
   buildReviewWatchPacket,
   countUnrepliedReviews,
+  formatReviewWatchConfigSummary,
   formatReviewWatchJobSummaryMarkdown,
   sanitizeReviewWatchPacketForCi,
 } from "./growth-review-watch.mjs";
@@ -300,6 +301,65 @@ test("review-watch preflight accepts optional GBP-specific client credentials al
   assert.equal(assessment.labels.GOOGLE_GBP_OAUTH_CLIENT_SECRET, "yes");
   assert.equal(assessment.labels.GOOGLE_OAUTH_CLIENT_ID, "no");
   assert.equal(assessment.labels.GOOGLE_OAUTH_CLIENT_SECRET, "no");
+});
+
+test("review-watch preflight fails closed on a half-set GBP OAuth pair", () => {
+  const base = {
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client-id",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  };
+
+  // The dangerous mix: a dedicated GBP client ID would be paired with the
+  // shared client's secret by the field-by-field resolver.
+  const idOnly = assessReviewWatchConfig({
+    ...base,
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-id",
+  });
+  assert.equal(idOnly.configured, false);
+  assert.equal(idOnly.failureClass, "configuration_failure");
+  assert.equal(idOnly.gbpPairHalfSet, true);
+  assert.equal(idOnly.missingRequired.length, 0);
+  assert.match(
+    formatReviewWatchConfigSummary(idOnly),
+    /set together or not at all/
+  );
+
+  const secretOnly = assessReviewWatchConfig({
+    ...base,
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-secret",
+  });
+  assert.equal(secretOnly.configured, false);
+  assert.equal(secretOnly.failureClass, "configuration_failure");
+  assert.equal(secretOnly.gbpPairHalfSet, true);
+});
+
+test("review-watch preflight names the shared-client fallback", () => {
+  const shared = assessReviewWatchConfig({
+    GOOGLE_OAUTH_CLIENT_ID: "shared-client-id",
+    GOOGLE_OAUTH_CLIENT_SECRET: "shared-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  });
+  assert.equal(shared.configured, true);
+  assert.ok(shared.fallbacks.some((f) => f.includes("shared OAuth client")));
+  assert.match(
+    formatReviewWatchConfigSummary(shared),
+    /Optional fallbacks in use/
+  );
+
+  const dedicated = assessReviewWatchConfig({
+    GOOGLE_GBP_OAUTH_CLIENT_ID: "gbp-id",
+    GOOGLE_GBP_OAUTH_CLIENT_SECRET: "gbp-secret",
+    GOOGLE_GBP_OAUTH_REFRESH_TOKEN: "gbp-refresh",
+    GOOGLE_GBP_LOCATION_NAME: "locations/1",
+    GOOGLE_GBP_ACCOUNT_NAME: "accounts/1",
+  });
+  assert.equal(dedicated.configured, true);
+  assert.deepEqual(dedicated.fallbacks, []);
 });
 
 test("review-watch workflow does not expose shared GOOGLE_OAUTH_REFRESH_TOKEN", () => {

@@ -44,6 +44,11 @@ if (isMain) {
     const assessment = assessCiConfig(process.env);
     const summary = formatCiConfigSummary(assessment);
     process.stdout.write(summary);
+    // Surface optional fallbacks as GitHub Actions annotations. Stdout
+    // only: these lines are never written into the summary/JSON artifacts.
+    for (const fallback of assessment.fallbacks ?? []) {
+      console.log(`::warning title=Growth Ops fallback::${fallback}`);
+    }
     if (options.summaryPath) {
       fs.mkdirSync(path.dirname(path.resolve(options.summaryPath)), { recursive: true });
       fs.writeFileSync(options.summaryPath, summary, "utf8");
