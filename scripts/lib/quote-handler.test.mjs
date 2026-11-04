@@ -1547,6 +1547,42 @@ test("store transitionAttempt: delivered is terminal and a blocked transition re
   assert.equal(record.providerMessageId, "msg_contract");
 });
 
+test("store persistFirstSend: the first persistence wins and a later call changes nothing", async () => {
+  const store = createMemoryQuoteStore();
+  const { createHash } = await import("node:crypto");
+  const content = serializeEnquiryContent(MACHINE_PAYLOAD);
+  await store.createAttempt({
+    id: "att_firstsend_contract",
+    submissionId: "sub_firstsend_contract",
+    reference: "MS-FIRSTSEND1",
+    createdAt: T,
+    updatedAt: T,
+    status: "sending",
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload: MACHINE_PAYLOAD,
+    providerPayload: null,
+    providerSentAt: null,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+  });
+  assert.equal(await store.persistFirstSend("att_firstsend_contract", "body-one", T + 1000), true);
+  assert.equal(await store.persistFirstSend("att_firstsend_contract", "body-two", T + 2000), false);
+  const record = await store.getAttemptById("att_firstsend_contract");
+  assert.equal(record.providerPayload, "body-one", "the first persisted payload stands");
+  assert.equal(record.providerSentAt, T + 1000, "the first-send stamp never moves");
+});
+
 test("overlapping reconciliations: a provider error landing after a concurrent confirmation cannot downgrade delivered", async () => {
   freezeNow(T);
   const harness = makeHarness();
@@ -1684,6 +1720,159 @@ test("overlapping reconciliations: a verification failure landing after a concur
     assert.equal(record.status, "delivered", "a late verification failure must not downgrade a confirmed delivery");
     assert.equal(record.providerMessageId, "msg_overlap_vf");
     assert.equal((await resultJson(harness, responseB)).json.conversionEligible, true);
+  });
+});
+
+test("overlapping first send: the creator's late verification failure cannot downgrade a concurrent delivery", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withOverlapStub({ holdFirstTurnstile: true }, async (state) => {
+    // The creator's request parks inside its challenge verification
+    // (that fetch has no timeout), its fresh attempt sitting in
+    // "sending".
+    const postCreator = harness.post({ submission_id: "sub_overlap_creator_vf" });
+    await waitForCondition(() => state.turnstile === 1 && state.heldTurnstileResolve, "the held verification");
+    const created = await harness.store.getLatestAttemptBySubmissionId("sub_overlap_creator_vf");
+    assert.equal(created.status, "sending");
+
+    // Sixteen minutes later a retry carrying the same submission id
+    // resumes the now-stale attempt, verifies, sends, and confirms
+    // delivery.
+    freezeNow(T + 16 * 60 * 1000);
+    const postRetry = harness.post({ submission_id: "sub_overlap_creator_vf" });
+    await waitForCondition(() => state.pendingResend.length === 1, "the resumer's send");
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_creator"));
+    const responseRetry = await postRetry;
+    assert.equal(refFromRedirect(responseRetry), created.reference);
+    assert.equal((await harness.store.getAttemptById(created.id)).status, "delivered");
+
+    // The creator's verification now fails. That establishes nothing
+    // about the confirmed send: the record must not move, and the
+    // creator's result page renders the delivered record.
+    state.heldTurnstileResolve(
+      new Response(
+        JSON.stringify({ success: false, hostname: "maestrosservices.example", action: "quote_form" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    const responseCreator = await postCreator;
+    assert.equal(refFromRedirect(responseCreator), created.reference);
+    const record = await harness.store.getAttemptById(created.id);
+    assert.equal(record.status, "delivered", "the creator's late verification failure must not downgrade a confirmed delivery");
+    assert.equal(record.providerMessageId, "msg_overlap_creator");
+    assert.equal(record.claimActive, true, "the delivered claim stays held");
+    assert.equal((await resultJson(harness, responseCreator)).json.conversionEligible, true);
+  });
+});
+
+test("overlapping first send: the creator's late verification failure cannot reject an attempt a concurrent send left unconfirmed", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withOverlapStub({ holdFirstTurnstile: true }, async (state) => {
+    const postCreator = harness.post({ submission_id: "sub_overlap_creator_uc" });
+    await waitForCondition(() => state.turnstile === 1 && state.heldTurnstileResolve, "the held verification");
+    const created = await harness.store.getLatestAttemptBySubmissionId("sub_overlap_creator_uc");
+    assert.equal(created.status, "sending");
+
+    // The resuming retry verifies and sends, but the provider call
+    // fails at the network level: the attempt is left unconfirmed with
+    // its claim held, its outcome unknown.
+    freezeNow(T + 16 * 60 * 1000);
+    const postRetry = harness.post({ submission_id: "sub_overlap_creator_uc" });
+    await waitForCondition(() => state.pendingResend.length === 1, "the resumer's send");
+    state.pendingResend[0].reject(new Error("provider network failure"));
+    const responseRetry = await postRetry;
+    assert.equal(refFromRedirect(responseRetry), created.reference);
+    assert.equal((await harness.store.getAttemptById(created.id)).status, "unconfirmed");
+
+    // The creator's verification now fails. Its request never sent
+    // anything, so the failure must not resolve the ambiguous attempt
+    // as rejected or release its claim.
+    state.heldTurnstileResolve(
+      new Response(
+        JSON.stringify({ success: false, hostname: "maestrosservices.example", action: "quote_form" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    const responseCreator = await postCreator;
+    assert.equal(refFromRedirect(responseCreator), created.reference);
+    const record = await harness.store.getAttemptById(created.id);
+    assert.equal(record.status, "unconfirmed", "the ambiguous outcome is preserved for reconciliation");
+    assert.equal(record.reasonCode, "provider_unconfirmed");
+    assert.equal(record.claimActive, true, "the content claim stays held");
+  });
+});
+
+test("overlapping first send: a concurrent resumer's persisted payload and first-send stamp are adopted, never overwritten", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withOverlapStub({ holdFirstTurnstile: true }, async (state) => {
+    const postCreator = harness.post({ submission_id: "sub_overlap_creator_pp" });
+    await waitForCondition(() => state.turnstile === 1 && state.heldTurnstileResolve, "the held verification");
+    const created = await harness.store.getLatestAttemptBySubmissionId("sub_overlap_creator_pp");
+    assert.equal(created.status, "sending");
+
+    // The resuming retry verifies, persists the first-send payload and
+    // stamp, and reaches the provider.
+    freezeNow(T + 16 * 60 * 1000);
+    const postRetry = harness.post({ submission_id: "sub_overlap_creator_pp" });
+    await waitForCondition(() => state.pendingResend.length === 1, "the resumer's send");
+    const persisted = await harness.store.getAttemptById(created.id);
+    assert.ok(persisted.providerPayload, "the resumer persisted the frozen payload");
+    assert.equal(persisted.providerSentAt, T + 16 * 60 * 1000);
+
+    // Five minutes later the creator's verification succeeds and it
+    // proceeds with its own stale snapshot, which carries no payload.
+    freezeNow(T + 21 * 60 * 1000);
+    state.heldTurnstileResolve(
+      new Response(JSON.stringify(TURNSTILE_OK), { status: 200, headers: { "Content-Type": "application/json" } })
+    );
+    await waitForCondition(() => state.pendingResend.length === 2, "the creator's send");
+    assert.equal(state.resendKeys[0], created.id, "both sends carry the attempt's idempotency key");
+    assert.equal(state.resendKeys[1], created.id);
+
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_pp_first"));
+    const responseRetry = await postRetry;
+    assert.equal(refFromRedirect(responseRetry), created.reference);
+    state.pendingResend[1].resolve(resendOkResponse("msg_overlap_pp_second"));
+    const responseCreator = await postCreator;
+    assert.equal(refFromRedirect(responseCreator), created.reference);
+
+    const record = await harness.store.getAttemptById(created.id);
+    assert.equal(record.status, "delivered");
+    assert.equal(record.providerMessageId, "msg_overlap_pp_first", "the first confirmation stands");
+    assert.equal(record.providerPayload, persisted.providerPayload, "the frozen payload was adopted, not rebuilt");
+    assert.equal(
+      record.providerSentAt,
+      T + 16 * 60 * 1000,
+      "the first-send stamp is the resumer's, so the idempotency window is measured from the true first send"
+    );
+  });
+});
+
+test("a reconciled confirmation records the recipient the persisted body was sent to, not the current configuration", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_recipient_reconcile",
+    submissionId: "sub_recipient_reconcile",
+    reference: "MS-RECIPIENT1",
+  });
+  // The business inbox changes after the first send; the retry that
+  // confirms the original send must not rewrite where that send went.
+  harness.env.TO_EMAIL = "changed@example.com";
+  await withStub({}, async (calls) => {
+    const retry = await harness.post({ submission_id: "sub_recipient_reconcile" });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 1);
+    assert.equal(calls.resendBodies[0].to[0], "quotes@maestrosservices.com", "the replay sends the persisted body");
+    const record = await harness.store.getAttemptByReference(seed.reference);
+    assert.equal(record.status, "delivered");
+    assert.equal(
+      record.recipient,
+      "quotes@maestrosservices.com",
+      "the record names the body's actual recipient, not the retry request's configuration"
+    );
   });
 });
 
@@ -2000,12 +2189,20 @@ const createFakeD1 = () => {
       return [assignment[1], value];
     });
     assert.ok(
-      whereClause === "id = ?" || whereClause === "id = ? AND status <> 'delivered'",
+      whereClause === "id = ?" ||
+        whereClause === "id = ? AND status <> 'delivered'" ||
+        whereClause === "id = ? AND provider_payload IS NULL",
       `fake D1 cannot apply UPDATE with WHERE: ${whereClause}`
     );
     const row = rows.get(binds[bindIndex]);
     if (!row) return 0;
     if (whereClause.includes("status <> 'delivered'") && row.status === "delivered") return 0;
+    if (
+      whereClause.includes("provider_payload IS NULL") &&
+      row.provider_payload !== null &&
+      row.provider_payload !== undefined
+    )
+      return 0;
     for (const [column, value] of sets) row[column] = value;
     return 1;
   };
@@ -2189,4 +2386,25 @@ test("D1 store: patch writes against a missing id are no-ops, matching the memor
   assert.equal(await transition, false);
   assert.equal(await store.getAttemptById("att_missing"), null);
   assert.equal(fake.rows.size, 0);
+});
+
+test("D1 store: persistFirstSend is write-once against the committed row", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const seed = d1SeedRecord({ providerPayload: null, providerSentAt: null });
+  await store.createAttempt(seed);
+
+  const first = store.persistFirstSend(seed.id, "body-one", T + 1000);
+  await settleStoreCalls();
+  fake.flushUpdate((sql) => sql.includes("provider_payload IS NULL"));
+  assert.equal(await first, true, "the first persistence applies");
+
+  const second = store.persistFirstSend(seed.id, "body-two", T + 2000);
+  await settleStoreCalls();
+  fake.flushUpdate((sql) => sql.includes("provider_payload IS NULL"));
+  assert.equal(await second, false, "a later persistence is refused by the committed row");
+
+  const record = await store.getAttemptById(seed.id);
+  assert.equal(record.providerPayload, "body-one", "the first persisted payload stands");
+  assert.equal(record.providerSentAt, T + 1000, "the first-send stamp never moves");
 });

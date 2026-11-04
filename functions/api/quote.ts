@@ -173,6 +173,16 @@ interface QuoteStore {
   // condition in its WHERE clause — so overlapping reconciliations of
   // one attempt can never downgrade a confirmed delivery.
   transitionAttempt(id: string, patch: Partial<AttemptRecord>): Promise<boolean>;
+  // Write-once persistence of the first send's facts (the frozen provider
+  // payload and its first-send stamp): applies only while the stored
+  // record still has no provider payload, and returns whether this call
+  // won. Atomic in both stores — the memory store's check-and-set is one
+  // synchronous section, and the D1 store's UPDATE carries the
+  // provider_payload IS NULL condition in its WHERE clause — so two
+  // overlapping invocations racing to make the first send can never
+  // overwrite each other's payload or move the stamp the provider
+  // idempotency window (invariant I2) is measured from.
+  persistFirstSend(id: string, providerPayload: string, providerSentAt: number): Promise<boolean>;
   findClaimHolder(contentHash: string, content: string): Promise<AttemptRecord | null>;
   releaseClaim(id: string): Promise<void>;
   expireDeliveredClaims(cutoff: number): Promise<void>;
@@ -381,6 +391,15 @@ export const createMemoryQuoteStore = (): QuoteStore => {
       const record = attempts.get(id);
       if (!record || record.status === "delivered") return false;
       attempts.set(id, clone({ ...record, ...patch, id: record.id }));
+      return true;
+    },
+    async persistFirstSend(id, providerPayload, providerSentAt) {
+      // Synchronous critical section, like transitionAttempt: the
+      // payload-absent check and the write cannot interleave with
+      // another first-send persistence in this isolate.
+      const record = attempts.get(id);
+      if (!record || record.providerPayload) return false;
+      attempts.set(id, clone({ ...record, providerPayload, providerSentAt, updatedAt: providerSentAt }));
       return true;
     },
     async findClaimHolder(contentHash, content) {
@@ -625,6 +644,19 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
         `UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ? AND status <> 'delivered'`
       )
       .bind(...values, id)
+      .run();
+    return (result.meta?.changes ?? 0) > 0;
+  },
+  async persistFirstSend(id, providerPayload, providerSentAt) {
+    // A single write-once statement: the WHERE clause is the atomic
+    // guard, evaluated against the committed row at write time, so a
+    // payload persisted by an overlapping invocation is never
+    // overwritten and its first-send stamp never moves.
+    const result = await db
+      .prepare(
+        "UPDATE quote_attempts SET provider_payload = ?, provider_sent_at = ?, updated_at = ? WHERE id = ? AND provider_payload IS NULL"
+      )
+      .bind(providerPayload, providerSentAt, providerSentAt, id)
       .run();
     return (result.meta?.changes ?? 0) > 0;
   },
@@ -1346,10 +1378,13 @@ const buildEmail = (payload: QuotePayload, record: AttemptRecord, toEmail: strin
 //   is atomic in both stores, so two overlapping reconciliations of one
 //   attempt resolve to "delivered if any of them confirmed", regardless
 //   of the order their outcomes land. Writes that are not reconciliation
-//   outcomes (persisting the provider payload and its send stamp,
-//   recording a retry's risk telemetry) keep updateAttempt: they carry
-//   no status, and in the D1 store they are column-scoped writes, so
-//   they cannot rewrite a status a concurrent reconciliation committed.
+//   outcomes keep primitives of their own: persisting the provider
+//   payload and its first-send stamp goes through the write-once
+//   persistFirstSend (the first send's facts, which I2 is measured
+//   from, are immutable once any invocation has committed them), and
+//   recording a retry's risk telemetry keeps updateAttempt: it carries
+//   no status, and in the D1 store it is a column-scoped write, so it
+//   cannot rewrite a status a concurrent reconciliation committed.
 //
 //   I2 — REPLAYS ARE BOUNDED BY THE PROVIDER'S IDEMPOTENCY WINDOW. The
 //   provider retains an idempotency key for PROVIDER_IDEMPOTENCY_WINDOW_MS;
@@ -1715,7 +1750,30 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       });
       return redirectToResult(request, attempt.reference);
     }
-    await store.updateAttempt(attempt.id, {
+    // This request created the attempt, but it may no longer be the
+    // only actor: if this request stalled (the challenge verification
+    // fetch has no timeout) past the stale-sending threshold, a retry
+    // carrying the same submission id resumes the attempt and can take
+    // it into — or through — the provider stage while this request is
+    // still parked. A verification or configuration failure here
+    // establishes nothing about that send, so if the stored record has
+    // moved past the "sending" state this request left it in, the
+    // failure is handled exactly like the resumed path above (invariant
+    // I1): the attempt stays unconfirmed with its claim held, and the
+    // guarded transition still lets a concurrent delivery win.
+    const stored = await store.getAttemptById(attempt.id);
+    if (stored && stored.status !== "sending") {
+      await store.transitionAttempt(attempt.id, {
+        status: "unconfirmed",
+        reasonCode: "provider_unconfirmed",
+        updatedAt: Date.now(),
+      });
+      return redirectToResult(request, attempt.reference);
+    }
+    // The attempt is still exactly where this request left it, so the
+    // rejection is this request's to record — through the guarded
+    // transition, so a delivery confirmed in the meantime still wins.
+    await store.transitionAttempt(attempt.id, {
       status: "rejected",
       reasonCode,
       claimActive: false,
@@ -1766,15 +1824,6 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   // the original send. Persisting before the call means even a send whose
   // acceptance response is lost leaves the exact body behind for its
   // retry.
-  // A persisted payload means a first send already happened: this call
-  // would replay it under the original idempotency key, which the
-  // provider only honours inside its retention window (invariant I2).
-  // The first send's age is read from its stamp, falling back to the
-  // record's creation for payloads persisted before the stamp existed
-  // (the payload was persisted in the creation request, moments before
-  // that send).
-  const firstSendAt = attempt.providerPayload ? attempt.providerSentAt ?? attempt.createdAt : null;
-
   let providerBody = attempt.providerPayload;
   if (!providerBody) {
     const email = buildEmail(attempt.payload ?? payload, attempt, toEmail);
@@ -1788,15 +1837,42 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
     // The first-send stamp is written with the payload, immediately
     // before the first provider call below, so a later retry can
     // measure the original send's age against the idempotency window.
+    // The write is write-once: if an overlapping invocation resumed
+    // this attempt while this request was parked (e.g. in challenge
+    // verification) and already persisted its payload, that payload and
+    // its earlier stamp are the first send's facts — adopt them rather
+    // than overwriting, or the window below would be measured from this
+    // request's later stamp and a replay could outlive the provider's
+    // retention of the original idempotency key.
     const sentAt = Date.now();
-    await store.updateAttempt(attempt.id, {
-      providerPayload: providerBody,
-      providerSentAt: sentAt,
-      updatedAt: sentAt,
-    });
-    attempt.providerPayload = providerBody;
-    attempt.providerSentAt = sentAt;
+    if (await store.persistFirstSend(attempt.id, providerBody, sentAt)) {
+      attempt.providerPayload = providerBody;
+      attempt.providerSentAt = sentAt;
+    } else {
+      const stored = await store.getAttemptById(attempt.id);
+      if (stored?.providerPayload) {
+        providerBody = stored.providerPayload;
+        attempt.providerPayload = stored.providerPayload;
+        attempt.providerSentAt = stored.providerSentAt;
+      } else {
+        // Unreachable with either store (a lost write-once race means a
+        // payload is stored), but keep the locally built body rather
+        // than failing the send.
+        attempt.providerPayload = providerBody;
+        attempt.providerSentAt = sentAt;
+      }
+    }
   }
+
+  // A persisted payload means a first send already happened: this call
+  // would replay it under the original idempotency key, which the
+  // provider only honours inside its retention window (invariant I2).
+  // The first send's age is read from its stamp, falling back to the
+  // record's creation for payloads persisted before the stamp existed
+  // (the payload was persisted in the creation request, moments before
+  // that send). Computed only now that the block above has settled
+  // whose payload and stamp are the first send's.
+  const firstSendAt = attempt.providerPayload ? attempt.providerSentAt ?? attempt.createdAt : null;
 
   if (resumedAmbiguousAttempt) {
     // Record this request's risk telemetry only now that the provider
@@ -1897,6 +1973,20 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   }
 
   const deliveredAt = Date.now();
+  // The recorded recipient is the address the confirmed body was
+  // actually sent to, read from the provider body itself rather than
+  // this request's configuration: a reconciling retry confirms the
+  // original send of the persisted body, and the configured recipient
+  // may have changed since that body was built.
+  let confirmedRecipient = toEmail;
+  try {
+    const bodyTo = (JSON.parse(providerBody) as { to?: unknown }).to;
+    const firstRecipient = Array.isArray(bodyTo) ? bodyTo[0] : undefined;
+    if (typeof firstRecipient === "string" && firstRecipient) confirmedRecipient = firstRecipient;
+  } catch {
+    // A body that does not parse was still the body sent; fall back to
+    // the configured recipient.
+  }
   // The confirmation itself goes through the guarded transition: if an
   // overlapping reconciliation already delivered the attempt, this write
   // is a no-op and the first confirmation stands (invariant I1).
@@ -1904,7 +1994,7 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
     status: "delivered",
     providerMessageId,
     providerStatus: response.status,
-    recipient: toEmail,
+    recipient: confirmedRecipient,
     deliveredAt,
     updatedAt: deliveredAt,
   });
