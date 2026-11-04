@@ -55,26 +55,26 @@ test("quote form applies service query params on the static quote page", () => {
   assert.match(source, /serviceSelect\.value = serviceParam/);
 });
 
-test("quote feedback panels ship in the static markup, hidden until revealed", () => {
+test("quote feedback is not driven by query parameters", () => {
   const source = read("src/components/QuoteForm.astro");
-  // Static output evaluates the frontmatter once at build time, when no
-  // submitted/error params exist, so gating the panels on those flags would
-  // keep them out of the built HTML entirely (the C1 defect). The panels
-  // must be emitted unconditionally and start hidden instead.
-  assert.equal(source.includes('id="quote-success"'), true);
-  assert.equal(source.includes('id="quote-error"'), true);
-  assert.match(source, /hidden=\{!showSuccessState\}/);
-  assert.match(source, /hidden=\{!showErrorState\}/);
-  assert.equal(source.includes("showSuccessState &&"), false);
-  assert.equal(source.includes("showErrorState &&"), false);
+  // The old contract selected success/error panels from ?submitted=1 /
+  // ?error=1, which let any hand-typed URL fabricate a success state and a
+  // lead conversion (S92-6 Part 1). S55-6A replaces it: the handler
+  // redirects to a server-rendered result page keyed by an unguessable
+  // reference, and the form carries a stable submission_id for retry
+  // reconciliation.
+  assert.equal(source.includes('id="quote-success"'), false);
+  assert.equal(source.includes('id="quote-error"'), false);
+  assert.equal(source.includes('feedbackParams.get("submitted")'), false);
+  assert.equal(source.includes('name="submission_id"'), true);
+  assert.equal(source.includes('id="quote-unconfirmed"'), true);
 });
 
-test("quote form reveals the feedback panels from the handler redirect params", () => {
+test("quote conversions require a server-verified delivered result", () => {
   const source = read("src/components/QuoteForm.astro");
-  assert.match(source, /feedbackParams\.get\("submitted"\) === "1"/);
-  assert.match(source, /successPanel\.hidden = false/);
-  assert.match(source, /feedbackParams\.get\("error"\) === "1"/);
-  assert.match(source, /errorPanel\.hidden = false/);
+  assert.match(source, /format=json/);
+  assert.match(source, /result\.conversionEligible/);
+  assert.match(source, /sendLeadSuccess\(ref\)/);
 });
 
 test("gravel driveway service still has no verified project evidence records", () => {

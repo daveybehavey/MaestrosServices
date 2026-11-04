@@ -95,12 +95,14 @@ for (const [label, count] of familyChecks) {
 
 const contentChecks = [
   {
-    // The quote handler redirects back with ?submitted=1 / ?error=1; on a
-    // static page the feedback panels must already be in the built HTML
-    // (hidden) for the client script to reveal them.
+    // Feedback no longer comes from ?submitted=1 / ?error=1 params (anyone
+    // could forge those). The built form must carry the submission_id and
+    // the unconfirmed notice, and must not ship the old param-driven
+    // success/error panels. Outcomes render on the handler's
+    // server-rendered result page instead.
     file: "dist/quote/index.html",
-    includes: ['id="quote-success"', 'id="quote-error"'],
-    excludes: [],
+    includes: ['id="quote-form"', 'name="submission_id"', 'id="quote-unconfirmed"'],
+    excludes: ['id="quote-success"', 'id="quote-error"'],
   },
   {
     file: "dist/blog/gravel-driveway-preparation-chemainus/index.html",
