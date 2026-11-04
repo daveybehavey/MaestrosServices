@@ -1430,21 +1430,26 @@ const seedAmbiguousAttempt = async (harness, overrides = {}) => {
 // A fetch stub whose Resend calls stay pending until the test settles
 // them, so two overlapping reconciliations can be interleaved exactly.
 // Optionally holds the first Turnstile verification the same way.
-const installOverlapStub = ({ holdFirstTurnstile = false } = {}) => {
+const installOverlapStub = ({ holdFirstTurnstile = false, holdTurnstileCalls = [] } = {}) => {
+  const heldCalls = new Set(holdTurnstileCalls);
+  if (holdFirstTurnstile) heldCalls.add(1);
   const state = {
     turnstile: 0,
     resend: 0,
     resendKeys: [],
     pendingResend: [],
     heldTurnstileResolve: null,
+    heldTurnstileResolvers: new Map(),
   };
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (target.startsWith("https://challenges.cloudflare.com/")) {
       state.turnstile += 1;
-      if (holdFirstTurnstile && state.turnstile === 1) {
+      if (heldCalls.has(state.turnstile)) {
+        const callIndex = state.turnstile;
         return new Promise((resolve) => {
-          state.heldTurnstileResolve = resolve;
+          state.heldTurnstileResolvers.set(callIndex, resolve);
+          if (callIndex === 1) state.heldTurnstileResolve = resolve;
         });
       }
       return new Response(JSON.stringify(TURNSTILE_OK), {
@@ -1581,6 +1586,52 @@ test("store persistFirstSend: the first persistence wins and a later call change
   const record = await store.getAttemptById("att_firstsend_contract");
   assert.equal(record.providerPayload, "body-one", "the first persisted payload stands");
   assert.equal(record.providerSentAt, T + 1000, "the first-send stamp never moves");
+});
+
+test("store persistFirstSend: terminal records are refused; an unconfirmed record without a payload still takes its first send", async () => {
+  const store = createMemoryQuoteStore();
+  const { createHash } = await import("node:crypto");
+  const content = serializeEnquiryContent(MACHINE_PAYLOAD);
+  const base = {
+    submissionId: "sub_firstsend_terminal",
+    createdAt: T,
+    updatedAt: T,
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload: MACHINE_PAYLOAD,
+    providerPayload: null,
+    providerSentAt: null,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: false,
+    deliveredAt: null,
+  };
+  await store.createAttempt({ ...base, id: "att_firstsend_rejected", reference: "MS-FIRSTSENDR", status: "rejected" });
+  await store.createAttempt({
+    ...base,
+    id: "att_firstsend_delivered",
+    reference: "MS-FIRSTSENDD",
+    status: "delivered",
+    deliveredAt: T,
+  });
+  await store.createAttempt({ ...base, id: "att_firstsend_unconfirmed", reference: "MS-FIRSTSENDU", status: "unconfirmed" });
+
+  assert.equal(await store.persistFirstSend("att_firstsend_rejected", "body", T + 1000), false, "a rejected attempt is never resurrected into a send");
+  assert.equal(await store.persistFirstSend("att_firstsend_delivered", "body", T + 1000), false);
+  assert.equal(
+    await store.persistFirstSend("att_firstsend_unconfirmed", "body", T + 1000),
+    true,
+    "a normalized stale-sending record (unconfirmed, no payload) still takes its first send"
+  );
+  assert.equal((await store.getAttemptById("att_firstsend_rejected")).providerPayload, null);
 });
 
 test("store transitionAttemptIfUntaken: applies only to the record exactly as its creator left it", async () => {
@@ -1904,6 +1955,69 @@ test("overlapping first send: the creator's late verification failure cannot rel
     assert.equal(record.status, "delivered");
     assert.equal(record.providerMessageId, "msg_overlap_flight");
     assert.equal(record.claimActive, true);
+  });
+});
+
+test("overlapping first send: a retry that passes verification after the creator's legitimate rejection does not send", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withOverlapStub({ holdTurnstileCalls: [1, 2] }, async (state) => {
+    // The creator parks in verification #1; a same-ID retry resumes
+    // the stale attempt and parks in verification #2, having written
+    // nothing yet.
+    const postCreator = harness.post({ submission_id: "sub_overlap_reverse" });
+    await waitForCondition(
+      () => state.turnstile === 1 && state.heldTurnstileResolvers.has(1),
+      "the creator's held verification"
+    );
+    const created = await harness.store.getLatestAttemptBySubmissionId("sub_overlap_reverse");
+    assert.equal(created.status, "sending");
+
+    freezeNow(T + 16 * 60 * 1000);
+    const postRetry = harness.post({ submission_id: "sub_overlap_reverse" });
+    await waitForCondition(
+      () => state.turnstile === 2 && state.heldTurnstileResolvers.has(2),
+      "the retry's held verification"
+    );
+
+    // The creator's verification fails while the record is still
+    // exactly as the creator left it: the rejection legitimately
+    // applies and releases the claim.
+    state.heldTurnstileResolvers.get(1)(
+      new Response(
+        JSON.stringify({ success: false, hostname: "maestrosservices.example", action: "quote_form" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    const responseCreator = await postCreator;
+    assert.equal(refFromRedirect(responseCreator), created.reference);
+    const rejected = await harness.store.getAttemptById(created.id);
+    assert.equal(rejected.status, "rejected");
+    assert.equal(rejected.claimActive, false);
+
+    // A fresh submission of the same enquiry (a new submission id)
+    // claims the released content and delivers — exactly once.
+    const postFresh = harness.post({});
+    await waitForCondition(() => state.pendingResend.length === 1, "the fresh submission's send");
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_reverse_fresh"));
+    const responseFresh = await postFresh;
+    const fresh = await harness.store.getAttemptByReference(refFromRedirect(responseFresh));
+    assert.equal(fresh.status, "delivered");
+    assert.notEqual(fresh.id, created.id);
+
+    // Only now does the parked retry's verification pass. Its attempt
+    // is terminally rejected: first-send persistence must refuse and
+    // the send must be aborted — no second provider call, no second
+    // delivered attempt for the same enquiry.
+    state.heldTurnstileResolvers.get(2)(
+      new Response(JSON.stringify(TURNSTILE_OK), { status: 200, headers: { "Content-Type": "application/json" } })
+    );
+    const responseRetry = await postRetry;
+    assert.equal(refFromRedirect(responseRetry), created.reference);
+    assert.equal(state.resend, 1, "the rejected attempt must not reach the provider");
+    const record = await harness.store.getAttemptById(created.id);
+    assert.equal(record.status, "rejected", "the rejected attempt is not resurrected");
+    assert.equal(record.providerPayload, null);
   });
 });
 
@@ -2296,12 +2410,16 @@ const createFakeD1 = () => {
       whereClause === "id = ?" ||
         whereClause === "id = ? AND status <> 'delivered'" ||
         whereClause === "id = ? AND provider_payload IS NULL" ||
+        whereClause ===
+          "id = ? AND provider_payload IS NULL AND status NOT IN ('delivered', 'rejected')" ||
         whereClause === "id = ? AND status = 'sending' AND provider_payload IS NULL AND updated_at = ?",
       `fake D1 cannot apply UPDATE with WHERE: ${whereClause}`
     );
     const row = rows.get(binds[bindIndex]);
     if (!row) return 0;
     if (whereClause.includes("status <> 'delivered'") && row.status === "delivered") return 0;
+    if (whereClause.includes("status NOT IN") && (row.status === "delivered" || row.status === "rejected"))
+      return 0;
     if (whereClause.includes("status = 'sending'")) {
       const expectedUpdatedAt = binds[bindIndex + 1];
       if (
@@ -2545,4 +2663,24 @@ test("D1 store: transitionAttemptIfUntaken is fenced by the committed row", asyn
   const record = await store.getAttemptById(seed.id);
   assert.equal(record.status, "rejected");
   assert.equal(record.claimActive, false);
+});
+
+test("D1 store: persistFirstSend refuses a terminally rejected record", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const seed = d1SeedRecord({
+    status: "rejected",
+    reasonCode: "challenge_failed",
+    providerPayload: null,
+    providerSentAt: null,
+    claimActive: false,
+  });
+  await store.createAttempt(seed);
+  const attempt = store.persistFirstSend(seed.id, "body", T + 1000);
+  await settleStoreCalls();
+  fake.flushUpdate((sql) => sql.includes("provider_payload IS NULL"));
+  assert.equal(await attempt, false, "the committed rejected row fences the persistence out");
+  const record = await store.getAttemptById(seed.id);
+  assert.equal(record.providerPayload, null);
+  assert.equal(record.status, "rejected");
 });

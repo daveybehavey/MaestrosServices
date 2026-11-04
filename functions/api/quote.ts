@@ -175,8 +175,9 @@ interface QuoteStore {
   transitionAttempt(id: string, patch: Partial<AttemptRecord>): Promise<boolean>;
   // Write-once persistence of the first send's facts (the frozen provider
   // payload and its first-send stamp): applies only while the stored
-  // record still has no provider payload, and returns whether this call
-  // won. Atomic in both stores — the memory store's check-and-set is one
+  // record still has no provider payload and has not reached a terminal
+  // state (a rejected attempt must never be resurrected into a send),
+  // and returns whether this call won. Atomic in both stores — the memory store's check-and-set is one
   // synchronous section, and the D1 store's UPDATE carries the
   // provider_payload IS NULL condition in its WHERE clause — so two
   // overlapping invocations racing to make the first send can never
@@ -412,7 +413,8 @@ export const createMemoryQuoteStore = (): QuoteStore => {
       // payload-absent check and the write cannot interleave with
       // another first-send persistence in this isolate.
       const record = attempts.get(id);
-      if (!record || record.providerPayload) return false;
+      if (!record || record.providerPayload || record.status === "rejected" || record.status === "delivered")
+        return false;
       attempts.set(id, clone({ ...record, providerPayload, providerSentAt, updatedAt: providerSentAt }));
       return true;
     },
@@ -683,7 +685,7 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
     // overwritten and its first-send stamp never moves.
     const result = await db
       .prepare(
-        "UPDATE quote_attempts SET provider_payload = ?, provider_sent_at = ?, updated_at = ? WHERE id = ? AND provider_payload IS NULL"
+        "UPDATE quote_attempts SET provider_payload = ?, provider_sent_at = ?, updated_at = ? WHERE id = ? AND provider_payload IS NULL AND status NOT IN ('delivered', 'rejected')"
       )
       .bind(providerPayload, providerSentAt, providerSentAt, id)
       .run();
@@ -1900,11 +1902,16 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
         attempt.providerPayload = stored.providerPayload;
         attempt.providerSentAt = stored.providerSentAt;
       } else {
-        // Unreachable with either store (a lost write-once race means a
-        // payload is stored), but keep the locally built body rather
-        // than failing the send.
-        attempt.providerPayload = providerBody;
-        attempt.providerSentAt = sentAt;
+        // The race was not lost to another first send: no payload is
+        // stored because the record has meanwhile reached a terminal
+        // state — the creating request's fenced rejection landed while
+        // this request was parked in verification, and the released
+        // claim has since been taken by a fresh submission. Sending
+        // now would resurrect the rejected attempt and duplicate the
+        // lead under a second provider key, so the send is aborted
+        // and the submitter lands on the attempt's current result
+        // page, which renders the stored outcome.
+        return redirectToResult(request, attempt.reference);
       }
     }
   }
