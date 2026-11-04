@@ -1693,6 +1693,61 @@ test("store transitionAttemptIfUntaken: applies only to the record exactly as it
   assert.equal((await store.getAttemptById("att_untaken_payload")).status, "sending");
 });
 
+test("store terminal states are absorbing: no primitive moves a delivered or rejected record", async () => {
+  const store = createMemoryQuoteStore();
+  const { createHash } = await import("node:crypto");
+  const content = serializeEnquiryContent(MACHINE_PAYLOAD);
+  const base = {
+    submissionId: "sub_absorbing",
+    createdAt: T,
+    updatedAt: T,
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload: MACHINE_PAYLOAD,
+    providerPayload: MACHINE_PROVIDER_BODY,
+    providerSentAt: T,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: false,
+    deliveredAt: null,
+  };
+  await store.createAttempt({ ...base, id: "att_absorb_delivered", reference: "MS-ABSORB0001", status: "delivered", deliveredAt: T });
+  await store.createAttempt({ ...base, id: "att_absorb_rejected", reference: "MS-ABSORB0002", status: "rejected" });
+
+  for (const id of ["att_absorb_delivered", "att_absorb_rejected"]) {
+    assert.equal(
+      await store.transitionAttempt(id, { status: "unconfirmed", reasonCode: "provider_unconfirmed", updatedAt: T + 1 }),
+      false,
+      `${id}: a guarded transition may not move a terminal record`
+    );
+    assert.equal(
+      await store.transitionAttempt(id, { status: "delivered", deliveredAt: T + 1 }),
+      false,
+      `${id}: not even a same-family outcome write may land`
+    );
+    await store.updateAttempt(id, { status: "unconfirmed", updatedAt: T + 1 });
+    assert.notEqual(
+      (await store.getAttemptById(id)).status,
+      "unconfirmed",
+      `${id}: a status-carrying patch through updateAttempt is refused too`
+    );
+  }
+  // Non-status telemetry still lands on a terminal record: absorbing
+  // governs outcomes, not bookkeeping.
+  await store.updateAttempt("att_absorb_rejected", { riskScore: 7, updatedAt: T + 2 });
+  assert.equal((await store.getAttemptById("att_absorb_rejected")).riskScore, 7);
+  assert.equal((await store.getAttemptById("att_absorb_rejected")).status, "rejected");
+  assert.equal((await store.getAttemptById("att_absorb_delivered")).status, "delivered");
+});
+
 test("overlapping reconciliations: a provider error landing after a concurrent confirmation cannot downgrade delivered", async () => {
   freezeNow(T);
   const harness = makeHarness();
@@ -2019,6 +2074,156 @@ test("overlapping first send: a retry that passes verification after the creator
     assert.equal(record.status, "rejected", "the rejected attempt is not resurrected");
     assert.equal(record.providerPayload, null);
   });
+});
+
+// Transition matrix over the creator/retry overlap: two requests race
+// one attempt (the creator parked in its timeout-less verification, a
+// same-ID retry resuming the stale record), a fresh submission waits
+// on the claim, and the steps land in different orders. Whatever the
+// order, a terminal record must never change state again, the enquiry
+// must be delivered at most once, and the provider must see exactly
+// the sends the expected column allows.
+test("overlap matrix: terminal states are absorbing across creator/retry orderings", async () => {
+  const turnstileOk = () =>
+    new Response(JSON.stringify(TURNSTILE_OK), { status: 200, headers: { "Content-Type": "application/json" } });
+  const turnstileFail = () =>
+    new Response(
+      JSON.stringify({ success: false, hostname: "maestrosservices.example", action: "quote_form" }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+
+  const scenarios = [
+    {
+      name: "creator fails first; the parked retry then passes and must not send; a fresh submission delivers",
+      steps: ["creatorFail", "retryPassAbort", "freshDeliver"],
+      expect: { original: "rejected", delivered: 1, resend: 1, claim: false },
+    },
+    {
+      name: "retry delivers; the creator's late failure changes nothing",
+      steps: ["retryPassOk", "creatorFail"],
+      expect: { original: "delivered", delivered: 1, resend: 1, claim: true },
+    },
+    {
+      name: "retry's send errors (unconfirmed); the creator's late failure changes nothing; a later retry reconciles",
+      steps: ["retryPassErr", "creatorFail", "retryAgainOk"],
+      expect: { original: "delivered", delivered: 1, resend: 2, claim: true },
+    },
+    {
+      name: "creator fails; a fresh submission delivers; the parked retry then fails and must not un-reject the record; a later same-ID retry sends nothing",
+      steps: ["creatorFail", "freshDeliver", "retryFail", "retryAgainOk"],
+      expect: { original: "rejected", delivered: 1, resend: 1, claim: false },
+    },
+    {
+      name: "the resumed send is in flight when the creator fails; the delivery still stands",
+      steps: ["retryPassInFlight", "creatorFail", "settleOk"],
+      expect: { original: "delivered", delivered: 1, resend: 1, claim: true },
+    },
+  ];
+
+  for (const [index, scenario] of scenarios.entries()) {
+    freezeNow(T);
+    const harness = makeHarness();
+    await withOverlapStub({ holdTurnstileCalls: [1, 2] }, async (state) => {
+      const submissionId = `sub_matrix_${index}`;
+      const knownRefs = [];
+      let resendSettled = 0;
+      let originalId = null;
+      let originalTerminal = null;
+
+      const checkAbsorbing = async () => {
+        const record = await harness.store.getAttemptById(originalId);
+        if (originalTerminal) {
+          assert.equal(
+            record.status,
+            originalTerminal,
+            `${scenario.name}: a ${originalTerminal} record changed state`
+          );
+        } else if (record.status === "delivered" || record.status === "rejected") {
+          originalTerminal = record.status;
+        }
+        return record;
+      };
+      const settleNextResend = async (ok, label) => {
+        await waitForCondition(() => state.pendingResend.length > resendSettled, label);
+        const entry = state.pendingResend[resendSettled];
+        resendSettled += 1;
+        if (ok) entry.resolve(resendOkResponse(`msg_matrix_${index}_${resendSettled}`));
+        else entry.reject(new Error("provider network failure"));
+      };
+
+      // Both actors start; the creator creates the attempt and parks
+      // in verification #1, the retry resumes it and parks in #2.
+      const postCreator = harness.post({ submission_id: submissionId });
+      await waitForCondition(
+        () => state.turnstile === 1 && state.heldTurnstileResolvers.has(1),
+        "the creator's held verification"
+      );
+      originalId = (await harness.store.getLatestAttemptBySubmissionId(submissionId)).id;
+      freezeNow(T + 16 * 60 * 1000);
+      const postRetry = harness.post({ submission_id: submissionId });
+      await waitForCondition(
+        () => state.turnstile === 2 && state.heldTurnstileResolvers.has(2),
+        "the retry's held verification"
+      );
+
+      for (const step of scenario.steps) {
+        if (step === "creatorFail") {
+          state.heldTurnstileResolvers.get(1)(turnstileFail());
+          knownRefs.push(refFromRedirect(await postCreator));
+        } else if (step === "retryPassOk" || step === "retryPassErr") {
+          state.heldTurnstileResolvers.get(2)(turnstileOk());
+          await settleNextResend(step === "retryPassOk", "the retry's send");
+          knownRefs.push(refFromRedirect(await postRetry));
+        } else if (step === "retryPassInFlight") {
+          state.heldTurnstileResolvers.get(2)(turnstileOk());
+          await waitForCondition(() => state.pendingResend.length > resendSettled, "the in-flight send");
+        } else if (step === "settleOk") {
+          await settleNextResend(true, "the in-flight send");
+          knownRefs.push(refFromRedirect(await postRetry));
+        } else if (step === "retryPassAbort") {
+          state.heldTurnstileResolvers.get(2)(turnstileOk());
+          // No provider call may follow; the post completes on the
+          // attempt's stored result page.
+          knownRefs.push(refFromRedirect(await postRetry));
+        } else if (step === "retryFail") {
+          state.heldTurnstileResolvers.get(2)(turnstileFail());
+          knownRefs.push(refFromRedirect(await postRetry));
+        } else if (step === "freshDeliver") {
+          const postFresh = harness.post({});
+          await settleNextResend(true, "the fresh submission's send");
+          knownRefs.push(refFromRedirect(await postFresh));
+        } else if (step === "retryAgainOk") {
+          let settled = false;
+          const postAgain = harness.post({ submission_id: submissionId });
+          postAgain.then(() => {
+            settled = true;
+          });
+          for (let i = 0; i < 1000 && !settled; i += 1) {
+            if (state.pendingResend.length > resendSettled) {
+              await settleNextResend(true, "the reconciling retry's send");
+            }
+            await new Promise((resolve) => setImmediate(resolve));
+          }
+          assert.ok(settled, `${scenario.name}: the reconciling retry completed`);
+          knownRefs.push(refFromRedirect(await postAgain));
+        } else {
+          throw new Error(`unknown matrix step: ${step}`);
+        }
+        await checkAbsorbing();
+      }
+
+      const original = await harness.store.getAttemptById(originalId);
+      assert.equal(original.status, scenario.expect.original, `${scenario.name}: final original state`);
+      assert.equal(original.claimActive, scenario.expect.claim, `${scenario.name}: final claim state`);
+      let deliveredCount = 0;
+      for (const ref of new Set(knownRefs)) {
+        const record = await harness.store.getAttemptByReference(ref);
+        if (record && record.status === "delivered") deliveredCount += 1;
+      }
+      assert.equal(deliveredCount, scenario.expect.delivered, `${scenario.name}: delivered attempts`);
+      assert.equal(state.resend, scenario.expect.resend, `${scenario.name}: provider sends`);
+    });
+  }
 });
 
 test("overlapping first send: a concurrent resumer's persisted payload and first-send stamp are adopted, never overwritten", async () => {
@@ -2408,7 +2613,7 @@ const createFakeD1 = () => {
     });
     assert.ok(
       whereClause === "id = ?" ||
-        whereClause === "id = ? AND status <> 'delivered'" ||
+        whereClause === "id = ? AND status NOT IN ('delivered', 'rejected')" ||
         whereClause === "id = ? AND provider_payload IS NULL" ||
         whereClause ===
           "id = ? AND provider_payload IS NULL AND status NOT IN ('delivered', 'rejected')" ||
@@ -2417,7 +2622,6 @@ const createFakeD1 = () => {
     );
     const row = rows.get(binds[bindIndex]);
     if (!row) return 0;
-    if (whereClause.includes("status <> 'delivered'") && row.status === "delivered") return 0;
     if (whereClause.includes("status NOT IN") && (row.status === "delivered" || row.status === "rejected"))
       return 0;
     if (whereClause.includes("status = 'sending'")) {
@@ -2541,7 +2745,7 @@ test("D1 store: a telemetry patch landing after a concurrent delivery confirmati
 
   // The telemetry statement names only its own columns.
   const telemetryStatement = fake.pendingUpdates.find(
-    (entry) => !entry.sql.includes("status <> 'delivered'")
+    (entry) => !entry.sql.includes("status NOT IN")
   );
   assert.ok(telemetryStatement, "the telemetry UPDATE is pending");
   assert.equal(
@@ -2552,7 +2756,7 @@ test("D1 store: a telemetry patch landing after a concurrent delivery confirmati
 
   // Land the confirmation first, then the telemetry write — the order
   // that erased the delivery under the full-row UPDATE.
-  fake.flushUpdate((sql) => sql.includes("status <> 'delivered'"));
+  fake.flushUpdate((sql) => sql.includes("status NOT IN"));
   fake.flushUpdate(() => true);
   const [, applied] = await Promise.all([telemetry, confirmation]);
   assert.equal(applied, true);
@@ -2583,7 +2787,7 @@ test("D1 store: transition writes are scoped to the patch columns and the delive
   assert.equal(fake.pendingUpdates.length, 1);
   assert.equal(
     normalizeSql(fake.pendingUpdates[0].sql),
-    "UPDATE quote_attempts SET updated_at = ?, status = ?, provider_message_id = ?, delivered_at = ? WHERE id = ? AND status <> 'delivered'"
+    "UPDATE quote_attempts SET updated_at = ?, status = ?, provider_message_id = ?, delivered_at = ? WHERE id = ? AND status NOT IN ('delivered', 'rejected')"
   );
   assert.deepEqual(fake.pendingUpdates[0].binds, [T + 5000, "delivered", "msg_scoped", T + 5000, seed.id]);
   fake.flushUpdate(() => true);
@@ -2683,4 +2887,31 @@ test("D1 store: persistFirstSend refuses a terminally rejected record", async ()
   const record = await store.getAttemptById(seed.id);
   assert.equal(record.providerPayload, null);
   assert.equal(record.status, "rejected");
+});
+
+test("D1 store: terminal states are absorbing for guarded transitions and status-carrying patches", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const seed = d1SeedRecord({ status: "rejected", reasonCode: "challenge_failed" });
+  await store.createAttempt(seed);
+
+  const transition = store.transitionAttempt(seed.id, {
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    updatedAt: T + 1,
+  });
+  await settleStoreCalls();
+  assert.equal(fake.pendingUpdates.length, 1);
+  fake.flushUpdate(() => true);
+  assert.equal(await transition, false, "the committed rejected row refuses the transition");
+
+  const statusPatch = store.updateAttempt(seed.id, { status: "unconfirmed", updatedAt: T + 1 });
+  await settleStoreCalls();
+  assert.equal(fake.pendingUpdates.length, 1);
+  fake.flushUpdate(() => true);
+  await statusPatch;
+
+  const record = await store.getAttemptById(seed.id);
+  assert.equal(record.status, "rejected", "no primitive rewrote the terminal state");
+  assert.equal(record.reasonCode, "challenge_failed");
 });

@@ -164,11 +164,20 @@ interface QuoteStore {
   // claims the (contentHash, content) pair; on conflict it throws an error
   // with `code === "QUOTE_CLAIM_CONFLICT"` and the current holder attached.
   createAttempt(record: AttemptRecord): Promise<void>;
+  // Column-scoped patch for non-outcome writes (a retry's risk
+  // telemetry). Terminal states are absorbing across every store
+  // primitive: a patch that carries a status is refused outright when
+  // the stored record is delivered or rejected, so no caller can move
+  // a terminal record through this unguarded path either. Outcome
+  // writes belong to the guarded transitions below.
   updateAttempt(id: string, patch: Partial<AttemptRecord>): Promise<void>;
   // The guarded transition every reconciliation outcome goes through
   // (invariant I1): applies the patch only while the stored record is
-  // not in the terminal "delivered" state, and returns whether it
-  // applied. Atomic in both stores — the memory store's check-and-set is
+  // not in a terminal state — "delivered" and "rejected" are both
+  // terminal, so no outcome write can resurrect a rejected attempt
+  // (e.g. normalize it back to "unconfirmed" and make it eligible for
+  // a first send again) any more than it can downgrade a delivered
+  // one — and returns whether it applied. Atomic in both stores — the memory store's check-and-set is
   // one synchronous section, and the D1 store's UPDATE carries the same
   // condition in its WHERE clause — so overlapping reconciliations of
   // one attempt can never downgrade a confirmed delivery.
@@ -397,14 +406,19 @@ export const createMemoryQuoteStore = (): QuoteStore => {
     async updateAttempt(id, patch) {
       const record = attempts.get(id);
       if (!record) return;
+      if (
+        Object.prototype.hasOwnProperty.call(patch, "status") &&
+        (record.status === "delivered" || record.status === "rejected")
+      )
+        return;
       attempts.set(id, clone({ ...record, ...patch, id: record.id }));
     },
     async transitionAttempt(id, patch) {
-      // Synchronous critical section, like createAttempt: the delivered
+      // Synchronous critical section, like createAttempt: the terminal
       // check and the write cannot interleave with another transition in
       // this isolate.
       const record = attempts.get(id);
-      if (!record || record.status === "delivered") return false;
+      if (!record || record.status === "delivered" || record.status === "rejected") return false;
       attempts.set(id, clone({ ...record, ...patch, id: record.id }));
       return true;
     },
@@ -652,18 +666,25 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
     // the patch supplies and applies them to the committed row — no
     // read, no merge, no full-row rewrite (see ATTEMPT_PATCH_COLUMNS).
     // A patch for a missing id matches no row, the same no-op the
-    // memory store performs.
+    // memory store performs. A patch carrying a status is an outcome
+    // write, so it additionally carries the terminal guard in its
+    // WHERE clause: delivered and rejected are absorbing in every
+    // primitive, not just the guarded transitions.
     const { assignments, values } = attemptPatchAssignments(patch);
     if (!assignments.length) return;
+    const terminalGuard = Object.prototype.hasOwnProperty.call(patch, "status")
+      ? " AND status NOT IN ('delivered', 'rejected')"
+      : "";
     await db
-      .prepare(`UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ?`)
+      .prepare(`UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ?${terminalGuard}`)
       .bind(...values, id)
       .run();
   },
   async transitionAttempt(id, patch) {
     // A single guarded statement: the WHERE clause is the atomic
     // guard, evaluated against the committed row at write time, so a
-    // delivery confirmed by a concurrent reconciliation blocks this
+    // terminal state committed by a concurrent reconciliation (a
+    // confirmed delivery, a legitimate rejection) blocks this
     // write and `changes` — not any prior read — decides whether it
     // applied. The SET clause is scoped to the patch columns, so the
     // transition also cannot erase non-outcome fields (the persisted
@@ -672,7 +693,7 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
     if (!assignments.length) return false;
     const result = await db
       .prepare(
-        `UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ? AND status <> 'delivered'`
+        `UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ? AND status NOT IN ('delivered', 'rejected')`
       )
       .bind(...values, id)
       .run();
