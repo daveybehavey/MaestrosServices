@@ -343,6 +343,45 @@ test("429 preservation: the rejected request's entries are stored bounded and sh
   });
 });
 
+test("429 preservation: a rate-limited retry does not mask the resumable attempt it retried", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_429_mask",
+    submissionId: "sub_429_mask",
+    reference: "MS-429MASK01",
+  });
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.24";
+    await driveToRateLimit(harness, ip);
+
+    // The customer retries the unconfirmed submission from the same
+    // connection and hits the rate limit: the preservation record is
+    // stored under the same submission id and becomes the latest
+    // record for it, ahead of the resumable attempt.
+    const limited = await harness.post({ submission_id: "sub_429_mask" }, { ip });
+    assert.equal(limited.status, 429);
+    const masked = await harness.store.getLatestAttemptBySubmissionId("sub_429_mask");
+    assert.equal(masked.reasonCode, "rate_limited", "the preservation record is the latest for the submission");
+    assert.equal(masked.content, null);
+    assert.equal(calls.resend, 4, "the rate-limited retry never reaches the provider");
+
+    // After the window rolls, the same retry must reconcile onto the
+    // original attempt — replaying its frozen payload under its
+    // original idempotency key — not fall through to fresh creation,
+    // bounce off the original's content claim, and loop back to the
+    // unconfirmed page without ever sending.
+    freezeNow(T + 11 * 60 * 1000);
+    const retry = await harness.post({ submission_id: "sub_429_mask" }, { ip });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 5, "the post-window retry replays the original send");
+    assert.equal(calls.resendKeys[4], seed.id, "the replay carries the original idempotency key");
+    const record = await harness.store.getAttemptById(seed.id);
+    assert.equal(record.status, "delivered");
+    assert.equal(record.providerMessageId, "msg_5", "the replay's confirmation is recorded");
+  });
+});
+
 test("429 preservation: oversized fields are clamped to the storage bounds", async () => {
   freezeNow(T);
   const harness = makeHarness();

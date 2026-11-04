@@ -170,6 +170,14 @@ interface QuoteStore {
   getAttemptById(id: string): Promise<AttemptRecord | null>;
   getAttemptByReference(reference: string): Promise<AttemptRecord | null>;
   getLatestAttemptBySubmissionId(submissionId: string): Promise<AttemptRecord | null>;
+  // The latest attempt for the submission that carries content — a real
+  // attempt identity. Content-null records (the rate-limit preservation
+  // record) share the submission id so the status page can find them,
+  // but they are not attempts: reconciliation must locate the
+  // content-bearing attempt even when a preservation record is newer,
+  // or the original attempt's claim turns a resumption into a redirect
+  // loop that never replays the provider request.
+  getLatestContentAttemptBySubmissionId(submissionId: string): Promise<AttemptRecord | null>;
   // Creates the attempt. When record.claimActive is set, creation atomically
   // claims the (contentHash, content) pair; on conflict it throws an error
   // with `code === "QUOTE_CLAIM_CONFLICT"` and the current holder attached.
@@ -449,6 +457,19 @@ export const createMemoryQuoteStore = (): QuoteStore => {
       }
       return latest ? clone(latest) : null;
     },
+    async getLatestContentAttemptBySubmissionId(submissionId) {
+      let latest: AttemptRecord | null = null;
+      for (const record of attempts.values()) {
+        if (
+          record.submissionId === submissionId &&
+          record.content !== null &&
+          (!latest || record.createdAt >= latest.createdAt)
+        ) {
+          latest = record;
+        }
+      }
+      return latest ? clone(latest) : null;
+    },
     async createAttempt(record) {
       // Synchronous critical section: the duplicate claim check and the
       // insert cannot interleave with another attempt in this isolate.
@@ -697,6 +718,15 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
   async getLatestAttemptBySubmissionId(submissionId) {
     const row = await db
       .prepare("SELECT * FROM quote_attempts WHERE submission_id = ? ORDER BY created_at DESC LIMIT 1")
+      .bind(submissionId)
+      .first<AttemptRow>();
+    return row ? rowToRecord(row) : null;
+  },
+  async getLatestContentAttemptBySubmissionId(submissionId) {
+    const row = await db
+      .prepare(
+        "SELECT * FROM quote_attempts WHERE submission_id = ? AND content IS NOT NULL ORDER BY created_at DESC LIMIT 1"
+      )
       .bind(submissionId)
       .first<AttemptRow>();
     return row ? rowToRecord(row) : null;
@@ -1673,6 +1703,13 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
 
   // Attempt-identity reconciliation: a retry of the same submission id with
   // the same content resumes the existing attempt instead of double-sending.
+  // The lookup targets the latest CONTENT-BEARING attempt: a rate-limit
+  // preservation record shares the submission id (so the status page can
+  // render the preserved entries) but carries no content and is not an
+  // attempt identity — if it shadowed the real attempt here, the retry
+  // would fall through to fresh creation, hit the original attempt's
+  // content claim, and be redirected to the unconfirmed result page
+  // without ever replaying the provider request, looping forever.
   let attempt: AttemptRecord | null = null;
   // True when the attempt was resumed in an ambiguous state ("sending" gone
   // stale, or "unconfirmed"): an earlier invocation may already have handed
@@ -1680,8 +1717,8 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   // content claim must survive any verification failure in a later request
   // (see finalizeRejection).
   let resumedAmbiguousAttempt = false;
-  const existing = await store.getLatestAttemptBySubmissionId(submissionId);
-  if (existing && existing.content !== null) {
+  const existing = await store.getLatestContentAttemptBySubmissionId(submissionId);
+  if (existing) {
     if (existing.content !== serialized) {
       if (existing.status !== "rejected") {
         const record = baseAttempt({
