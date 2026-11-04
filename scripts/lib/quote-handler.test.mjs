@@ -2118,6 +2118,11 @@ test("overlap matrix: terminal states are absorbing across creator/retry orderin
       steps: ["retryPassInFlight", "creatorFail", "settleOk"],
       expect: { original: "delivered", delivered: 1, resend: 1, claim: true },
     },
+    {
+      name: "the creator adopts the retry's in-flight send; the creator's provider error must not reject it; the retry's confirmation delivers",
+      steps: ["retryPassInFlight", "creatorAdoptErr", "settleOk"],
+      expect: { original: "delivered", delivered: 1, resend: 2, claim: true },
+    },
   ];
 
   for (const [index, scenario] of scenarios.entries()) {
@@ -2170,6 +2175,26 @@ test("overlap matrix: terminal states are absorbing across creator/retry orderin
         if (step === "creatorFail") {
           state.heldTurnstileResolvers.get(1)(turnstileFail());
           knownRefs.push(refFromRedirect(await postCreator));
+        } else if (step === "creatorAdoptErr") {
+          // The creator's verification passes after the retry has
+          // persisted the first-send payload: the creator adopts that
+          // payload, and its replay meets a provider error while the
+          // retry's send is still in flight.
+          state.heldTurnstileResolvers.get(1)(turnstileOk());
+          await waitForCondition(() => state.pendingResend.length === 2, "the creator's adopted replay");
+          state.pendingResend[1].resolve(resendErrorResponse(503));
+          knownRefs.push(refFromRedirect(await postCreator));
+          const during = await harness.store.getAttemptById(originalId);
+          assert.equal(
+            during.status,
+            "unconfirmed",
+            `${scenario.name}: the adopting creator's provider error must not reject the attempt`
+          );
+          assert.equal(
+            during.claimActive,
+            true,
+            `${scenario.name}: the claim stays held while the adopted send is unresolved`
+          );
         } else if (step === "retryPassOk" || step === "retryPassErr") {
           state.heldTurnstileResolvers.get(2)(turnstileOk());
           await settleNextResend(step === "retryPassOk", "the retry's send");
@@ -2270,6 +2295,58 @@ test("overlapping first send: a concurrent resumer's persisted payload and first
       T + 16 * 60 * 1000,
       "the first-send stamp is the resumer's, so the idempotency window is measured from the true first send"
     );
+  });
+});
+
+test("overlapping first send: the creator's provider error after adopting a retry's in-flight send does not reject the attempt", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withOverlapStub({ holdFirstTurnstile: true }, async (state) => {
+    const postCreator = harness.post({ submission_id: "sub_overlap_adopt_err" });
+    await waitForCondition(() => state.turnstile === 1 && state.heldTurnstileResolve, "the held verification");
+    const created = await harness.store.getLatestAttemptBySubmissionId("sub_overlap_adopt_err");
+    assert.equal(created.status, "sending");
+
+    // The resuming retry verifies, persists the first-send payload,
+    // and its provider send stays in flight.
+    freezeNow(T + 16 * 60 * 1000);
+    const postRetry = harness.post({ submission_id: "sub_overlap_adopt_err" });
+    await waitForCondition(() => state.pendingResend.length === 1, "the resumer's in-flight send");
+    const persisted = await harness.store.getAttemptById(created.id);
+    assert.ok(persisted.providerPayload, "the resumer persisted the frozen payload");
+
+    // The creator's verification now succeeds. The creator adopts the
+    // resumer's persisted payload and issues its own replay under the
+    // same idempotency key — but the first send is the resumer's, and
+    // it is still unresolved.
+    freezeNow(T + 21 * 60 * 1000);
+    state.heldTurnstileResolve(
+      new Response(JSON.stringify(TURNSTILE_OK), { status: 200, headers: { "Content-Type": "application/json" } })
+    );
+    await waitForCondition(() => state.pendingResend.length === 2, "the creator's adopted replay");
+
+    // The creator's replay meets a transient provider error. That
+    // error speaks only to the replay: it must not terminally reject
+    // the attempt or release the claim while the resumer's send is
+    // still in flight.
+    state.pendingResend[1].resolve(resendErrorResponse(503));
+    const responseCreator = await postCreator;
+    assert.equal(refFromRedirect(responseCreator), created.reference);
+    const during = await harness.store.getAttemptById(created.id);
+    assert.equal(during.status, "unconfirmed", "the adopting creator's provider error leaves the attempt unconfirmed");
+    assert.equal(during.reasonCode, "provider_unconfirmed");
+    assert.equal(during.claimActive, true, "the claim stays held while the adopted send is unresolved");
+    assert.equal(during.providerPayload, persisted.providerPayload, "the frozen payload survives the replay's error");
+
+    // The resumer's in-flight send now confirms: the delivery stands,
+    // with the first send's message id and the claim intact.
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_adopt_err"));
+    const responseRetry = await postRetry;
+    assert.equal(refFromRedirect(responseRetry), created.reference);
+    const record = await harness.store.getAttemptById(created.id);
+    assert.equal(record.status, "delivered");
+    assert.equal(record.providerMessageId, "msg_overlap_adopt_err");
+    assert.equal(record.claimActive, true);
   });
 });
 

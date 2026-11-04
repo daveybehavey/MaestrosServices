@@ -1922,6 +1922,23 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
         providerBody = stored.providerPayload;
         attempt.providerPayload = stored.providerPayload;
         attempt.providerSentAt = stored.providerSentAt;
+        // Adopting another invocation's persisted send makes the
+        // attempt ambiguous for THIS request too, exactly as if it
+        // had been resumed in that state: this invocation did not
+        // make the first send, and that send may still be in flight
+        // in the invocation that persisted it. From here this
+        // request only replays the frozen payload under the original
+        // key, and a provider error on that replay establishes
+        // nothing about the first send's outcome — so the
+        // claim-preserving branches keyed on resumedAmbiguousAttempt
+        // must govern this request from this point on. Without this,
+        // a transient provider error on the adopting request would
+        // terminally reject the attempt and release its claim while
+        // the original send is still unresolved, and that send's
+        // later confirmation would be discarded against the terminal
+        // record — falsely reporting failure and freeing the enquiry
+        // for a duplicate submission under a new provider key.
+        resumedAmbiguousAttempt = true;
       } else {
         // The race was not lost to another first send: no payload is
         // stored because the record has meanwhile reached a terminal
