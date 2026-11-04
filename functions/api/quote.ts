@@ -6,6 +6,16 @@
 //   VISIBLY REJECTED — the submitter gets an explicit rejection/failure
 //                    result (server-rendered result page keyed by an
 //                    unguessable reference) and a durable rejection record.
+//   UNCONFIRMED    — the provider outcome could not be established; the
+//                    record says so plainly and is never reported as sent.
+// "sending" is transient, not terminal: an invocation that dies mid-send
+// can strand a row in it, so any observation of a stale "sending" record
+// — a status read (GET) or a conflicting submission — normalizes it to
+// "unconfirmed", the truthful state for an outcome nobody established.
+// An "unconfirmed" record older than the provider's idempotency window
+// can no longer be reconciled by a retry; it requires manual
+// reconciliation against the provider dashboard (operator runbook:
+// stranded-sending and aged-unconfirmed lookups on quote_attempts).
 // No spam, timing, duplicate, validation, configuration, or provider-failure
 // branch returns apparent success without delivery evidence, and feedback is
 // never selected from query parameters alone: `?submitted=1` means nothing
@@ -160,6 +170,14 @@ interface QuoteStore {
   getAttemptById(id: string): Promise<AttemptRecord | null>;
   getAttemptByReference(reference: string): Promise<AttemptRecord | null>;
   getLatestAttemptBySubmissionId(submissionId: string): Promise<AttemptRecord | null>;
+  // The latest attempt for the submission that carries content — a real
+  // attempt identity. Content-null records (the rate-limit preservation
+  // record) share the submission id so the status page can find them,
+  // but they are not attempts: reconciliation must locate the
+  // content-bearing attempt even when a preservation record is newer,
+  // or the original attempt's claim turns a resumption into a redirect
+  // loop that never replays the provider request.
+  getLatestContentAttemptBySubmissionId(submissionId: string): Promise<AttemptRecord | null>;
   // Creates the attempt. When record.claimActive is set, creation atomically
   // claims the (contentHash, content) pair; on conflict it throws an error
   // with `code === "QUOTE_CLAIM_CONFLICT"` and the current holder attached.
@@ -326,6 +344,64 @@ const validateReturnTo = (requestUrl: string, returnTo: string) => {
   return fallback;
 };
 
+// The submitted business fields, extracted exactly as the main POST
+// path reads them. The rate-limit path uses the same extraction to
+// preserve a rejected request's entries (see handleQuotePost).
+const payloadFromFormData = (formData: FormData): QuotePayload => ({
+  name: getValue(formData, "name"),
+  phone: getValue(formData, "phone"),
+  email: getValue(formData, "email"),
+  area: getValue(formData, "area"),
+  service: getValue(formData, "service"),
+  timeline: getValue(formData, "timeline"),
+  preferredContact: getValue(formData, "preferred_contact"),
+  details: getValue(formData, "details"),
+  tracking: {
+    utm_source: getValue(formData, "utm_source"),
+    utm_medium: getValue(formData, "utm_medium"),
+    utm_campaign: getValue(formData, "utm_campaign"),
+    utm_content: getValue(formData, "utm_content"),
+    utm_term: getValue(formData, "utm_term"),
+    gclid: getValue(formData, "gclid"),
+    fbclid: getValue(formData, "fbclid"),
+    msclkid: getValue(formData, "msclkid"),
+    landing_page: getValue(formData, "landing_page"),
+    referrer: getValue(formData, "referrer"),
+    page_title: getValue(formData, "page_title"),
+    page_path: getValue(formData, "page_path"),
+  },
+});
+
+// A client-supplied submission id is kept only in the accepted format;
+// anything else gets a server-generated id (the main path's rule).
+const validSubmissionId = (raw: string) =>
+  /^[A-Za-z0-9_-]{8,80}$/.test(raw) ? raw : `srv_${randomToken(16).toLowerCase()}`;
+
+// Bounds a payload for retention on a rate-limit record: every field
+// clamped to the same MAX_* bound validation enforces, so a preserved
+// record never stores more than a validated attempt could carry. The
+// record never sends and a resubmission is a fresh validated attempt,
+// so clamping loses nothing legitimate.
+const clampPayloadForRetention = (payload: QuotePayload): QuotePayload => {
+  const clamp = (value: string, max: number) => (value.length > max ? value.slice(0, max) : value);
+  return {
+    name: clamp(payload.name, MAX_NAME_LENGTH),
+    phone: clamp(payload.phone, MAX_PHONE_LENGTH),
+    email: clamp(payload.email, MAX_EMAIL_LENGTH),
+    area: clamp(payload.area, MAX_AREA_LENGTH),
+    service: clamp(payload.service, MAX_SERVICE_LENGTH),
+    timeline: clamp(payload.timeline, MAX_SHORT_VALUE_LENGTH),
+    preferredContact: clamp(payload.preferredContact, MAX_SHORT_VALUE_LENGTH),
+    details: clamp(payload.details, MAX_DETAILS_LENGTH),
+    tracking: Object.fromEntries(
+      Object.entries(payload.tracking).map(([key, value]) => [
+        key,
+        clamp(value, key === "page_title" ? MAX_SHORT_VALUE_LENGTH : MAX_TRACKING_VALUE_LENGTH),
+      ])
+    ),
+  };
+};
+
 const alertOperational = (event: string, detail: Record<string, unknown>) => {
   // Operational alert + independent ingress record substitute: structured
   // log line captured by the platform log stream. Raw payloads, challenge
@@ -376,6 +452,19 @@ export const createMemoryQuoteStore = (): QuoteStore => {
       let latest: AttemptRecord | null = null;
       for (const record of attempts.values()) {
         if (record.submissionId === submissionId && (!latest || record.createdAt >= latest.createdAt)) {
+          latest = record;
+        }
+      }
+      return latest ? clone(latest) : null;
+    },
+    async getLatestContentAttemptBySubmissionId(submissionId) {
+      let latest: AttemptRecord | null = null;
+      for (const record of attempts.values()) {
+        if (
+          record.submissionId === submissionId &&
+          record.content !== null &&
+          (!latest || record.createdAt >= latest.createdAt)
+        ) {
           latest = record;
         }
       }
@@ -633,6 +722,15 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
       .first<AttemptRow>();
     return row ? rowToRecord(row) : null;
   },
+  async getLatestContentAttemptBySubmissionId(submissionId) {
+    const row = await db
+      .prepare(
+        "SELECT * FROM quote_attempts WHERE submission_id = ? AND content IS NOT NULL ORDER BY created_at DESC LIMIT 1"
+      )
+      .bind(submissionId)
+      .first<AttemptRow>();
+    return row ? rowToRecord(row) : null;
+  },
   async createAttempt(record) {
     try {
       await db
@@ -862,10 +960,15 @@ const TRACKING_FORM_FIELDS = [
 // A fresh attempt of the same (or corrected) content: new submission
 // identity, values preserved. `separate` marks the S55-6A A4 "Send as a
 // separate enquiry" override, which bypasses content-repeat suppression.
+// `submissionId` instead pins the form to an existing attempt identity:
+// the unconfirmed page's retry-confirmation form carries the record's
+// own submission id, so POSTing it resumes that very attempt in the
+// pipeline rather than opening a new one (the inline script below keeps
+// a pre-rendered submission_id input instead of generating one).
 const resubmissionForm = (
   record: AttemptRecord,
   env: QuoteEnv,
-  { separate, submitLabel }: { separate: boolean; submitLabel: string }
+  { separate, submitLabel, submissionId }: { separate: boolean; submitLabel: string; submissionId?: string }
 ) => {
   const payload = record.payload;
   if (!payload) return "";
@@ -890,6 +993,7 @@ const resubmissionForm = (
   <label>Best way to reply <select name="preferred_contact">${optionsHtml(QUOTE_CONTACT_VALUES, QUOTE_CONTACT_LABELS, payload.preferredContact)}</select></label>
   <label>Details (optional) <textarea name="details" maxlength="${MAX_DETAILS_LENGTH}">${escapeHtml(payload.details)}</textarea></label>
   <input type="hidden" name="return_to" value="${escapeHtml(record.returnTo ?? "/#quote")}" />
+  ${submissionId ? `<input type="hidden" name="submission_id" value="${escapeHtml(submissionId)}" />` : ""}
   ${TRACKING_FORM_FIELDS.map(
     (field) => `<input type="hidden" name="${field}" value="${escapeHtml(payload.tracking[field] ?? "")}" />`
   ).join("\n  ")}
@@ -1128,12 +1232,30 @@ ${contactLine(toEmail)}`
   }
 
   if (record.status === "unconfirmed") {
+    // While the attempt is still inside the provider's idempotency
+    // window, the page offers a retry-confirmation form pinned to this
+    // attempt's own submission id: POSTing it resumes this attempt and
+    // replays its frozen provider payload under the original key, so
+    // the retry can reconcile the original send instead of opening a
+    // new enquiry. Past the window a retry could never resolve the
+    // attempt (invariant I2), so no form is rendered — only the
+    // contact-direct copy.
+    const firstSendAt = record.providerSentAt ?? record.createdAt;
+    const retryForm =
+      record.payload && record.submissionId && Date.now() - firstSendAt <= PROVIDER_IDEMPOTENCY_WINDOW_MS
+        ? resubmissionForm(record, env, {
+            separate: false,
+            submitLabel: "Retry sending my request",
+            submissionId: record.submissionId,
+          })
+        : "";
     return pageShell(
       "Delivery could not be confirmed",
       `<h1 tabindex="-1">We could not confirm delivery</h1>
 <p>Your request (reference <span class="ref">${escapeHtml(record.reference)}</span>) may or may not have reached our email service — the confirmation did not come back, so it is <strong>not</strong> counted as sent. Please do not assume we have it.</p>
 <p><a href="/api/quote?ref=${escapeHtml(record.reference)}">Check the status of this submission</a> before sending another, or contact us directly and mention your reference.</p>
 ${record.payload ? payloadSummary(record.payload) : ""}
+${retryForm}
 ${contactLine(toEmail)}`
     );
   }
@@ -1429,7 +1551,8 @@ const buildEmail = (payload: QuotePayload, record: AttemptRecord, toEmail: strin
 //   unconfirmed -- provider 200 + message ID --------------> delivered
 //   unconfirmed -- outcome still not established ----------> unconfirmed
 //   sending     -- stale, observed by a conflicting --------> unconfirmed
-//                  submission (normalization)
+//                  submission or a status read (GET)
+//                  (normalization on observation)
 //   (a resumed attempt whose verification fails in a later request takes
 //   no transition at all beyond being held at unconfirmed)
 //
@@ -1506,14 +1629,43 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
     const count = await store.incrementRate(ipDigest, windowStart);
     if (count > MAX_REQUESTS_PER_WINDOW) {
       const retryAfterSeconds = Math.max(1, Math.ceil((windowStart + RATE_WINDOW_MS - now) / 1000));
-      const record = baseAttempt({
+      let record = baseAttempt({
         status: "rejected",
         reasonCode: "rate_limited",
         retryAfterSeconds,
         createdAt: now,
         updatedAt: now,
       });
-      await store.createAttempt(record);
+      // Preserve the customer's entries on the rejection record: the
+      // limiter has already counted this request (the counting order
+      // above is unchanged — abuse posture intact), and parsing now,
+      // before responding, lets the 429 page show the entries back
+      // with a send-again form instead of discarding them. The stored
+      // payload is clamped to the field bounds; content/contentHash
+      // stay null and claimActive stays false, so this preservation
+      // record can never suppress, claim, or be resumed as an attempt
+      // (the POST reconciliation path ignores a latest-by-submission
+      // record whose content is null). A body that cannot be parsed
+      // falls back to the payload-less record, and a failed
+      // preservation write still returns the 429 page rendered from
+      // the in-memory record.
+      try {
+        const formData = await request.formData();
+        record = {
+          ...record,
+          submissionId: validSubmissionId(getValue(formData, "submission_id")),
+          payload: clampPayloadForRetention(payloadFromFormData(formData)),
+          returnTo: validateReturnTo(request.url, getValue(formData, "return_to")),
+        };
+      } catch {
+        // Keep the payload-less record: preservation must never break
+        // the 429 response itself.
+      }
+      try {
+        await store.createAttempt(record);
+      } catch {
+        alertOperational("rate_limit_record_failed", { reference: record.reference, at: now });
+      }
       alertOperational("rate_limited", { reference: record.reference, at: now });
       return new Response(resultPageHtml(record, env, toEmail), {
         status: 429,
@@ -1536,33 +1688,9 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
 
   const returnTo = validateReturnTo(request.url, getValue(formData, "return_to"));
   const separateEnquiry = getValue(formData, "separate_enquiry") === "1";
-  const submittedIdRaw = getValue(formData, "submission_id");
-  const submissionId = /^[A-Za-z0-9_-]{8,80}$/.test(submittedIdRaw) ? submittedIdRaw : `srv_${randomToken(16).toLowerCase()}`;
+  const submissionId = validSubmissionId(getValue(formData, "submission_id"));
 
-  const payload: QuotePayload = {
-    name: getValue(formData, "name"),
-    phone: getValue(formData, "phone"),
-    email: getValue(formData, "email"),
-    area: getValue(formData, "area"),
-    service: getValue(formData, "service"),
-    timeline: getValue(formData, "timeline"),
-    preferredContact: getValue(formData, "preferred_contact"),
-    details: getValue(formData, "details"),
-    tracking: {
-      utm_source: getValue(formData, "utm_source"),
-      utm_medium: getValue(formData, "utm_medium"),
-      utm_campaign: getValue(formData, "utm_campaign"),
-      utm_content: getValue(formData, "utm_content"),
-      utm_term: getValue(formData, "utm_term"),
-      gclid: getValue(formData, "gclid"),
-      fbclid: getValue(formData, "fbclid"),
-      msclkid: getValue(formData, "msclkid"),
-      landing_page: getValue(formData, "landing_page"),
-      referrer: getValue(formData, "referrer"),
-      page_title: getValue(formData, "page_title"),
-      page_path: getValue(formData, "page_path"),
-    },
-  };
+  const payload = payloadFromFormData(formData);
   const serialized = serializeEnquiryContent(payload);
   const { score, flags } = scoreRisk({
     honeypot: getValue(formData, "company"),
@@ -1575,6 +1703,13 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
 
   // Attempt-identity reconciliation: a retry of the same submission id with
   // the same content resumes the existing attempt instead of double-sending.
+  // The lookup targets the latest CONTENT-BEARING attempt: a rate-limit
+  // preservation record shares the submission id (so the status page can
+  // render the preserved entries) but carries no content and is not an
+  // attempt identity — if it shadowed the real attempt here, the retry
+  // would fall through to fresh creation, hit the original attempt's
+  // content claim, and be redirected to the unconfirmed result page
+  // without ever replaying the provider request, looping forever.
   let attempt: AttemptRecord | null = null;
   // True when the attempt was resumed in an ambiguous state ("sending" gone
   // stale, or "unconfirmed"): an earlier invocation may already have handed
@@ -1582,14 +1717,16 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   // content claim must survive any verification failure in a later request
   // (see finalizeRejection).
   let resumedAmbiguousAttempt = false;
-  const existing = await store.getLatestAttemptBySubmissionId(submissionId);
-  if (existing && existing.content !== null) {
+  const existing = await store.getLatestContentAttemptBySubmissionId(submissionId);
+  if (existing) {
     if (existing.content !== serialized) {
       if (existing.status !== "rejected") {
         const record = baseAttempt({
           submissionId,
           status: "rejected",
           reasonCode: "submission_conflict",
+          riskScore: score,
+          riskFlags: flags,
           payload,
           returnTo,
           createdAt: now,
@@ -1603,6 +1740,8 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
         submissionId,
         status: "rejected",
         reasonCode: "duplicate",
+        riskScore: score,
+        riskFlags: flags,
         separateOf: existing.reference,
         payload,
         returnTo,
@@ -1626,6 +1765,8 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
         submissionId,
         status: "rejected",
         reasonCode: "validation_failed",
+        riskScore: score,
+        riskFlags: flags,
         fieldErrors,
         payload,
         returnTo,
@@ -1729,6 +1870,8 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
             submissionId,
             status: "rejected",
             reasonCode: "duplicate",
+            riskScore: score,
+            riskFlags: flags,
             separateOf: holder.reference,
             payload,
             returnTo,
@@ -1756,6 +1899,8 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
               submissionId,
               status: "rejected",
               reasonCode: "duplicate",
+              riskScore: score,
+              riskFlags: flags,
               separateOf: holderNow.reference,
               payload,
               returnTo,
@@ -1768,6 +1913,8 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
             submissionId,
             status: "rejected",
             reasonCode: "delivery_unconfirmed_exists",
+            riskScore: score,
+            riskFlags: flags,
             separateOf: holder.reference,
             payload,
             returnTo,
@@ -2047,7 +2194,12 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   let providerMessageId: string | null = null;
   try {
     const body = (await response.json()) as { id?: unknown };
-    if (typeof body.id === "string" && body.id) providerMessageId = body.id;
+    // Only a non-empty trimmed id is acceptance evidence: a
+    // whitespace-only id identifies nothing, so it falls into the
+    // unconfirmed path below exactly like a missing id. The stored
+    // value is the trimmed id.
+    const id = typeof body.id === "string" ? body.id.trim() : "";
+    if (id) providerMessageId = id;
   } catch {
     providerMessageId = null;
   }
@@ -2101,11 +2253,36 @@ const handleQuoteGet = async ({ request, env }: QuoteContext): Promise<Response>
   }
   const reference = params.get("ref") ?? "";
   const submission = params.get("submission") ?? "";
-  const record = reference
+  let record = reference
     ? await store.getAttemptByReference(reference)
     : submission
       ? await store.getLatestAttemptBySubmissionId(submission)
       : null;
+  if (record && record.status === "sending" && Date.now() - record.updatedAt > SENDING_STALE_MS) {
+    // Normalize on observation: a "sending" record nobody finalized
+    // within the stale window belongs to an invocation that died
+    // mid-send; its outcome was never established, so the truthful
+    // state is "unconfirmed" — the same normalization the claim path
+    // applies when a conflicting submission observes the stale holder.
+    // This is the read path's only write: one bounded, guarded
+    // transition (invariant I1 — if an overlapping reconciliation
+    // delivered the attempt in the meantime, the transition is a no-op)
+    // and never a provider call, so the status page stays safe to poll.
+    // The record is then re-read and rendered from the fresh copy.
+    const now = Date.now();
+    const applied = await store.transitionAttempt(record.id, {
+      status: "unconfirmed",
+      reasonCode: "provider_unconfirmed",
+      updatedAt: now,
+    });
+    if (applied) {
+      alertOperational("stranded_sending_normalized", {
+        reference: record.reference,
+        ageMs: now - record.updatedAt,
+      });
+    }
+    record = (await store.getAttemptById(record.id)) ?? record;
+  }
   if (!record) {
     if (params.get("format") === "json") {
       return new Response(JSON.stringify({ error: "not_found" }), {

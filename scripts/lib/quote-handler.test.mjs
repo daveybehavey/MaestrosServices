@@ -294,6 +294,173 @@ test("fifth enquiry from one IP in the window is a visible 429; the store is sha
   });
 });
 
+// --- Residuals item 2: a 429 must not lose the customer's content --------
+// The limiter still counts before any parsing, but a rejected request's
+// bounded entries are preserved on its record, so the 429 page shows
+// them back with a send-again form and a later resubmission starts from
+// the customer's text — never from a blank form.
+
+const driveToRateLimit = async (harness, ip) => {
+  for (let i = 0; i < 4; i += 1) {
+    const response = await harness.post({ phone: `250555030${i}`, details: `Job number ${i}` }, { ip });
+    assert.equal((await resultJson(harness, response)).json.status, "delivered");
+  }
+};
+
+test("429 preservation: the rejected request's entries are stored bounded and shown back", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.21";
+    await driveToRateLimit(harness, ip);
+    const limited = await harness.post(
+      { submission_id: "sub_429_keep", phone: "2505550399", details: "Fifth job — keep my text" },
+      { ip }
+    );
+    assert.equal(limited.status, 429);
+    assert.ok(Number(limited.headers.get("retry-after")) > 0);
+    const html = await limited.text();
+    assert.match(html, /Too many requests/);
+    assert.ok(html.includes("Fifth job — keep my text"), "the 429 page shows the preserved entries");
+    assert.ok(html.includes("Send again"), "the 429 page offers the send-again form");
+
+    const record = await harness.store.getLatestAttemptBySubmissionId("sub_429_keep");
+    assert.ok(record, "the 429 record carries the real submission id");
+    assert.equal(record.reasonCode, "rate_limited");
+    assert.equal(record.payload?.details, "Fifth job — keep my text");
+    assert.equal(record.payload?.phone, "2505550399");
+    assert.equal(record.content, null, "a preservation record is not an attempt identity");
+    assert.equal(record.contentHash, null);
+    assert.equal(record.claimActive, false, "a preservation record never holds a claim");
+    assert.equal(calls.resend, 4, "the rate-limited request never reaches the provider");
+
+    // The status page for that submission renders the preserved entries.
+    const statusPage = await harness.get("submission=sub_429_keep");
+    assert.equal(statusPage.status, 200);
+    const statusHtml = await statusPage.text();
+    assert.match(statusHtml, /Too many requests/);
+    assert.ok(statusHtml.includes("Fifth job — keep my text"));
+  });
+});
+
+test("429 preservation: a rate-limited retry does not mask the resumable attempt it retried", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  const seed = await seedAmbiguousAttempt(harness, {
+    id: "att_429_mask",
+    submissionId: "sub_429_mask",
+    reference: "MS-429MASK01",
+  });
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.24";
+    await driveToRateLimit(harness, ip);
+
+    // The customer retries the unconfirmed submission from the same
+    // connection and hits the rate limit: the preservation record is
+    // stored under the same submission id and becomes the latest
+    // record for it, ahead of the resumable attempt.
+    const limited = await harness.post({ submission_id: "sub_429_mask" }, { ip });
+    assert.equal(limited.status, 429);
+    const masked = await harness.store.getLatestAttemptBySubmissionId("sub_429_mask");
+    assert.equal(masked.reasonCode, "rate_limited", "the preservation record is the latest for the submission");
+    assert.equal(masked.content, null);
+    assert.equal(calls.resend, 4, "the rate-limited retry never reaches the provider");
+
+    // After the window rolls, the same retry must reconcile onto the
+    // original attempt — replaying its frozen payload under its
+    // original idempotency key — not fall through to fresh creation,
+    // bounce off the original's content claim, and loop back to the
+    // unconfirmed page without ever sending.
+    freezeNow(T + 11 * 60 * 1000);
+    const retry = await harness.post({ submission_id: "sub_429_mask" }, { ip });
+    assert.equal(refFromRedirect(retry), seed.reference);
+    assert.equal(calls.resend, 5, "the post-window retry replays the original send");
+    assert.equal(calls.resendKeys[4], seed.id, "the replay carries the original idempotency key");
+    const record = await harness.store.getAttemptById(seed.id);
+    assert.equal(record.status, "delivered");
+    assert.equal(record.providerMessageId, "msg_5", "the replay's confirmation is recorded");
+  });
+});
+
+test("429 preservation: oversized fields are clamped to the storage bounds", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async () => {
+    const ip = "198.51.100.22";
+    await driveToRateLimit(harness, ip);
+    const limited = await harness.post(
+      { submission_id: "sub_429_clamp", details: "x".repeat(2100) },
+      { ip }
+    );
+    assert.equal(limited.status, 429);
+    const record = await harness.store.getLatestAttemptBySubmissionId("sub_429_clamp");
+    assert.equal(record.payload?.details.length, 2000, "stored details are clamped to MAX_DETAILS_LENGTH");
+  });
+});
+
+test("429 preservation: an unparseable body still gets a 429 and still consumes budget", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.23";
+    await driveToRateLimit(harness, ip);
+    const garbage = new Request(`${HOST}/api/quote`, {
+      method: "POST",
+      headers: { Origin: HOST, "Content-Type": "multipart/form-data", "CF-Connecting-IP": ip },
+      body: "garbage without a boundary",
+    });
+    const limited = await onRequestPost({ request: garbage, env: harness.env });
+    assert.equal(limited.status, 429, "preservation failure must not break the 429 response");
+    const html = await limited.text();
+    assert.match(html, /Too many requests/);
+    assert.ok(!html.includes("Send again"), "an unparseable body falls back to the payload-less page");
+    const sixth = await harness.post({ phone: "2505550310", details: "Sixth job" }, { ip });
+    assert.equal(sixth.status, 429, "the malformed request still consumed rate budget");
+    assert.equal(calls.resend, 4);
+  });
+});
+
+test("429 preservation: after the window rolls the preserved content sends as a fresh attempt", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const ip = "198.51.100.24";
+    await driveToRateLimit(harness, ip);
+    const limited = await harness.post(
+      { submission_id: "sub_429_roll", phone: "2505550399", details: "Fifth job — keep my text" },
+      { ip }
+    );
+    assert.equal(limited.status, 429);
+    const preserved = await harness.store.getLatestAttemptBySubmissionId("sub_429_roll");
+
+    freezeNow(T + 600001);
+    const resent = await harness.post(
+      { submission_id: "sub_429_roll", phone: "2505550399", details: "Fifth job — keep my text" },
+      { ip }
+    );
+    const { ref, json } = await resultJson(harness, resent);
+    assert.equal(json.status, "delivered");
+    assert.notEqual(ref, preserved.reference, "the resubmission is a fresh attempt, not a resume of the 429 record");
+    assert.equal(calls.resend, 5);
+    const after = await harness.store.getLatestAttemptBySubmissionId("sub_429_roll");
+    assert.equal(after.status, "delivered");
+    assert.equal(after.id, (await harness.store.getAttemptByReference(ref)).id);
+  });
+});
+
+test("the quote form keeps the filled form on a 429 instead of replacing the document", () => {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const source = fs.readFileSync(path.join(here, "../../src/components/QuoteForm.astro"), "utf8");
+  const branch = source.indexOf("response.status === 429");
+  assert.ok(branch !== -1, "the fetch handler must special-case 429");
+  assert.ok(
+    branch < source.indexOf("response.status >= 400"),
+    "the 429 branch must run before the document-replacement branch"
+  );
+  assert.ok(source.includes('id="quote-rate-limited"'), "the inline rate-limit panel must exist");
+  assert.ok(source.includes('headers.get("Retry-After")'), "the wait comes from the Retry-After header");
+});
+
 // --- Checklist 7: malformed form body -------------------------------------
 
 test("malformed multipart body is visibly rejected with a metadata-only record", async () => {
@@ -608,6 +775,87 @@ test("flagged submission with no challenge available is visibly rejected, never 
   });
 });
 
+test("a flagged submission is recorded in its flagged state on every rejection path", async () => {
+  freezeNow(T);
+  // Core path: honeypot-flagged, challenge fails — the durable record
+  // keeps the score and flags that made it flagged, so the operator can
+  // see why it was held.
+  const challenged = makeHarness();
+  await withStub(
+    { turnstile: [{ success: false, hostname: "maestrosservices.example", action: "quote_form" }] },
+    async (calls) => {
+      freezeNow(T);
+      const response = await challenged.post({ company: "Example Household" });
+      const { ref, json } = await resultJson(challenged, response);
+      assert.equal(json.reasonCode, "challenge_failed");
+      const record = await challenged.store.getAttemptByReference(ref);
+      assert.equal(record.riskScore, 2);
+      assert.ok(record.riskFlags.includes("honeypot_populated"));
+      assert.equal(calls.resend, 0);
+    }
+  );
+
+  // Validation path: flagged AND invalid — the rejection record still
+  // carries the flagged state, not a clean score.
+  const invalid = makeHarness();
+  await withStub({}, async (calls) => {
+    freezeNow(T);
+    const response = await invalid.post({ company: "Example Household", phone: "" });
+    const { ref, json } = await resultJson(invalid, response);
+    assert.equal(json.reasonCode, "validation_failed");
+    const record = await invalid.store.getAttemptByReference(ref);
+    assert.equal(record.riskScore, 2);
+    assert.ok(record.riskFlags.includes("honeypot_populated"));
+    assert.equal(calls.resend, 0);
+  });
+
+  // Duplicate path: an unchanged repeat that arrives flagged is
+  // suppressed as a duplicate, and the suppression record shows the flags.
+  const repeat = makeHarness();
+  await withStub({}, async (calls) => {
+    freezeNow(T);
+    const first = await repeat.post();
+    assert.equal((await resultJson(repeat, first)).json.status, "delivered");
+    const second = await repeat.post({ company: "Example Household" });
+    const { ref, json } = await resultJson(repeat, second);
+    assert.equal(json.reasonCode, "duplicate");
+    const record = await repeat.store.getAttemptByReference(ref);
+    assert.equal(record.riskScore, 2);
+    assert.ok(record.riskFlags.includes("honeypot_populated"));
+    assert.equal(calls.resend, 1, "the flagged repeat must not send a second email");
+  });
+});
+
+test("a repeat differing only by the documented normalization is a duplicate; a corrected enquiry is not", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({}, async (calls) => {
+    const first = await harness.post({ details: "Line one\nLine two" });
+    const { ref: firstRef } = await resultJson(harness, first);
+    assert.equal((await harness.store.getAttemptByReference(firstRef)).status, "delivered");
+
+    // Same business content: CRLF line endings and outer whitespace are
+    // the documented transport normalization, so this is the same
+    // enquiry — suppressed as a duplicate, no second send.
+    const repeat = await harness.post({ name: "  Alice Example  ", details: "Line one\r\nLine two" });
+    const { json: repeatJson } = await resultJson(harness, repeat);
+    assert.equal(repeatJson.reasonCode, "duplicate");
+    assert.equal(calls.resend, 1);
+
+    // A corrected enquiry — fixed email, details appended — is a NEW
+    // enquiry from the same contact: recorded as its own attempt and
+    // delivered, never swallowed by the first one's duplicate claim.
+    const corrected = await harness.post({
+      email: "alice.corrected@example.com",
+      details: "Line one\nLine two\nPlus the side gate, corrected.",
+    });
+    const { ref: correctedRef, json: correctedJson } = await resultJson(harness, corrected);
+    assert.equal(correctedJson.status, "delivered");
+    assert.notEqual(correctedRef, firstRef);
+    assert.equal(calls.resend, 2);
+  });
+});
+
 // --- Checklist 18/19/20: duplicate identity --------------------------------
 
 test("changed name, email, timeline, or reply preference each deliver independently", async () => {
@@ -863,6 +1111,31 @@ test("provider error matrix: explicit failures and unconfirmed outcomes, never s
   });
 });
 
+test("whitespace-only provider ID is not acceptance evidence; a padded ID is stored trimmed", async () => {
+  freezeNow(T);
+  const blank = makeHarness();
+  await withStub({ resend: [{ status: 200, body: { id: "   " } }] }, async (calls) => {
+    const response = await blank.post();
+    const { ref, json } = await resultJson(blank, response);
+    assert.equal(json.status, "unconfirmed");
+    assert.equal(json.reasonCode, "provider_unconfirmed");
+    assert.equal(json.conversionEligible, false);
+    const record = await blank.store.getAttemptByReference(ref);
+    assert.equal(record.providerMessageId, null, "a whitespace-only id must not be stored as delivery evidence");
+    assert.equal(record.claimActive, true, "the claim stays held while the outcome is unconfirmed");
+    assert.equal(calls.resend, 1);
+  });
+
+  const padded = makeHarness();
+  await withStub({ resend: [{ status: 200, body: { id: " msg_123 " } }] }, async () => {
+    const response = await padded.post();
+    const { ref, json } = await resultJson(padded, response);
+    assert.equal(json.status, "delivered");
+    const record = await padded.store.getAttemptByReference(ref);
+    assert.equal(record.providerMessageId, "msg_123", "the stored provider id is the trimmed value");
+  });
+});
+
 test("ambiguous acceptance reconciles on retry with the same idempotency key — no blind resend", async () => {
   freezeNow(T);
   const harness = makeHarness();
@@ -1059,6 +1332,230 @@ test("resumed stale sending attempt: a missing challenge normalizes to unconfirm
     assert.equal(preserved.reasonCode, "provider_unconfirmed");
     assert.equal(preserved.claimActive, true);
     assert.equal(calls.resend, 0, "no provider send may occur");
+  });
+});
+
+// --- Residuals item 1: stranded `sending` reconciliation -------------------
+// A row stranded in "sending" by a dead invocation normalizes to
+// "unconfirmed" when observed (status read), the unconfirmed page offers
+// a retry-confirmation form inside the provider window, and nothing ever
+// auto-sends. Seeds mirror the stale-sending seed above.
+
+const seedStrandedAttempt = async (harness, overrides = {}) => {
+  const payload = {
+    name: "Alice Example",
+    phone: "2505550100",
+    email: "alice@example.com",
+    area: "Victoria",
+    service: "fence",
+    timeline: "flexible",
+    preferredContact: "text",
+    details: "Repair the front gate.",
+    tracking: {},
+  };
+  const content = serializeEnquiryContent(payload);
+  const { createHash } = await import("node:crypto");
+  const record = {
+    id: "att_stranded_seed",
+    submissionId: "sub_stranded_seed",
+    reference: "MS-STRANDED1",
+    createdAt: T,
+    updatedAt: T,
+    status: "sending",
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload,
+    providerPayload: null,
+    providerSentAt: null,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+    ...overrides,
+  };
+  await harness.store.createAttempt(record);
+  return record;
+};
+
+test("stranded sending: a status read past the stale window normalizes it to unconfirmed", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness);
+  freezeNow(T + 16 * 60 * 1000);
+  await withStub({}, async (calls) => {
+    const page = await harness.get("ref=MS-STRANDED1");
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.match(html, /could not confirm delivery/i);
+    const record = await harness.store.getAttemptByReference("MS-STRANDED1");
+    assert.equal(record.status, "unconfirmed");
+    assert.equal(record.reasonCode, "provider_unconfirmed");
+    assert.equal(record.claimActive, true, "normalization preserves the ambiguity — the claim stays held");
+
+    const verify = await harness.get("ref=MS-STRANDED1&format=json");
+    const json = await verify.json();
+    assert.equal(json.status, "unconfirmed", "the verify response reports the normalized state");
+    assert.equal(json.conversionEligible, false);
+    assert.equal(calls.resend, 0, "a status read never contacts the provider");
+    assert.equal(calls.turnstile, 0);
+  });
+
+  // The by-submission read path normalizes the same way.
+  const bySubmission = makeHarness();
+  await seedStrandedAttempt(bySubmission);
+  freezeNow(T + 16 * 60 * 1000);
+  await withStub({}, async () => {
+    const verify = await bySubmission.get("submission=sub_stranded_seed&format=json");
+    assert.equal((await verify.json()).status, "unconfirmed");
+    assert.equal((await bySubmission.store.getAttemptByReference("MS-STRANDED1")).status, "unconfirmed");
+  });
+});
+
+test("stranded sending: a fresh sending record is left untouched by status reads", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness);
+  freezeNow(T + 5 * 60 * 1000);
+  await withStub({}, async () => {
+    const page = await harness.get("ref=MS-STRANDED1");
+    const html = await page.text();
+    assert.match(html, /being processed/i);
+    const record = await harness.store.getAttemptByReference("MS-STRANDED1");
+    assert.equal(record.status, "sending");
+    assert.equal(record.updatedAt, T, "no write may occur inside the stale window");
+  });
+});
+
+test("stranded sending: a delivery landing mid-read wins over the normalization", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness);
+  freezeNow(T + 16 * 60 * 1000);
+  // A store wrapper whose guarded transition first commits the delivery
+  // an overlapping reconciliation just confirmed: the GET's
+  // normalization must then no-op and render the delivered record.
+  const inner = harness.store;
+  let raced = false;
+  const racingStore = {
+    ...inner,
+    async transitionAttempt(id, patch) {
+      if (!raced) {
+        raced = true;
+        await inner.updateAttempt(id, {
+          status: "delivered",
+          providerMessageId: "msg_race_winner",
+          deliveredAt: T + 16 * 60 * 1000,
+          updatedAt: T + 16 * 60 * 1000,
+        });
+      }
+      return inner.transitionAttempt(id, patch);
+    },
+  };
+  const env = { ...harness.env, __quoteStore: racingStore };
+  await withStub({}, async () => {
+    const page = await onRequest({ request: new Request(`${HOST}/api/quote?ref=MS-STRANDED1`), env });
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /Quote request accepted/);
+    const verify = await onRequest({
+      request: new Request(`${HOST}/api/quote?ref=MS-STRANDED1&format=json`),
+      env,
+    });
+    assert.equal((await verify.json()).conversionEligible, true);
+    assert.equal((await inner.getAttemptByReference("MS-STRANDED1")).status, "delivered");
+  });
+});
+
+test("unconfirmed page: retry-confirmation form inside the provider window, none past it", async () => {
+  const harness = makeHarness();
+  await seedStrandedAttempt(harness, {
+    id: "att_unconfirmed_seed",
+    submissionId: "sub_unconfirmed_seed",
+    reference: "MS-UNCONFIRM1",
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    providerPayload: "{}",
+    providerSentAt: T - 60 * 60 * 1000,
+  });
+  freezeNow(T);
+  await withStub({}, async () => {
+    const page = await harness.get("ref=MS-UNCONFIRM1");
+    const html = await page.text();
+    assert.match(html, /could not confirm delivery/i);
+    assert.ok(
+      html.includes('name="submission_id" value="sub_unconfirmed_seed"'),
+      "the retry form carries the record's own submission id"
+    );
+    assert.ok(html.includes("Retry sending my request"), "the retry form is offered inside the window");
+  });
+
+  const expired = makeHarness();
+  await seedStrandedAttempt(expired, {
+    id: "att_expired_seed",
+    submissionId: "sub_expired_seed",
+    reference: "MS-EXPIRED1",
+    status: "unconfirmed",
+    reasonCode: "provider_unconfirmed",
+    providerPayload: "{}",
+    providerSentAt: T - 25 * 60 * 60 * 1000,
+    createdAt: T - 25 * 60 * 60 * 1000,
+    updatedAt: T - 25 * 60 * 60 * 1000,
+  });
+  freezeNow(T);
+  await withStub({}, async () => {
+    const page = await expired.get("ref=MS-EXPIRED1");
+    const html = await page.text();
+    assert.match(html, /could not confirm delivery/i);
+    assert.ok(!html.includes("Retry sending my request"), "past the window no retry form is offered");
+    assert.ok(!html.includes('name="submission_id"'), "past the window the page carries no submission form");
+  });
+});
+
+test("unconfirmed retry form: POSTing it reconciles the same attempt under the original key", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw", { status: 200 }] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_retry_form" });
+    const { ref } = await resultJson(harness, first);
+    const stuck = await harness.store.getAttemptByReference(ref);
+    assert.equal(stuck.status, "unconfirmed");
+    assert.ok(stuck.providerPayload, "the first send's payload is frozen on the record");
+
+    const page = await harness.get(`ref=${ref}`);
+    const html = await page.text();
+    assert.ok(html.includes('name="submission_id" value="sub_retry_form"'));
+    assert.ok(html.includes("Retry sending my request"));
+
+    const retry = await harness.post({ submission_id: "sub_retry_form" });
+    const { ref: retryRef, json } = await resultJson(harness, retry);
+    assert.equal(json.status, "delivered");
+    assert.equal(retryRef, ref, "the retry reconciles the same attempt — no second record");
+    assert.equal(calls.resend, 2);
+    assert.equal(calls.resendKeys[1], calls.resendKeys[0], "the replay uses the original idempotency key");
+    assert.deepEqual(calls.resendBodies[1], calls.resendBodies[0], "the replay sends the frozen payload");
+  });
+});
+
+test("unconfirmed retry past the provider window sends nothing and stays unconfirmed", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withStub({ resend: ["throw"] }, async (calls) => {
+    const first = await harness.post({ submission_id: "sub_window_retry" });
+    const { ref } = await resultJson(harness, first);
+    assert.equal((await harness.store.getAttemptByReference(ref)).status, "unconfirmed");
+
+    freezeNow(T + 25 * 60 * 60 * 1000);
+    const page = await harness.get(`ref=${ref}`);
+    assert.ok(!(await page.text()).includes("Retry sending my request"));
+
+    const retry = await harness.post({ submission_id: "sub_window_retry" });
+    const { json } = await resultJson(harness, retry);
+    assert.equal(json.status, "unconfirmed");
+    assert.equal(calls.resend, 1, "past the window the stored payload is never replayed");
   });
 });
 

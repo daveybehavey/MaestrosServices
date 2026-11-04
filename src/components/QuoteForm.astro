@@ -101,6 +101,17 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         Your entries are still here. <a id="quote-unconfirmed-status" class="underline" href="/api/quote">Check your submission status</a> before sending another, or call/text {business.phone}.
       </p>
     </div>
+    <div
+      id="quote-rate-limited"
+      class="rounded-xl border border-ink/30 bg-white/90 px-4 py-3 text-sm text-ink"
+      role="alert"
+      hidden
+    >
+      <p class="font-semibold">Too many requests from this connection.</p>
+      <p class="mt-1">
+        Please wait about <span id="quote-rate-limit-minutes">a few</span> minutes before sending again. Your entries are still here.
+      </p>
+    </div>
     <p class="text-xs uppercase tracking-[0.22em] text-ink-soft">Takes about 30 seconds</p>
     <div class="flex flex-wrap gap-2 text-[0.62rem] uppercase tracking-[0.22em] text-ink-soft">
       <span class="rounded-full border border-border bg-paper px-3 py-1">Owner-operated</span>
@@ -336,6 +347,8 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
     var quoteForm = document.getElementById("quote-form");
     var unconfirmedPanel = document.getElementById("quote-unconfirmed");
     var unconfirmedStatusLink = document.getElementById("quote-unconfirmed-status");
+    var rateLimitPanel = document.getElementById("quote-rate-limited");
+    var rateLimitMinutes = document.getElementById("quote-rate-limit-minutes");
     var startedAtInput = document.getElementById("form-started-at");
     var submitButton = quoteForm ? quoteForm.querySelector('button[type="submit"]') : null;
     var localStorageKey = "ms_attribution_v1";
@@ -587,6 +600,24 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
                 .then(function () {
                   window.location.assign(nextUrl);
                 });
+            }
+            if (response.status === 429) {
+              // Rate limited: do not replace the document — that would
+              // discard everything the customer typed. The server kept
+              // a preserved copy on its rejection record, and this live
+              // form keeps the entries too: surface the wait inline and
+              // re-enable the button once the interval elapses.
+              var retryAfterSeconds = parseInt(response.headers.get("Retry-After") || "", 10);
+              var waitSeconds = isFinite(retryAfterSeconds) && retryAfterSeconds > 0 ? retryAfterSeconds : 60;
+              if (rateLimitMinutes) {
+                rateLimitMinutes.textContent = String(Math.max(1, Math.ceil(waitSeconds / 60)));
+              }
+              if (rateLimitPanel) {
+                rateLimitPanel.hidden = false;
+                rateLimitPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+              window.setTimeout(restoreButton, waitSeconds * 1000);
+              return;
             }
             if (response.status >= 400) {
               // A server-rendered terminal page returned inline (for
