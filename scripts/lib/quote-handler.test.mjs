@@ -1583,6 +1583,65 @@ test("store persistFirstSend: the first persistence wins and a later call change
   assert.equal(record.providerSentAt, T + 1000, "the first-send stamp never moves");
 });
 
+test("store transitionAttemptIfUntaken: applies only to the record exactly as its creator left it", async () => {
+  const store = createMemoryQuoteStore();
+  const { createHash } = await import("node:crypto");
+  const content = serializeEnquiryContent(MACHINE_PAYLOAD);
+  const base = {
+    submissionId: "sub_untaken_contract",
+    createdAt: T,
+    status: "sending",
+    reasonCode: null,
+    fieldErrors: [],
+    riskScore: 0,
+    riskFlags: [],
+    contentHash: createHash("sha256").update(content).digest("hex"),
+    content,
+    payload: MACHINE_PAYLOAD,
+    providerPayload: null,
+    providerSentAt: null,
+    providerMessageId: null,
+    providerStatus: null,
+    recipient: null,
+    separateOf: null,
+    retryAfterSeconds: null,
+    returnTo: "/quote#quote",
+    claimActive: true,
+    deliveredAt: null,
+  };
+  // Only the first record holds the content claim; the fence contract
+  // under test does not involve claims, and identical claimed content
+  // would (correctly) refuse the later creates.
+  await store.createAttempt({ ...base, id: "att_untaken_plain", reference: "MS-UNTAKEN001", updatedAt: T });
+  await store.createAttempt({ ...base, id: "att_untaken_touched", reference: "MS-UNTAKEN002", updatedAt: T, claimActive: false });
+  await store.createAttempt({ ...base, id: "att_untaken_payload", reference: "MS-UNTAKEN003", updatedAt: T, claimActive: false });
+
+  // Another invocation's telemetry write moves the stamp...
+  await store.updateAttempt("att_untaken_touched", { riskScore: 9, updatedAt: T + 1000 });
+  // ...and a persisted first-send payload fences the third record.
+  assert.equal(await store.persistFirstSend("att_untaken_payload", "body", T + 1000), true);
+
+  const rejection = { status: "rejected", reasonCode: "challenge_failed", claimActive: false, updatedAt: T + 2000 };
+  assert.equal(
+    await store.transitionAttemptIfUntaken("att_untaken_plain", rejection, T),
+    true,
+    "an untouched sending record takes its creator's rejection"
+  );
+  assert.equal(
+    await store.transitionAttemptIfUntaken("att_untaken_touched", rejection, T),
+    false,
+    "a record another invocation has written to is fenced out"
+  );
+  assert.equal(
+    await store.transitionAttemptIfUntaken("att_untaken_payload", rejection, T + 1000),
+    false,
+    "a record with a persisted first-send payload is fenced out"
+  );
+  assert.equal((await store.getAttemptById("att_untaken_plain")).status, "rejected");
+  assert.equal((await store.getAttemptById("att_untaken_touched")).status, "sending");
+  assert.equal((await store.getAttemptById("att_untaken_payload")).status, "sending");
+});
+
 test("overlapping reconciliations: a provider error landing after a concurrent confirmation cannot downgrade delivered", async () => {
   freezeNow(T);
   const harness = makeHarness();
@@ -1800,6 +1859,51 @@ test("overlapping first send: the creator's late verification failure cannot rej
     assert.equal(record.status, "unconfirmed", "the ambiguous outcome is preserved for reconciliation");
     assert.equal(record.reasonCode, "provider_unconfirmed");
     assert.equal(record.claimActive, true, "the content claim stays held");
+  });
+});
+
+test("overlapping first send: the creator's late verification failure cannot release the claim while a resumed send is in flight", async () => {
+  freezeNow(T);
+  const harness = makeHarness();
+  await withOverlapStub({ holdFirstTurnstile: true }, async (state) => {
+    const postCreator = harness.post({ submission_id: "sub_overlap_creator_flight" });
+    await waitForCondition(() => state.turnstile === 1 && state.heldTurnstileResolve, "the held verification");
+    const created = await harness.store.getLatestAttemptBySubmissionId("sub_overlap_creator_flight");
+    assert.equal(created.status, "sending");
+
+    // The resuming retry verifies, persists its payload, and its
+    // provider request goes in flight — the stored status is still
+    // "sending" at this point, so only the first-send fence (payload
+    // persisted, stamp moved) can tell the creator its attempt has
+    // been taken over.
+    freezeNow(T + 16 * 60 * 1000);
+    const postRetry = harness.post({ submission_id: "sub_overlap_creator_flight" });
+    await waitForCondition(() => state.pendingResend.length === 1, "the resumer's in-flight send");
+    assert.equal((await harness.store.getAttemptById(created.id)).status, "sending");
+
+    // The creator's verification now fails. Its request never sent
+    // anything, and the attempt is no longer its to reject: the claim
+    // must stay held while the resumed send settles.
+    state.heldTurnstileResolve(
+      new Response(
+        JSON.stringify({ success: false, hostname: "maestrosservices.example", action: "quote_form" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    const responseCreator = await postCreator;
+    assert.equal(refFromRedirect(responseCreator), created.reference);
+    const during = await harness.store.getAttemptById(created.id);
+    assert.notEqual(during.status, "rejected", "the creator must not reject an attempt a resumed send has taken over");
+    assert.equal(during.claimActive, true, "the claim stays held while the resumed send is in flight");
+
+    // The in-flight send confirms: delivery stands, claim intact.
+    state.pendingResend[0].resolve(resendOkResponse("msg_overlap_flight"));
+    const responseRetry = await postRetry;
+    assert.equal(refFromRedirect(responseRetry), created.reference);
+    const record = await harness.store.getAttemptById(created.id);
+    assert.equal(record.status, "delivered");
+    assert.equal(record.providerMessageId, "msg_overlap_flight");
+    assert.equal(record.claimActive, true);
   });
 });
 
@@ -2191,12 +2295,22 @@ const createFakeD1 = () => {
     assert.ok(
       whereClause === "id = ?" ||
         whereClause === "id = ? AND status <> 'delivered'" ||
-        whereClause === "id = ? AND provider_payload IS NULL",
+        whereClause === "id = ? AND provider_payload IS NULL" ||
+        whereClause === "id = ? AND status = 'sending' AND provider_payload IS NULL AND updated_at = ?",
       `fake D1 cannot apply UPDATE with WHERE: ${whereClause}`
     );
     const row = rows.get(binds[bindIndex]);
     if (!row) return 0;
     if (whereClause.includes("status <> 'delivered'") && row.status === "delivered") return 0;
+    if (whereClause.includes("status = 'sending'")) {
+      const expectedUpdatedAt = binds[bindIndex + 1];
+      if (
+        row.status !== "sending" ||
+        (row.provider_payload !== null && row.provider_payload !== undefined) ||
+        row.updated_at !== expectedUpdatedAt
+      )
+        return 0;
+    }
     if (
       whereClause.includes("provider_payload IS NULL") &&
       row.provider_payload !== null &&
@@ -2407,4 +2521,28 @@ test("D1 store: persistFirstSend is write-once against the committed row", async
   const record = await store.getAttemptById(seed.id);
   assert.equal(record.providerPayload, "body-one", "the first persisted payload stands");
   assert.equal(record.providerSentAt, T + 1000, "the first-send stamp never moves");
+});
+
+test("D1 store: transitionAttemptIfUntaken is fenced by the committed row", async () => {
+  const fake = createFakeD1();
+  const store = createD1QuoteStore(fake.db);
+  const seed = d1SeedRecord({ status: "sending", providerPayload: null, providerSentAt: null, updatedAt: T });
+  await store.createAttempt(seed);
+  const rejection = { status: "rejected", reasonCode: "challenge_failed", claimActive: false, updatedAt: T + 2000 };
+
+  // A stale creator stamp (another invocation has since written) is
+  // fenced out by the committed row.
+  const stale = store.transitionAttemptIfUntaken(seed.id, rejection, T - 1000);
+  await settleStoreCalls();
+  fake.flushUpdate((sql) => sql.includes("status = 'sending'"));
+  assert.equal(await stale, false, "a mismatched creator stamp is refused");
+
+  const applied = store.transitionAttemptIfUntaken(seed.id, rejection, T);
+  await settleStoreCalls();
+  fake.flushUpdate((sql) => sql.includes("status = 'sending'"));
+  assert.equal(await applied, true, "the creator's own untouched record takes the rejection");
+
+  const record = await store.getAttemptById(seed.id);
+  assert.equal(record.status, "rejected");
+  assert.equal(record.claimActive, false);
 });

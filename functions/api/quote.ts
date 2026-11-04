@@ -183,6 +183,20 @@ interface QuoteStore {
   // overwrite each other's payload or move the stamp the provider
   // idempotency window (invariant I2) is measured from.
   persistFirstSend(id: string, providerPayload: string, providerSentAt: number): Promise<boolean>;
+  // The creating request's fenced rejection: applies the patch only
+  // while the stored record is still exactly the record the creator
+  // left behind — status "sending", no provider payload persisted by
+  // an overlapping invocation, and the updatedAt stamp the creator
+  // wrote — and returns whether it applied. Atomic in both stores (a
+  // synchronous check-and-set in the memory store; the conditions ride
+  // in the D1 UPDATE's WHERE clause), so a creator whose verification
+  // fails late can never reject — or release the claim of — an attempt
+  // a resumed retry has already taken into the provider stage.
+  transitionAttemptIfUntaken(
+    id: string,
+    patch: Partial<AttemptRecord>,
+    expectedUpdatedAt: number
+  ): Promise<boolean>;
   findClaimHolder(contentHash: string, content: string): Promise<AttemptRecord | null>;
   releaseClaim(id: string): Promise<void>;
   expireDeliveredClaims(cutoff: number): Promise<void>;
@@ -400,6 +414,21 @@ export const createMemoryQuoteStore = (): QuoteStore => {
       const record = attempts.get(id);
       if (!record || record.providerPayload) return false;
       attempts.set(id, clone({ ...record, providerPayload, providerSentAt, updatedAt: providerSentAt }));
+      return true;
+    },
+    async transitionAttemptIfUntaken(id, patch, expectedUpdatedAt) {
+      // Synchronous critical section, like transitionAttempt: the
+      // untaken check and the write cannot interleave with another
+      // invocation in this isolate.
+      const record = attempts.get(id);
+      if (
+        !record ||
+        record.status !== "sending" ||
+        record.providerPayload ||
+        record.updatedAt !== expectedUpdatedAt
+      )
+        return false;
+      attempts.set(id, clone({ ...record, ...patch, id: record.id }));
       return true;
     },
     async findClaimHolder(contentHash, content) {
@@ -657,6 +686,21 @@ export const createD1QuoteStore = (db: D1DatabaseLike): QuoteStore => ({
         "UPDATE quote_attempts SET provider_payload = ?, provider_sent_at = ?, updated_at = ? WHERE id = ? AND provider_payload IS NULL"
       )
       .bind(providerPayload, providerSentAt, providerSentAt, id)
+      .run();
+    return (result.meta?.changes ?? 0) > 0;
+  },
+  async transitionAttemptIfUntaken(id, patch, expectedUpdatedAt) {
+    // A single fenced statement: the WHERE clause is evaluated against
+    // the committed row at write time, so any overlapping invocation's
+    // write — a resumer's telemetry or payload persistence, a
+    // normalization, a confirmation — fences this rejection out.
+    const { assignments, values } = attemptPatchAssignments(patch);
+    if (!assignments.length) return false;
+    const result = await db
+      .prepare(
+        `UPDATE quote_attempts SET ${assignments.join(", ")} WHERE id = ? AND status = 'sending' AND provider_payload IS NULL AND updated_at = ?`
+      )
+      .bind(...values, id, expectedUpdatedAt)
       .run();
     return (result.meta?.changes ?? 0) > 0;
   },
@@ -1373,9 +1417,11 @@ const buildEmail = (payload: QuotePayload, record: AttemptRecord, toEmail: strin
 //   reconciliation outcome — a provider error, a network exception, an
 //   OK response without a message ID, or a verification failure in an
 //   overlapping request — may move it out of delivered. Every outcome
-//   write after an attempt's creation therefore goes through the
-//   store's guarded transitionAttempt, never updateAttempt: the guard
-//   is atomic in both stores, so two overlapping reconciliations of one
+//   write after an attempt's creation therefore goes through one of
+//   the store's guarded transitions — transitionAttempt, or the
+//   creating request's fenced transitionAttemptIfUntaken for its own
+//   rejection — never updateAttempt: the guards are atomic in both
+//   stores, so two overlapping reconciliations of one
 //   attempt resolve to "delivered if any of them confirmed", regardless
 //   of the order their outcomes land. Writes that are not reconciliation
 //   outcomes keep primitives of their own: persisting the provider
@@ -1750,35 +1796,34 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
       });
       return redirectToResult(request, attempt.reference);
     }
-    // This request created the attempt, but it may no longer be the
+    // This request created the attempt, but it may no longer be its
     // only actor: if this request stalled (the challenge verification
     // fetch has no timeout) past the stale-sending threshold, a retry
     // carrying the same submission id resumes the attempt and can take
     // it into — or through — the provider stage while this request is
-    // still parked. A verification or configuration failure here
-    // establishes nothing about that send, so if the stored record has
-    // moved past the "sending" state this request left it in, the
-    // failure is handled exactly like the resumed path above (invariant
-    // I1): the attempt stays unconfirmed with its claim held, and the
-    // guarded transition still lets a concurrent delivery win.
-    const stored = await store.getAttemptById(attempt.id);
-    if (stored && stored.status !== "sending") {
+    // still parked: the resumed attempt's stored status stays "sending"
+    // until its provider outcome lands, so a status check alone cannot
+    // fence this request's rejection off from that send. A verification
+    // or configuration failure here establishes nothing about it, so
+    // the rejection is fenced to the record exactly as this request
+    // left it — still "sending", no provider payload persisted, this
+    // request's own updatedAt stamp. If any overlapping invocation has
+    // written to the attempt, the fence refuses, and the failure is
+    // held unconfirmed exactly like the resumed path above (invariant
+    // I1): the claim stays held, and the guarded transition still lets
+    // a concurrent delivery win.
+    const rejected = await store.transitionAttemptIfUntaken(
+      attempt.id,
+      { status: "rejected", reasonCode, claimActive: false, updatedAt: Date.now() },
+      attempt.updatedAt
+    );
+    if (!rejected) {
       await store.transitionAttempt(attempt.id, {
         status: "unconfirmed",
         reasonCode: "provider_unconfirmed",
         updatedAt: Date.now(),
       });
-      return redirectToResult(request, attempt.reference);
     }
-    // The attempt is still exactly where this request left it, so the
-    // rejection is this request's to record — through the guarded
-    // transition, so a delivery confirmed in the meantime still wins.
-    await store.transitionAttempt(attempt.id, {
-      status: "rejected",
-      reasonCode,
-      claimActive: false,
-      updatedAt: Date.now(),
-    });
     return redirectToResult(request, attempt.reference);
   };
 
