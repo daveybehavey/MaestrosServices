@@ -58,6 +58,8 @@ const galleryItems = [
     srcSet:
       "/responsive/garden-640.webp 640w, /responsive/garden-768.webp 768w, /responsive/garden-960.webp 960w, /responsive/garden-1125.webp 1125w, /responsive/garden-1280.webp 1280w, /garden.webp 1600w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
+    width: 640,
+    height: 480,
     alt: "Well-kept front garden with clean edges and mulch",
     detail: "Sharper bed lines and a cleaner front-yard finish.",
   },
@@ -67,6 +69,8 @@ const galleryItems = [
     image: "/responsive/cleanup-640.webp",
     srcSet: "/responsive/cleanup-640.webp 640w, /responsive/cleanup-960.webp 960w, /cleanup.webp 1200w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
+    width: 640,
+    height: 427,
     alt: "Leaf cleanup with a rake and tidy lawn",
     detail: "A practical reset before weather changes or guests arrive.",
   },
@@ -76,6 +80,8 @@ const galleryItems = [
     image: "/responsive/lawn-640.webp",
     srcSet: "/responsive/lawn-640.webp 640w, /responsive/lawn-960.webp 960w, /lawn.webp 1280w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
+    width: 640,
+    height: 427,
     alt: "Clean lawn edge with mulched planting area",
     detail: "A tidy edge and a finish that reads well from the street.",
   },
@@ -140,6 +146,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           sizes="100vw"
           alt="Clean front yard with fresh landscaping and neat garden beds"
           class="h-full w-full object-cover object-[center_28%] sm:object-[center_34%] lg:object-center"
+          width="1280"
+          height="960"
           loading="eager"
           fetchpriority="high"
           decoding="async"
@@ -152,6 +160,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             src="/logo.png?v=1"
             alt="Maestros Services logo"
             class="h-36 w-36 object-contain"
+            width="305"
+            height="294"
             loading="eager"
             decoding="async"
           />
@@ -167,6 +177,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
             alt=""
             aria-hidden="true"
             class="h-20 w-20 object-contain"
+            width="305"
+            height="294"
             loading="eager"
             decoding="async"
           />
@@ -293,6 +305,8 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
                     sizes={item.sizes}
                     alt={item.alt}
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    width={item.width}
+                    height={item.height}
                     loading="lazy"
                     decoding="async"
                   />
