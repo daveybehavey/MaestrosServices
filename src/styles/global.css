@@ -121,6 +121,12 @@
     max-width: 100%;
   }
 
+  .btn-primary:focus-visible,
+  .btn-secondary:focus-visible {
+    outline: 2px solid oklch(0.28 0.02 69);
+    outline-offset: 3px;
+  }
+
   .hero-shell {
     position: relative;
     overflow: hidden;

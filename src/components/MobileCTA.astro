@@ -18,6 +18,7 @@ const { quoteHref = "/#quote" } = Astro.props;
     <a
       class="btn-primary min-w-0 px-2 py-3 text-center text-[0.64rem] uppercase tracking-[0.12em]"
       href={business.smsHref}
+      aria-label="Text photos for a quote"
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_text"
     >
@@ -26,6 +27,7 @@ const { quoteHref = "/#quote" } = Astro.props;
     <a
       class="btn-secondary min-w-0 px-2 py-3 text-center text-[0.64rem] uppercase tracking-[0.12em]"
       href={`tel:${business.phoneTel}`}
+      aria-label={`Call or text ${business.phone}`}
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_call"
     >
@@ -34,6 +36,7 @@ const { quoteHref = "/#quote" } = Astro.props;
     <a
       class="btn-secondary min-w-0 px-2 py-3 text-center text-[0.64rem] uppercase tracking-[0.12em]"
       href={quoteHref}
+      aria-label="Get a quote"
       data-ga-event="cta_click"
       data-ga-label="mobile_sticky_quote"
     >
