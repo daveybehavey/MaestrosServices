@@ -12,7 +12,7 @@ Increase qualified calls, texts, and quote requests using mostly organic channel
 - Rock Work Refresh
 - Power Wash Reset
 - Mulch Refresh
-- Add-on menu: gutter cleaning (ground-accessible), light pruning, moss/algae treatment
+- Add-on menu: gutter cleaning, light pruning, moss/algae treatment
 
 Use these priority offers in:
 - Google Business Profile posts

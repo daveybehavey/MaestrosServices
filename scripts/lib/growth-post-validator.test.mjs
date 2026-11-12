@@ -33,7 +33,7 @@ test("production growth facts load verified operating catalog plus remaining can
   const power = facts.services.find((s) => s.id === "svc.power-washing");
   assert.equal(power.status, "verified");
   assert.equal(facts.services.find((s) => s.id === "svc.large-tree-felling").status, "rejected");
-  assert.equal(facts.services.find((s) => s.id === "svc.gutter-cleaning-ground-access").status, "candidate");
+  assert.equal(facts.services.find((s) => s.id === "svc.gutter-cleaning").status, "candidate");
   assert.equal(facts.areas.find((a) => a.id === "area.shawnigan-lake").status, "verified");
   assert.equal(facts.areas.find((a) => a.id === "area.cordova-bay").status, "verified");
   assert.equal(facts.areas.find((a) => a.id === "area.saanich").status, "candidate");
@@ -717,7 +717,7 @@ test("FAIL: candidate and rejected serviceRefs", () => {
   const candidate = validateGbpPost({
     draft: {
       ...readJson(path.join(postsDir, "production-power-washing-shawnigan.json")),
-      serviceRefs: ["svc.gutter-cleaning-ground-access"],
+      serviceRefs: ["svc.gutter-cleaning"],
       summary:
         "Gutter Cleaning around Shawnigan Lake needs photos for a practical quote.",
       areaRefs: ["area.shawnigan-lake"],
@@ -727,7 +727,7 @@ test("FAIL: candidate and rejected serviceRefs", () => {
   assert.equal(candidate.valid, false);
   assert.ok(
     candidate.audit.rejectedServiceRefs.some(
-      (r) => r.id === "svc.gutter-cleaning-ground-access"
+      (r) => r.id === "svc.gutter-cleaning"
     )
   );
 

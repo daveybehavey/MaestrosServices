@@ -81,15 +81,15 @@
       "notes": "Website catalogs it; not defended by live GBP posts/reviews in this pass."
     },
     {
-      "id": "svc.gutter-cleaning-ground-access",
-      "slug": "gutter-cleaning-ground-access",
+      "id": "svc.gutter-cleaning",
+      "slug": "gutter-cleaning",
       "name": "Gutter Cleaning",
       "aliases": ["gutter cleaning", "gutters"],
       "status": "candidate",
       "source": "repo:src/data/services.ts",
-      "sourceReference": "gutter-cleaning-ground-access",
+      "sourceReference": "gutter-cleaning",
       "verifiedAt": null,
-      "notes": "Ground-accessible only per website; no GBP post/review confirmation in this pass."
+      "notes": "Ladder-access gutter cleaning per website (rebranded 2026-11-12); no GBP post/review confirmation in this pass."
     },
     {
       "id": "svc.light-pruning",
@@ -105,8 +105,8 @@
     {
       "id": "svc.moss-algae-treatment",
       "slug": "moss-algae-treatment",
-      "name": "Moss and Algae Treatment",
-      "aliases": ["moss", "algae", "moss and algae"],
+      "name": "Roof Moss Removal and Surface Moss Treatment",
+      "aliases": ["moss", "algae", "moss and algae", "roof moss", "roof moss removal"],
       "status": "candidate",
       "source": "repo:src/data/services.ts",
       "sourceReference": "moss-algae-treatment",

@@ -47,7 +47,7 @@ Use this as the quick-start checklist for the 30-day lead sprint.
 
 ## 8) Expand add-on service menu
 
-- Gutter cleaning (ground-accessible)
+- Gutter cleaning
 - Light pruning
 - Moss/algae treatment (surface-safe)
 - Mention these as optional add-ons in quote follow-ups.

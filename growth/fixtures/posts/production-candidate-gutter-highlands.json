@@ -8,7 +8,7 @@
   },
   "contentIntent": "service",
   "serviceRefs": [
-    "svc.gutter-cleaning-ground-access"
+    "svc.gutter-cleaning"
   ],
   "areaRefs": [
     "area.highlands"

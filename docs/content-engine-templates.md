@@ -69,7 +69,7 @@ Quote form: [PASTE TRACKED LINK]
 
 Quick add-on spots this week in [AREA]:
 
-- Gutter cleaning (ground-accessible)
+- Gutter cleaning
 - Light pruning
 - Moss/algae treatment (surface-safe)
 

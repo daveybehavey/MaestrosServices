@@ -401,7 +401,7 @@ test("candidate or rejected service/area cannot enter a post draft", () => {
       postOpportunity: {
         shouldDraft: true,
         reason: "Would draft",
-        serviceRefs: ["svc.gutter-cleaning-ground-access", "svc.power-washing"],
+        serviceRefs: ["svc.gutter-cleaning", "svc.power-washing"],
         areaRefs: ["area.saanich"],
         maintenanceSignal: false,
       },
@@ -410,7 +410,7 @@ test("candidate or rejected service/area cannot enter a post draft", () => {
   });
   const refs = packet.gbpPostDraft?.draft?.serviceRefs ?? [];
   const areas = packet.gbpPostDraft?.draft?.areaRefs ?? [];
-  assert.equal(refs.includes("svc.gutter-cleaning-ground-access"), false);
+  assert.equal(refs.includes("svc.gutter-cleaning"), false);
   assert.equal(areas.includes("area.saanich"), false);
   if (packet.gbpPostDraft?.status === "review_ready") {
     assert.ok(refs.includes("svc.power-washing"));

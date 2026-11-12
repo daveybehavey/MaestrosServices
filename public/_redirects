@@ -3,3 +3,5 @@
 /contact/ /#quote 301
 /services/power-washing /services/pressure-washing 301
 /services/power-washing/* /services/pressure-washing/:splat 301
+/services/gutter-cleaning-ground-access /services/gutter-cleaning 301
+/services/gutter-cleaning-ground-access/* /services/gutter-cleaning/:splat 301

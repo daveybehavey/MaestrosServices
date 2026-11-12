@@ -7,7 +7,7 @@ export const business = {
   phoneTel: "+12508581781",
   smsHref: "sms:+12508581781",
   email: "quotes@maestrosservices.com",
-  tagline: "Landscaping Services",
+  tagline: "Property Maintenance & Landscaping",
   address: {
     locality: "Shawnigan Lake",
     region: "BC",
