@@ -195,6 +195,9 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
         <option value="mulch" selected={preselectedService === "mulch"}>
           Mulching and garden beds
         </option>
+        <option value="weed" selected={preselectedService === "weed"}>
+          Weed control
+        </option>
         <option value="powerwash" selected={preselectedService === "powerwash"}>
           Pressure washing (driveway, sidewalk, deck, siding)
         </option>
@@ -205,19 +208,25 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
           Fence work / minor repairs
         </option>
         <option value="gutter" selected={preselectedService === "gutter"}>
-          Gutter cleaning (ground-accessible)
+          Gutter cleaning
         </option>
         <option value="pruning" selected={preselectedService === "pruning"}>
           Light pruning and shape-up
         </option>
         <option value="moss" selected={preselectedService === "moss"}>
-          Moss/algae treatment
+          Roof moss removal / moss & algae treatment
         </option>
         <option value="driveway" selected={preselectedService === "driveway"}>
           Driveway grading or repair
         </option>
         <option value="gravel" selected={preselectedService === "gravel"}>
           Gravel driveway install/refresh
+        </option>
+        <option value="yardwaste" selected={preselectedService === "yardwaste"}>
+          Yard waste removal
+        </option>
+        <option value="brush" selected={preselectedService === "brush"}>
+          Brush clearing
         </option>
         <option value="ongoing" selected={preselectedService === "ongoing"}>
           Ongoing maintenance

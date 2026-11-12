@@ -118,7 +118,7 @@ export const services: Service[] = [
       "Leaf and debris removal",
       "Perennial cutback and bed preparation",
       "Lawn dethatching and aeration available",
-      "Gutter clearing (ground-accessible)",
+      "Gutter clearing",
       "Complete property walkthrough",
     ],
       faqs: [
@@ -228,26 +228,26 @@ export const services: Service[] = [
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
   },
   {
-    id: "gutter-cleaning-ground-access",
-    slug: "gutter-cleaning-ground-access",
-    name: "Ground-Accessible Gutter Cleaning",
+    id: "gutter-cleaning",
+    slug: "gutter-cleaning",
+    name: "Gutter Cleaning",
     shortName: "Gutter Cleaning",
     description:
-      "Clear leaves and blockages from ground-accessible gutters and downspouts to restore water flow before it turns into a drainage problem.",
+      "Clear leaves and blockages from gutters and downspouts — ladder-access rooflines included — to restore water flow before it turns into a drainage problem.",
     longDescription:
-      "Clogged gutters can lead to overflow, staining, and drainage issues around your home. Our ground-accessible gutter cleaning service removes leaf buildup, clears downspout blockages, and checks flow so rainwater moves away from your property as intended. It is a strong seasonal maintenance choice for homes near trees or properties that see heavy rain and debris.",
+      "Clogged gutters can lead to overflow, staining, and drainage issues around your home. Our gutter cleaning service removes leaf buildup, clears downspout blockages, and checks flow so rainwater moves away from your property as intended. We clean gutters from ladders as well as ground-level runs, so standard residential rooflines are in scope. It is a strong seasonal maintenance choice for homes near trees or properties that see heavy rain and debris.",
     features: [
-      "Leaf and debris removal from accessible gutters",
+      "Leaf and debris removal from gutters",
+      "Ladder-access gutter cleaning",
       "Downspout clearing and flow check",
       "Bag-up and cleanup of removed debris",
       "Ground-level perimeter check for overflow points",
-      "Service limited to safe, ground-accessible rooflines",
     ],
     faqs: [
       {
         question: "Do you clean all roof heights?",
         answer:
-          "We focus on safe, ground-accessible rooflines and straightforward access conditions. If your property needs specialized high-access equipment, we can flag that during quoting.",
+          "We clean gutters from ladders as well as from the ground, which covers most residential rooflines. If your property needs specialized high-access equipment beyond ladder reach, we can flag that during quoting.",
       },
       {
         question: "How often should gutters be cleaned?",
@@ -292,13 +292,14 @@ export const services: Service[] = [
   {
     id: "moss-algae-treatment",
     slug: "moss-algae-treatment",
-    name: "Surface Moss and Algae Treatment",
-    shortName: "Moss and Algae Treatment",
+    name: "Roof Moss Removal and Surface Moss Treatment",
+    shortName: "Roof Moss Removal",
     description:
-      "Reduce slippery buildup on hard surfaces with surface-safe moss and algae treatment.",
+      "Roof moss removal plus moss and algae treatment for hard surfaces — keep roofs, paths, patios, and driveways cleaner and less slippery through the wet season.",
     longDescription:
-      "Moss and algae buildup can make pathways, patios, and driveways look dark and become slippery in wet months. Our treatment service targets buildup on exterior surfaces using methods matched to the material, then follows with a clean finish and prevention guidance. It is especially useful for shaded entries, north-facing paths, and damp areas that keep coming back with the same issue.",
+      "Moss holds moisture against a roof and can lift shingles and shorten roof life, and on hard surfaces it makes pathways, patios, and driveways look dark and become slippery in wet months. Our moss service covers both: roof moss removal for residential roofs, and surface moss and algae treatment for driveways, walkways, and patios using methods matched to the material, followed by a clean finish and prevention guidance. It is especially useful for shaded roofs, north-facing paths, and damp areas that keep coming back with the same issue.",
     features: [
+      "Roof moss removal",
       "Treatment for moss and algae on hard surfaces",
       "Surface-safe approach by material type",
       "Focus on slip-prone traffic areas",
@@ -307,6 +308,11 @@ export const services: Service[] = [
     ],
     faqs: [
       {
+        question: "Do you remove moss from roofs?",
+        answer:
+          "Yes. Roof moss removal is a headline part of this service, alongside moss and algae treatment for hard surfaces like driveways, walkways, and patios.",
+      },
+      {
         question: "Is this the same as pressure washing?",
         answer:
           "Not exactly. Moss and algae treatment targets biological buildup specifically. It can be done on its own or paired with pressure washing for a full reset.",
@@ -314,10 +320,10 @@ export const services: Service[] = [
       {
         question: "Where do you usually apply this service?",
         answer:
-          "Most requests are for driveways, walkways, patios, and entry zones where slippery growth tends to return through wet seasons.",
+          "Most requests are for roofs, driveways, walkways, patios, and entry zones where moss and slippery growth tend to return through wet seasons.",
       },
     ],
-    relatedServices: ["power-washing", "seasonal-cleanups", "gutter-cleaning-ground-access"],
+    relatedServices: ["power-washing", "seasonal-cleanups", "gutter-cleaning"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
   },
   {

@@ -4,14 +4,14 @@ Use these as optional add-ons when booking core jobs.
 
 ## Add-On Services
 
-- Gutter cleaning (ground-accessible)
+- Gutter cleaning
 - Light pruning and shape-ups
 - Moss/algae treatment (surface-safe)
 
 ## How to Pitch Add-Ons (Text Script)
 
 We can also add one quick extra while we are on site:
-- gutter clean (ground-accessible)
+- gutter clean
 - light pruning
 - moss/algae treatment
 
