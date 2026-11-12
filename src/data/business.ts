@@ -22,6 +22,7 @@ export const business = {
   sameAs: [
     "https://www.facebook.com/profile.php?id=61588020354024",
     googleMapsPlaceUrl,
+    "https://www.bark.com/en/ca/company/maestros-services/go4ODl/",
   ],
   trackedLinks: {
     googleBusinessQuote:
