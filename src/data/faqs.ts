@@ -48,7 +48,7 @@ export const locationFaqs: FAQ[] = [
   },
   {
     question: "How do I get a quote for my property?",
-    answer: "Call or text 250-858-1781 for the fastest response. We usually reply within 1 hour during work hours. You can also fill out our online quote form.",
+    answer: "Call or text 250-858-1781 for the fastest response. Josh replies as soon as he sees your message during work hours. You can also fill out our online quote form.",
   },
   {
     question: "Do you offer recurring maintenance plans?",
