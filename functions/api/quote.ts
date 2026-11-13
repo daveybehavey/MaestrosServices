@@ -2048,9 +2048,14 @@ const handleQuotePost = async ({ request, env }: QuoteContext): Promise<Response
   let providerBody = attempt.providerPayload;
   if (!providerBody) {
     const email = buildEmail(attempt.payload ?? payload, attempt, toEmail);
+    // Replying to the notification should reach the customer, not the
+    // quotes@ sender (MS-DEEP-AUDIT-1 A2). The payload email is optional
+    // and already validated when present; omit reply_to when absent.
+    const replyToEmail = (attempt.payload ?? payload).email?.trim();
     providerBody = JSON.stringify({
       from: fromEmail,
       to: [email.toEmail],
+      ...(replyToEmail ? { reply_to: replyToEmail } : {}),
       subject: email.subject,
       html: email.html,
       text: email.text,
