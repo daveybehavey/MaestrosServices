@@ -31,7 +31,7 @@ export const homepageServiceAreas = [...locationNames, "Cowichan Valley"];
 
 export const homepageTrustProof = [
   "Owner-operated from first message to cleanup.",
-  "Most messages during work hours get a reply within 1 hour.",
+  "Messages during work hours get a personal reply from Josh as soon as he sees them.",
   "Serving homeowners across Shawnigan, Cowichan, and Greater Victoria.",
 ] as const;
 
