@@ -1,5 +1,6 @@
 ---
 import Layout from "../../../components/Layout.astro";
+import { isMsA9Noindex } from "../../../lib/msA9Indexing";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import QuoteForm from "../../../components/QuoteForm.astro";
 import { business } from "../../../data/business";
@@ -74,6 +75,7 @@ const pageDescription =
   locationSeoOverrides[service.slug]?.description ??
   `${service.name} in ${location.name}, BC. ${service.description} Homeowners here get fast quotes, clear communication, and tidy cleanup from start to finish.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}/${location.slug}`;
+const noindex = isMsA9Noindex(canonicalUrl);
 
 const breadcrumbItems = [
   { name: "Services", href: "/services" },
@@ -149,6 +151,9 @@ if (service.slug === "pressure-washing") {
     answer: `Yes. In ${location.name} we pressure wash driveways, sidewalks, decks, fences, concrete, and exterior siding. We review the material first and use the right cleaning approach for each surface.`,
   });
 }
+
+// Surface existing service answers on kept combos, retaining local qualifications.
+if (!noindex) pageFaqs.push(...service.faqs);
 
 const serviceLocationSchema = createServiceLocationSchema(service, location);
 if (isChemainusGravel) {
@@ -308,6 +313,7 @@ const localTrustPoints = isChemainusGravel
 ---
 
 <Layout
+  noindex={noindex}
   title={pageTitle}
   description={pageDescription}
   canonicalUrl={canonicalUrl}

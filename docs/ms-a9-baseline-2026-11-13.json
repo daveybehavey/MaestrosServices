@@ -1,0 +1,5704 @@
+{
+ "meta": {
+  "generated": "2026-11-13",
+  "purpose": "MS-A9 step-0 baseline (blocking measurement for the Option 2 noindex change) \u2014 per-URL GSC, trailing 28 days",
+  "route_used": "Route 1+3: page-dimension query run on David's PC with the daily scoreboard's own service-account runner setup (D:\\agent\\tools\\gsc-ga4\\, GCP project eurodigital-measurement, key.json beside runner.py, scope webmasters.readonly) via the agent SSH route; dimensions=['page'], rowLimit 25000, same window logic as runner.py (28 days ending yesterday UTC). Route 2 (custom google-search connector gsa.py) not usable: it fails in the VM sandbox with DynamicCredentialError 403 (observed 2026-11-11 and 2026-11-13) and the scoreboard spec marks that OAuth route declined.",
+  "site": "sc-domain:maestrosservices.com",
+  "window": {
+   "startDate": "2026-10-16",
+   "endDate": "2026-11-12"
+  },
+  "pulled_at_utc": "2026-11-13T19:07:12Z"
+ },
+ "site_total_no_dimension": {
+  "clicks": 25,
+  "impressions": 2662,
+  "ctr": 0.009391435011269721,
+  "position": 28.929000751314803
+ },
+ "reconciliation": {
+  "page_level_sum_clicks": 25,
+  "page_level_sum_impressions": 3585,
+  "note": "Clicks reconcile exactly with the property total (25 = 25). Page-level impressions exceed the property total (3,585 vs 2,662): when several pages of the same property appear in one search result, the property counts one impression while each page counts one \u2014 documented GSC behaviour, amplified here by 315 similar local pages co-appearing. Group splits below use page-level figures consistently; compare Dec recheck page-level to page-level, never to the property total."
+ },
+ "classification_rule": {
+  "text": "Canonicalise each GSC page URL by stripping query string and fragment and any trailing slash. A URL matching /services/<service>/<location> with <location> in the 21 location slugs is a combo: group kept_combo if <service> is one of the 6 keep-matrix services, tail_combo if one of the other 9 catalogue services, combo_outside_matrix if the service slug is not in the current 15-service catalogue at all. Everything else is core. Inventory zero-fill: all 377 URLs from the audit inventory (315 matrix combos + 15 service pages + 21 area pages + 9 site pages + 17 blog posts) are included; inventory URLs with no GSC row carry clicks 0, impressions 0, position null, gsc_row=false.",
+  "kept_services": [
+   "pressure-washing",
+   "gutter-cleaning",
+   "moss-algae-treatment",
+   "fence-work-minor-repairs",
+   "driveway-grading",
+   "gravel-driveway-installation"
+  ],
+  "kept_rule_source": "Paper Option 2 keep-matrix: the 4 homepage-featured winter services (src/pages/index.astro featuredServiceSlugs: pressure-washing, gutter-cleaning, moss-algae-treatment, fence-work-minor-repairs) + the 2 driveway services (driveway-grading, gravel-driveway-installation) x 21 areas = 126 combos.",
+  "tail_services": [
+   "lawn-mowing",
+   "hedge-trimming",
+   "garden-bed-maintenance",
+   "seasonal-cleanups",
+   "weed-control",
+   "yard-waste-removal",
+   "brush-clearing",
+   "light-pruning",
+   "rock-work-walls"
+  ],
+  "locations": [
+   "victoria",
+   "saanich",
+   "central-saanich",
+   "north-saanich",
+   "brentwood-bay",
+   "sidney",
+   "langford",
+   "colwood",
+   "view-royal",
+   "esquimalt",
+   "sooke",
+   "metchosin",
+   "highlands",
+   "shawnigan-lake",
+   "mill-bay",
+   "cobble-hill",
+   "cowichan-bay",
+   "chemainus",
+   "maple-bay",
+   "lake-cowichan",
+   "duncan"
+  ],
+  "position_aggregation": "Group positions are impression-weighted means of page positions (GSC positions do not average arithmetically)."
+ },
+ "summary": {
+  "kept_combo": {
+   "pages": 126,
+   "pages_with_gsc_data": 54,
+   "clicks": 2,
+   "impressions": 1531,
+   "impressions_per_page": 12.15,
+   "position_impression_weighted": 44.04
+  },
+  "tail_combo": {
+   "pages": 189,
+   "pages_with_gsc_data": 70,
+   "clicks": 7,
+   "impressions": 570,
+   "impressions_per_page": 3.02,
+   "position_impression_weighted": 21.71
+  },
+  "core": {
+   "pages": 64,
+   "pages_with_gsc_data": 42,
+   "clicks": 8,
+   "impressions": 1176,
+   "impressions_per_page": 18.38,
+   "position_impression_weighted": 31.66
+  },
+  "combo_outside_matrix": {
+   "pages": 19,
+   "pages_with_gsc_data": 19,
+   "clicks": 8,
+   "impressions": 308,
+   "impressions_per_page": 16.21,
+   "position_impression_weighted": 35.57
+  },
+  "all_pages_in_file": {
+   "pages": 398,
+   "clicks": 25,
+   "impressions": 3585
+  }
+ },
+ "step0_keep_additions": {
+  "tail_in_striking_distance_8_25": [
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/colwood",
+    "clicks": 0,
+    "impressions": 74,
+    "position": 14.47
+   },
+   {
+    "page": "https://maestrosservices.com/services/brush-clearing/duncan",
+    "clicks": 0,
+    "impressions": 34,
+    "position": 15.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/esquimalt",
+    "clicks": 0,
+    "impressions": 29,
+    "position": 8.1
+   },
+   {
+    "page": "https://maestrosservices.com/services/garden-bed-maintenance/brentwood-bay",
+    "clicks": 0,
+    "impressions": 15,
+    "position": 21.67
+   },
+   {
+    "page": "https://maestrosservices.com/services/hedge-trimming/langford",
+    "clicks": 0,
+    "impressions": 14,
+    "position": 10.93
+   },
+   {
+    "page": "https://maestrosservices.com/services/hedge-trimming/victoria",
+    "clicks": 0,
+    "impressions": 14,
+    "position": 15.14
+   },
+   {
+    "page": "https://maestrosservices.com/services/rock-work-walls/mill-bay",
+    "clicks": 0,
+    "impressions": 13,
+    "position": 19.62
+   },
+   {
+    "page": "https://maestrosservices.com/services/brush-clearing/sidney",
+    "clicks": 1,
+    "impressions": 12,
+    "position": 12.75
+   },
+   {
+    "page": "https://maestrosservices.com/services/hedge-trimming/central-saanich",
+    "clicks": 0,
+    "impressions": 11,
+    "position": 23.73
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/saanich",
+    "clicks": 0,
+    "impressions": 8,
+    "position": 24.5
+   },
+   {
+    "page": "https://maestrosservices.com/services/brush-clearing/langford",
+    "clicks": 0,
+    "impressions": 7,
+    "position": 8.14
+   },
+   {
+    "page": "https://maestrosservices.com/services/hedge-trimming/esquimalt",
+    "clicks": 0,
+    "impressions": 7,
+    "position": 22.29
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/chemainus",
+    "clicks": 0,
+    "impressions": 7,
+    "position": 17.43
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/cobble-hill",
+    "clicks": 0,
+    "impressions": 5,
+    "position": 9.8
+   },
+   {
+    "page": "https://maestrosservices.com/services/lawn-mowing/cowichan-bay",
+    "clicks": 0,
+    "impressions": 4,
+    "position": 12.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/rock-work-walls/sooke",
+    "clicks": 0,
+    "impressions": 4,
+    "position": 15.25
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/sidney",
+    "clicks": 0,
+    "impressions": 2,
+    "position": 8.5
+   },
+   {
+    "page": "https://maestrosservices.com/services/garden-bed-maintenance/chemainus",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 10.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/garden-bed-maintenance/metchosin",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 10.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/hedge-trimming/saanich",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 9.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/lawn-mowing/langford",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 10.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/rock-work-walls/duncan",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 11.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/rock-work-walls/esquimalt",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 12.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/seasonal-cleanups/central-saanich",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 10.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/weed-control/shawnigan-lake",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 10.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/weed-control/victoria",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 15.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/sooke",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 13.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/yard-waste-removal/view-royal",
+    "clicks": 0,
+    "impressions": 1,
+    "position": 12.0
+   }
+  ],
+  "tail_with_clicks": [
+   {
+    "page": "https://maestrosservices.com/services/brush-clearing/sidney",
+    "clicks": 1,
+    "impressions": 12,
+    "position": 12.75
+   },
+   {
+    "page": "https://maestrosservices.com/services/brush-clearing/sooke",
+    "clicks": 1,
+    "impressions": 10,
+    "position": 3.9
+   },
+   {
+    "page": "https://maestrosservices.com/services/hedge-trimming/colwood",
+    "clicks": 1,
+    "impressions": 1,
+    "position": 2.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/lawn-mowing/chemainus",
+    "clicks": 1,
+    "impressions": 1,
+    "position": 2.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/rock-work-walls/victoria",
+    "clicks": 1,
+    "impressions": 2,
+    "position": 6.0
+   },
+   {
+    "page": "https://maestrosservices.com/services/seasonal-cleanups/langford",
+    "clicks": 1,
+    "impressions": 98,
+    "position": 34.12
+   },
+   {
+    "page": "https://maestrosservices.com/services/weed-control/sooke",
+    "clicks": 1,
+    "impressions": 3,
+    "position": 5.33
+   }
+  ],
+  "note": "Paper step 0: any tail combo earning real impressions or sitting in positions 8-25 joins the keep set regardless of the matrix rule. Judgement on 'real' belongs to the decision step; both lists are provided unfiltered beyond the stated thresholds."
+ },
+ "combo_outside_matrix_pages": [
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/brentwood-bay",
+   "clicks": 0,
+   "impressions": 1,
+   "position": 12.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/chemainus",
+   "clicks": 6,
+   "impressions": 42,
+   "position": 5.71
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/esquimalt",
+   "clicks": 0,
+   "impressions": 7,
+   "position": 8.57
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/highlands",
+   "clicks": 0,
+   "impressions": 1,
+   "position": 9.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/metchosin",
+   "clicks": 1,
+   "impressions": 6,
+   "position": 21.33
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/mill-bay",
+   "clicks": 0,
+   "impressions": 4,
+   "position": 2.5
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/shawnigan-lake",
+   "clicks": 1,
+   "impressions": 14,
+   "position": 6.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/sidney",
+   "clicks": 0,
+   "impressions": 2,
+   "position": 33.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/sooke",
+   "clicks": 0,
+   "impressions": 1,
+   "position": 11.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/brentwood-bay",
+   "clicks": 0,
+   "impressions": 7,
+   "position": 21.29
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/central-saanich",
+   "clicks": 0,
+   "impressions": 2,
+   "position": 11.5
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/chemainus",
+   "clicks": 0,
+   "impressions": 3,
+   "position": 2.67
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/cobble-hill",
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/langford",
+   "clicks": 0,
+   "impressions": 3,
+   "position": 10.67
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/north-saanich",
+   "clicks": 0,
+   "impressions": 199,
+   "position": 50.41
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/saanich",
+   "clicks": 0,
+   "impressions": 3,
+   "position": 8.33
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/shawnigan-lake",
+   "clicks": 0,
+   "impressions": 4,
+   "position": 2.75
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/sooke",
+   "clicks": 0,
+   "impressions": 7,
+   "position": 7.0
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/victoria",
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0
+  }
+ ],
+ "pages": [
+  {
+   "page": "https://maestrosservices.com/",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 6,
+   "impressions": 101,
+   "position": 10.9,
+   "top_queries": [
+    {
+     "query": "masonry langford",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 41
+    },
+    {
+     "query": "maestros",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 1
+    },
+    {
+     "query": "chemainus",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 1
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/brentwood-bay",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 6,
+   "position": 12.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/central-saanich",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 19,
+   "position": 19.74,
+   "top_queries": [
+    {
+     "query": "snow removal saanich",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 30.5
+    },
+    {
+     "query": "fence removal saanich bc",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 16.666666666666664
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/chemainus",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/cobble-hill",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/colwood",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 24,
+   "position": 26.79,
+   "top_queries": [
+    {
+     "query": "colwood irrigation services",
+     "clicks": 0,
+     "impressions": 7,
+     "position": 39.285714285714285
+    },
+    {
+     "query": "general contractor colwood",
+     "clicks": 0,
+     "impressions": 7,
+     "position": 39.285714285714285
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/cowichan-bay",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/duncan",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/esquimalt",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 17,
+   "position": 10.35,
+   "top_queries": [
+    {
+     "query": "property maintenance",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 38
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/highlands",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/lake-cowichan",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/langford",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 115,
+   "position": 18.31,
+   "top_queries": [
+    {
+     "query": "snow removal langford",
+     "clicks": 0,
+     "impressions": 27,
+     "position": 15.333333333333334
+    },
+    {
+     "query": "langford landscaping",
+     "clicks": 0,
+     "impressions": 25,
+     "position": 21.64
+    },
+    {
+     "query": "cheap yard maintenance langford bc",
+     "clicks": 0,
+     "impressions": 8,
+     "position": 22.25
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/maple-bay",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/metchosin",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 23,
+   "position": 11.04,
+   "top_queries": [
+    {
+     "query": "irrigation company metchosin",
+     "clicks": 0,
+     "impressions": 5,
+     "position": 33
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/mill-bay",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/north-saanich",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 14.29,
+   "top_queries": [
+    {
+     "query": "gardening service saanich peninsula",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 22
+    },
+    {
+     "query": "fence removal saanich bc",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 20
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/saanich",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/shawnigan-lake",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 3.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/areas/sidney",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 65,
+   "position": 24.98,
+   "top_queries": [
+    {
+     "query": "landscaping sidney bc",
+     "clicks": 0,
+     "impressions": 53,
+     "position": 28.81132075471698
+    },
+    {
+     "query": "brush mulching service near me",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 9
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/sooke",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 31.33,
+   "top_queries": [
+    {
+     "query": "sooke landscaping",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 31.333333333333332
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/victoria",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 59.0,
+   "top_queries": [
+    {
+     "query": "exterior property maintenance victoria",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 59
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/areas/view-royal",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 68,
+   "position": 55.96,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 57,
+     "position": 62.89473684210526
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/blog/best-mulch-types-vancouver-island-gardens",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 17,
+   "position": 5.53,
+   "top_queries": [
+    {
+     "query": "best mulch",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 30
+    },
+    {
+     "query": "i am a 18-24, 25-34, 35-44, or 45-54 year old in the technology, telecom, real estate, retail, government, or agriculture industry. my job seniority is at the entry, senior, manager, vp, or director level. i work at a company with 1-249 employees, 250-1k employees, 1k-10k employees, or 10k+ employees. my main motivations: living between ocean and mountains is core to identity, not an occasional hobby products that support: walking, hiking, biking, paddleboarding urban\u2011to\u2011outdoor flexibility seasonality is less extreme but more frequent: rain preparedness beats cold british columbia consumers show the highest sustainability consciousness in canada, with strong interest in eco\u2011friendly products and brands that reduce environmental impact looks to stretch value through longevity, multi\u2011use, and resale viability my main pain points: housing & space costs create constant pressure on discretionary spending and storage space climate\u2011related persistent rain nov\u2013mar creates fatigue with low\u2011quality rain gear, footwear, and outdoor solutions that don\u2019t hold up long\u2011term less tolerance for products that feel overbuilt or designed for harsh winters they don\u2019t experience vancouver consumers consciously trade off cost for access to nature, walkability, and quality of life in one of canada\u2019s highest cost\u2011of\u2011living cities what are the best mulch types to buy for garden and landscape use?",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 1
+    },
+    {
+     "query": "i am a 18-24, 25-34, 35-44, or 45-54 year old in the technology, telecom, real estate, retail, government, or agriculture industry. my job seniority is at the entry, senior, manager, vp, or director level. i work at a company with 1-249 employees, 250-1k employees, 1k-10k employees, or 10k+ employees. my main motivations: living between ocean and mountains is core to identity, not an occasional hobby products that support: walking, hiking, biking, paddleboarding urban\u2011to\u2011outdoor flexibility seasonality is less extreme but more frequent: rain preparedness beats cold british columbia consumers show the highest sustainability consciousness in canada, with strong interest in eco\u2011friendly products and brands that reduce environmental impact looks to stretch value through longevity, multi\u2011use, and resale viability my main pain points: housing & space costs create constant pressure on discretionary spending and storage space climate\u2011related persistent rain nov\u2013mar creates fatigue with low\u2011quality rain gear, footwear, and outdoor solutions that don\u2019t hold up long\u2011term less tolerance for products that feel overbuilt or designed for harsh winters they don\u2019t experience vancouver consumers consciously trade off cost for access to nature, walkability, and quality of life in one of canada\u2019s highest cost\u2011of\u2011living cities which mulch brands are most reliable for soil health and appearance?",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 1
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/blog/driveway-grading-vs-gravel-refresh-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/fall-cleanup-checklist-bc-homeowners",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 16,
+   "position": 53.19,
+   "top_queries": [
+    {
+     "query": "fall clean up",
+     "clicks": 0,
+     "impressions": 12,
+     "position": 66.5
+    },
+    {
+     "query": "fall clean-up",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 41
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/blog/gravel-driveway-cost-factors-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 4.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/gravel-driveway-preparation-chemainus",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 70,
+   "position": 7.16,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 70,
+     "position": 7.1571428571428575
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/blog/hedge-trimming-guide-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/how-often-should-you-mow-your-lawn-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 17,
+   "position": 6.76,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/how-often-water-lawn-summer-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 14,
+   "position": 11.5,
+   "top_queries": [
+    {
+     "query": "saanich watering schedule",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 25
+    },
+    {
+     "query": "when can i water my lawn",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 29
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/blog/how-to-choose-landscaping-contractor-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 39.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/how-to-fix-puddles-on-gravel-driveway-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 6.33,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/power-washing-victoria-bc-what-to-clean-first",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 12.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/signs-your-fence-needs-a-minor-repair-before-it-becomes-a-bigger-job",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/spring-lawn-care-tips-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 13,
+   "position": 9.31,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/when-should-you-power-wash-your-driveway-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 14.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/when-should-you-trim-hedges-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 1,
+   "impressions": 33,
+   "position": 11.88,
+   "top_queries": [
+    {
+     "query": "when to trim hedges canada",
+     "clicks": 0,
+     "impressions": 7,
+     "position": 19.714285714285715
+    },
+    {
+     "query": "best time to trim hedges canada",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 25.166666666666668
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/blog/when-to-regrade-driveway-vancouver-island",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/blog/when-to-start-mowing-spring-victoria",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/driveway-faq",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 187,
+   "position": 59.55,
+   "top_queries": [
+    {
+     "query": "driveway grading",
+     "clicks": 0,
+     "impressions": 183,
+     "position": 60.44808743169399
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/projects",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 10.33,
+   "top_queries": [
+    {
+     "query": "landscapers mid-vancouver island",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 19
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/quote",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 8,
+   "clicks": 0,
+   "impressions": 16,
+   "position": 10.81,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/review",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 9,
+   "position": 11.22,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/service-area",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 4.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services-by-area",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 34,
+   "position": 15.0,
+   "top_queries": [
+    {
+     "query": "land clearing duncan",
+     "clicks": 0,
+     "impressions": 19,
+     "position": 18.263157894736842
+    },
+    {
+     "query": "deck removal duncan bc",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 39
+    },
+    {
+     "query": "fence removal duncan bc",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 6
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 36.67,
+   "top_queries": [
+    {
+     "query": "brush clearing surrey",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 53.5
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 8.14,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 1.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 4.86,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 12,
+   "position": 12.75,
+   "top_queries": [
+    {
+     "query": "estate cleanout sidney bc",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 33.666666666666664
+    },
+    {
+     "query": "brush mulching service near me",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 1
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 10,
+   "position": 3.9,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 5.0,
+   "top_queries": [
+    {
+     "query": "brush removal",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 1
+    },
+    {
+     "query": "landscaping brush removal",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 5
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/brush-clearing/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 179,
+   "position": 30.66,
+   "top_queries": [
+    {
+     "query": "driveway grading",
+     "clicks": 0,
+     "impressions": 170,
+     "position": 31.729411764705883
+    },
+    {
+     "query": "driveway grading services",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 28.5
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/brentwood-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/central-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/chemainus",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 52,
+   "position": 71.25,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 52,
+     "position": 71.25
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/cobble-hill",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 51,
+   "position": 6.1,
+   "top_queries": [
+    {
+     "query": "access road grading cobble hill",
+     "clicks": 0,
+     "impressions": 51,
+     "position": 6.098039215686274
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/colwood",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/cowichan-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/duncan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/esquimalt",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 13.0,
+   "top_queries": [
+    {
+     "query": "driveway grading services",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 13
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/highlands",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/lake-cowichan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/langford",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 2,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/maple-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/metchosin",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/mill-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/north-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/shawnigan-lake",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/sidney",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/sooke",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/victoria",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 9.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/driveway-grading/view-royal",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 5,
+   "position": 6.6,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/brentwood-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/central-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/chemainus",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/cobble-hill",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/colwood",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/cowichan-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/duncan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/esquimalt",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/highlands",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/lake-cowichan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/langford",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 6,
+   "position": 12.33,
+   "top_queries": [
+    {
+     "query": "fence removal langford bc",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 12.333333333333334
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/maple-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 21.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/metchosin",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 2.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/mill-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/north-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 6,
+   "position": 3.83,
+   "top_queries": [
+    {
+     "query": "fence removal saanich bc",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 6
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/shawnigan-lake",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/sidney",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/sooke",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/victoria",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/fence-work-minor-repairs/view-royal",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 5,
+   "position": 16.8,
+   "top_queries": [
+    {
+     "query": "mulching and garden bed maintenance",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 23
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 15,
+   "position": 21.67,
+   "top_queries": [
+    {
+     "query": "mulching and garden bed maintenance",
+     "clicks": 0,
+     "impressions": 15,
+     "position": 21.666666666666668
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 4.75,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 3.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/garden-bed-maintenance/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 83.67,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 83.66666666666667
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/brentwood-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 95.0,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 95
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/central-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 9,
+   "position": 37.89,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/chemainus",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 75,
+   "position": 8.03,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 70,
+     "position": 4.985714285714286
+    },
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 1
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/cobble-hill",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/colwood",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/cowichan-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 69.0,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 69
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/duncan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/esquimalt",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 37,
+   "position": 40.81,
+   "top_queries": [
+    {
+     "query": "gravel driveway services",
+     "clicks": 0,
+     "impressions": 11,
+     "position": 40.90909090909091
+    },
+    {
+     "query": "gravel driveway repair",
+     "clicks": 0,
+     "impressions": 8,
+     "position": 35.875
+    },
+    {
+     "query": "gravel driveway resurfacing",
+     "clicks": 0,
+     "impressions": 4,
+     "position": 82
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/highlands",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/lake-cowichan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/langford",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/maple-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/metchosin",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 69.57,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 80.83333333333333
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/mill-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 76,
+   "position": 20.62,
+   "top_queries": [
+    {
+     "query": "site preparation services mill bay",
+     "clicks": 0,
+     "impressions": 37,
+     "position": 21.45945945945946
+    },
+    {
+     "query": "culvert installation mill bay",
+     "clicks": 0,
+     "impressions": 33,
+     "position": 19.03030303030303
+    },
+    {
+     "query": "garage renovation mill bay",
+     "clicks": 0,
+     "impressions": 4,
+     "position": 11.25
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/north-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/shawnigan-lake",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 5,
+   "position": 3.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/sidney",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/sooke",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/victoria",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 6.33,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gravel-driveway-installation/view-royal",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access",
+   "group": "core",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 9.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/brentwood-bay",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 12.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/chemainus",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 6,
+   "impressions": 42,
+   "position": 5.71,
+   "top_queries": [
+    {
+     "query": "chemainus",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 7
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/esquimalt",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 8.57,
+   "top_queries": [
+    {
+     "query": "gutter cleaning esquimalt",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 14
+    },
+    {
+     "query": "gutter cleaning esquimalt",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 6
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/highlands",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 9.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/metchosin",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 6,
+   "position": 21.33,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/mill-bay",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 2.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/shawnigan-lake",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 14,
+   "position": 6.0,
+   "top_queries": [
+    {
+     "query": "drain cleaning shawnigan",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 12
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/sidney",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 33.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning-ground-access/sooke",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 11.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/brentwood-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/central-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/chemainus",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/cobble-hill",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/colwood",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/cowichan-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/duncan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/esquimalt",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/highlands",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/lake-cowichan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/langford",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/maple-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/metchosin",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/mill-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/north-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/shawnigan-lake",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/sidney",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/sooke",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/victoria",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/gutter-cleaning/view-royal",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 11,
+   "position": 23.73,
+   "top_queries": [
+    {
+     "query": "hedge trimming victoria",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 41
+    },
+    {
+     "query": "hedge trimming victoria bc",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 31.666666666666668
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 22.29,
+   "top_queries": [
+    {
+     "query": "hedge trimming victoria",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 32.33333333333333
+    },
+    {
+     "query": "hedging service",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 47
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 14,
+   "position": 10.93,
+   "top_queries": [
+    {
+     "query": "hedge trimming victoria",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 39
+    },
+    {
+     "query": "hedge trimming services near me",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 4
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 9.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 4.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 14,
+   "position": 15.14,
+   "top_queries": [
+    {
+     "query": "hedge trimming services",
+     "clicks": 0,
+     "impressions": 8,
+     "position": 21.25
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/hedge-trimming/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 12.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 10,
+   "position": 7.6,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 55,
+   "position": 48.07,
+   "top_queries": [
+    {
+     "query": "lawn mowing victoria",
+     "clicks": 0,
+     "impressions": 13,
+     "position": 39.84615384615385
+    },
+    {
+     "query": "lawn care services victoria bc",
+     "clicks": 0,
+     "impressions": 11,
+     "position": 59.54545454545455
+    },
+    {
+     "query": "lawn maintenance victoria",
+     "clicks": 0,
+     "impressions": 8,
+     "position": 44.375
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/lawn-mowing/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 3.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/light-pruning/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/brentwood-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 13.86,
+   "top_queries": [
+    {
+     "query": "roof moss removal brentwood bay",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 15.5
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/central-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/chemainus",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/cobble-hill",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/colwood",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/cowichan-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/duncan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 33,
+   "position": 7.7,
+   "top_queries": [
+    {
+     "query": "moss removal services duncan",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 17
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/esquimalt",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/highlands",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/lake-cowichan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/langford",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/maple-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/metchosin",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 5.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/mill-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 3.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/north-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 9.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/shawnigan-lake",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/sidney",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/sooke",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 14,
+   "position": 17.21,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/victoria",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/moss-algae-treatment/view-royal",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing",
+   "group": "core",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 4.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/brentwood-bay",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 21.29,
+   "top_queries": [
+    {
+     "query": "pressure washing colwood",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 34
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/central-saanich",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 11.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/chemainus",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 2.67,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/cobble-hill",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/langford",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 10.67,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/north-saanich",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 199,
+   "position": 50.41,
+   "top_queries": [
+    {
+     "query": "power washing victoria",
+     "clicks": 0,
+     "impressions": 68,
+     "position": 51.1764705882353
+    },
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 40,
+     "position": 49.65
+    },
+    {
+     "query": "power washing victoria bc",
+     "clicks": 0,
+     "impressions": 38,
+     "position": 60.60526315789474
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/saanich",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 8.33,
+   "top_queries": [
+    {
+     "query": "pressure washing saanich",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 11
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/shawnigan-lake",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 2.75,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/sooke",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/power-washing/victoria",
+   "group": "combo_outside_matrix",
+   "in_inventory_377": false,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 5.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 110,
+   "position": 63.65,
+   "top_queries": [
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 58,
+     "position": 62.43103448275862
+    },
+    {
+     "query": "pressure washing victoria bc",
+     "clicks": 0,
+     "impressions": 24,
+     "position": 74.125
+    },
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 7,
+     "position": 61.142857142857146
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/brentwood-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 5,
+   "position": 15.4,
+   "top_queries": [
+    {
+     "query": "pressure washing colwood",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 47
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/central-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 13,
+   "position": 36.54,
+   "top_queries": [
+    {
+     "query": "pressure washing saanich",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 84.33333333333333
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/chemainus",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 6,
+   "position": 28.0,
+   "top_queries": [
+    {
+     "query": "gravel driveway preparation chemainus",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 81
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/cobble-hill",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 19.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/colwood",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 10.5,
+   "top_queries": [
+    {
+     "query": "pressure washing company near me colwood",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 11
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/cowichan-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/duncan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 44,
+   "position": 46.14,
+   "top_queries": [
+    {
+     "query": "moss removal services duncan",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 39.666666666666664
+    },
+    {
+     "query": "garage cleanout duncan bc",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 11
+    },
+    {
+     "query": "pressure washing mississippi mills",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 30
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/esquimalt",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 6.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/highlands",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 10,
+   "position": 55.9,
+   "top_queries": [
+    {
+     "query": "house cleaning services highlands bc",
+     "clicks": 0,
+     "impressions": 10,
+     "position": 55.9
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/lake-cowichan",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 10,
+   "position": 9.1,
+   "top_queries": [
+    {
+     "query": "power washing near me",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 10
+    },
+    {
+     "query": "power wash station near me",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 5
+    },
+    {
+     "query": "power washing services near me",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 10
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/langford",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 47,
+   "position": 43.09,
+   "top_queries": [
+    {
+     "query": "pressure washing langford",
+     "clicks": 0,
+     "impressions": 11,
+     "position": 40.45454545454545
+    },
+    {
+     "query": "power washing langford",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 52
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/maple-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/metchosin",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 2.33,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/mill-bay",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 5,
+   "position": 3.2,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/north-saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 207,
+   "position": 71.42,
+   "top_queries": [
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 71,
+     "position": 77.01408450704226
+    },
+    {
+     "query": "pressure washing victoria bc",
+     "clicks": 0,
+     "impressions": 38,
+     "position": 83
+    },
+    {
+     "query": "victoria pressure washing",
+     "clicks": 0,
+     "impressions": 26,
+     "position": 83.88461538461539
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/saanich",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 49,
+   "position": 76.53,
+   "top_queries": [
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 26,
+     "position": 83.76923076923077
+    },
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 9,
+     "position": 76.22222222222223
+    },
+    {
+     "query": "pressure washing victoria bc",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 76.66666666666667
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/shawnigan-lake",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 8,
+   "position": 13.25,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/sidney",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 10,
+   "position": 15.1,
+   "top_queries": [
+    {
+     "query": "pressure washing sidney",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 17
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/sooke",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 33,
+   "position": 47.88,
+   "top_queries": [
+    {
+     "query": "gutter cleaning sooke",
+     "clicks": 0,
+     "impressions": 20,
+     "position": 68.3
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/victoria",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 654,
+   "position": 48.39,
+   "top_queries": [
+    {
+     "query": "pressure washing victoria",
+     "clicks": 0,
+     "impressions": 146,
+     "position": 49.534246575342465
+    },
+    {
+     "query": "pressure washing victoria bc",
+     "clicks": 0,
+     "impressions": 98,
+     "position": 51.52040816326531
+    },
+    {
+     "query": "power washing victoria",
+     "clicks": 0,
+     "impressions": 95,
+     "position": 47.421052631578945
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/pressure-washing/view-royal",
+   "group": "kept_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 19.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 11.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 12.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 4.33,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 1.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 13,
+   "position": 19.62,
+   "top_queries": [
+    {
+     "query": "site preparation services mill bay",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 28.666666666666668
+    },
+    {
+     "query": "garage renovation mill bay",
+     "clicks": 0,
+     "impressions": 3,
+     "position": 10.333333333333334
+    },
+    {
+     "query": "garage renovation mill bay",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 6.5
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 14,
+   "position": 40.36,
+   "top_queries": [
+    {
+     "query": "dirt work contractors shawnigan lake",
+     "clicks": 0,
+     "impressions": 11,
+     "position": 50.54545454545455
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 15.25,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 2,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/rock-work-walls/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 3.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 44.57,
+   "top_queries": [
+    {
+     "query": "outdoor seasonal prep services",
+     "clicks": 0,
+     "impressions": 7,
+     "position": 44.57142857142857
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 98,
+   "position": 34.12,
+   "top_queries": [
+    {
+     "query": "snow removal langford",
+     "clicks": 0,
+     "impressions": 28,
+     "position": 33.107142857142854
+    },
+    {
+     "query": "seasonal cleanups",
+     "clicks": 0,
+     "impressions": 21,
+     "position": 47.285714285714285
+    },
+    {
+     "query": "outdoor seasonal prep services",
+     "clicks": 0,
+     "impressions": 18,
+     "position": 55.55555555555556
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 3,
+   "position": 4.67,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 4.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/seasonal-cleanups/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 5.0,
+   "top_queries": [
+    {
+     "query": "weed control near me",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 5
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 1.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 1.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 7.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 10.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 1,
+   "impressions": 3,
+   "position": 5.33,
+   "top_queries": [
+    {
+     "query": "pest control sooke",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 11
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 15.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/weed-control/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 2.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal",
+   "group": "core",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 9.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/brentwood-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 2.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/central-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 38,
+   "position": 26.55,
+   "top_queries": [
+    {
+     "query": "trash service saanich bc",
+     "clicks": 0,
+     "impressions": 8,
+     "position": 42.125
+    },
+    {
+     "query": "trash service central saanich bc",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 26.833333333333332
+    },
+    {
+     "query": "yard waste removal saanich bc",
+     "clicks": 0,
+     "impressions": 4,
+     "position": 29.25
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/chemainus",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 7,
+   "position": 17.43,
+   "top_queries": [
+    {
+     "query": "trash service central chemainus bc",
+     "clicks": 0,
+     "impressions": 5,
+     "position": 20.6
+    },
+    {
+     "query": "junk removal chemainus bc",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 18
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/cobble-hill",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 5,
+   "position": 9.8,
+   "top_queries": [
+    {
+     "query": "junk removal cobble hill bc",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 17
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/colwood",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 74,
+   "position": 14.47,
+   "top_queries": [
+    {
+     "query": "colwood yard waste",
+     "clicks": 0,
+     "impressions": 27,
+     "position": 10.814814814814815
+    },
+    {
+     "query": "trash service central colwood bc",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 21.166666666666668
+    },
+    {
+     "query": "colwood yard waste schedule",
+     "clicks": 0,
+     "impressions": 5,
+     "position": 9.8
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/cowichan-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/duncan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/esquimalt",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 29,
+   "position": 8.1,
+   "top_queries": [
+    {
+     "query": "esquimalt yard waste",
+     "clicks": 0,
+     "impressions": 6,
+     "position": 10.5
+    },
+    {
+     "query": "yard waste esquimalt",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 8
+    },
+    {
+     "query": "esquimalt garden waste",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 12
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/highlands",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/lake-cowichan",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 4,
+   "position": 7.75,
+   "top_queries": [
+    {
+     "query": "estate cleanout cowichan valley bc",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 14
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/langford",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 4.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/maple-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/metchosin",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/mill-bay",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/north-saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/saanich",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 2,
+   "clicks": 0,
+   "impressions": 8,
+   "position": 24.5,
+   "top_queries": [
+    {
+     "query": "trash service saanich bc",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 34.5
+    },
+    {
+     "query": "yard waste removal saanich bc",
+     "clicks": 0,
+     "impressions": 2,
+     "position": 19.5
+    },
+    {
+     "query": "yard waste removal saanich bc",
+     "clicks": 0,
+     "impressions": 1,
+     "position": 34
+    }
+   ]
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/shawnigan-lake",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": false,
+   "source_rows_merged": 0,
+   "clicks": 0,
+   "impressions": 0,
+   "position": null,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/sidney",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 2,
+   "position": 8.5,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/sooke",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 13.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/victoria",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 6.0,
+   "top_queries": []
+  },
+  {
+   "page": "https://maestrosservices.com/services/yard-waste-removal/view-royal",
+   "group": "tail_combo",
+   "in_inventory_377": true,
+   "gsc_row": true,
+   "source_rows_merged": 1,
+   "clicks": 0,
+   "impressions": 1,
+   "position": 12.0,
+   "top_queries": []
+  }
+ ]
+}

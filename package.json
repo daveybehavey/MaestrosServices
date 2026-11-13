@@ -8,8 +8,8 @@
     "build:smoke": "npm run build && npm run smoke",
     "preview": "astro preview",
     "astro": "astro",
-    "smoke": "node scripts/smoke-routes.mjs",
-    "test": "npm run test:gbp && npm run test:growth && npm run test:growth-weekly && npm run test:growth-ci && npm run test:growth-diagnostics && npm run test:reporting-config && npm run test:growth-drafts && npm run test:review-watch && npm run test:lead-ops && npm run test:site-copy && npm run test:quote && npm run test:quote-coverage && npm run test:schema && npm run test:sitemap-lastmod",
+    "smoke": "node scripts/smoke-routes.mjs && node --import ./scripts/lib/ts-extensionless-hook.mjs scripts/ms-a9-check-build.mjs",
+    "test": "npm run test:gbp && npm run test:growth && npm run test:growth-weekly && npm run test:growth-ci && npm run test:growth-diagnostics && npm run test:reporting-config && npm run test:growth-drafts && npm run test:review-watch && npm run test:lead-ops && npm run test:site-copy && npm run test:quote && npm run test:quote-coverage && npm run test:schema && npm run test:sitemap-lastmod && npm run test:ms-a9",
     "test:gbp": "node --test scripts/lib/gbp.test.mjs",
     "test:growth": "node --test scripts/lib/growth-post-validator.test.mjs",
     "test:growth-weekly": "node --test scripts/lib/growth-weekly.test.mjs",
@@ -56,7 +56,9 @@
     "ads:optimize:power-washing": "node scripts/google-ads.mjs optimize-power-washing",
     "ads:launch-weekly-test": "node scripts/google-ads.mjs launch-weekly-test",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile http://127.0.0.1:4325",
-    "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325"
+    "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop http://127.0.0.1:4325",
+    "ms-a9:generate": "node --import ./scripts/lib/ts-extensionless-hook.mjs scripts/ms-a9-generate.mjs",
+    "test:ms-a9": "node --import ./scripts/lib/ts-extensionless-hook.mjs --test scripts/lib/ms-a9.test.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",

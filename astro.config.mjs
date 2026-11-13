@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { isMsA9Noindex } from './src/lib/msA9Indexing.ts';
 import { buildBlogLastmodByUrl, lastmodForSitemapUrl } from './src/lib/sitemapLastmod.ts';
 
 const blogLastmodByUrl = buildBlogLastmodByUrl();
@@ -10,7 +11,7 @@ export default defineConfig({
   site: "https://maestrosservices.com",
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/404'),
+      filter: (page) => !page.includes('/404') && !isMsA9Noindex(page),
       changefreq: 'weekly',
       priority: 0.7,
       serialize(item) {
