@@ -68,10 +68,15 @@ const quoteServiceById: Record<string, string> = {
   "fence-work-minor-repairs": "fence",
   "garden-bed-maintenance": "mulch",
   "seasonal-cleanups": "cleanup",
-  "yard-waste-removal": "other",
-  "brush-clearing": "other",
+  "yard-waste-removal": "yardwaste",
+  "brush-clearing": "brush",
   "hedge-trimming": "trim",
   "lawn-mowing": "mowing",
+  "weed-control": "weed",
+  "gutter-cleaning": "gutter",
+  "light-pruning": "pruning",
+  "moss-algae-treatment": "moss",
+  "rock-work-walls": "rock",
 };
 const quoteService = primaryRelatedServiceId
   ? quoteServiceById[primaryRelatedServiceId]
