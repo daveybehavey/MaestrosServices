@@ -1,3 +1,5 @@
+import type { WorkPhoto } from "./workPhotos";
+
 export interface Service {
   id: string;
   slug: string;
@@ -12,6 +14,10 @@ export interface Service {
     after: string;
     result: string;
   }>;
+  // Real job photos for this service. Captions must stay honest: gutter and
+  // roof photos are "before" shots unless the caption says otherwise, and the
+  // clean-gutter photo is a different property shown on its own.
+  photos?: WorkPhoto[];
   relatedServices: string[];
   seasonalRelevance: ("spring" | "summer" | "fall" | "winter")[];
 }
@@ -257,6 +263,41 @@ export const services: Service[] = [
     ],
     relatedServices: ["seasonal-cleanups", "yard-waste-removal", "moss-algae-treatment"],
     seasonalRelevance: ["fall", "winter", "spring"],
+    photos: [
+      {
+        src: "/work/gutter-clogged-closeup.jpg",
+        alt: "Clogged gutter close-up with black sludge and standing water",
+        caption: "What we found: a clogged gutter, black sludge and standing water.",
+        job: "gutter",
+        width: 676,
+        height: 900,
+      },
+      {
+        src: "/work/roof-valley-needles.jpg",
+        alt: "Roof valley full of pine needles and moss",
+        caption: "What we found: a roof valley full of pine needles and moss.",
+        job: "gutter",
+        width: 900,
+        height: 675,
+      },
+      {
+        src: "/work/roof-moss-bucket.jpg",
+        alt: "Bucket of moss and pine needles pulled out of the roof and gutters",
+        caption: "What we pulled out: a bucket of moss and needles from the roof and gutters.",
+        job: "gutter",
+        width: 676,
+        height: 900,
+      },
+      {
+        src: "/work/gutter-clean-standalone.jpg",
+        alt: "A clean, cleared gutter on a different property",
+        caption:
+          "What a cleared gutter looks like. A different property, shown on its own — not the after for the job above.",
+        job: "gutter",
+        width: 900,
+        height: 675,
+      },
+    ],
   },
   {
     id: "light-pruning",
@@ -325,6 +366,24 @@ export const services: Service[] = [
     ],
     relatedServices: ["power-washing", "seasonal-cleanups", "gutter-cleaning"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
+    photos: [
+      {
+        src: "/work/roof-valley-needles.jpg",
+        alt: "Roof valley full of pine needles and moss",
+        caption: "What we found: a roof valley full of pine needles and moss.",
+        job: "gutter",
+        width: 900,
+        height: 675,
+      },
+      {
+        src: "/work/roof-moss-bucket.jpg",
+        alt: "Bucket of moss and pine needles pulled out of the roof and gutters",
+        caption: "What we pulled out: a bucket of moss and needles from the roof and gutters.",
+        job: "gutter",
+        width: 676,
+        height: 900,
+      },
+    ],
   },
   {
     id: "fence-work-minor-repairs",
