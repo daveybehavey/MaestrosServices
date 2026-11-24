@@ -3,6 +3,7 @@ import Layout from "../components/Layout.astro";
 import PropertyResetExamples from "../components/PropertyResetExamples.astro";
 import { business } from "../data/business";
 import { projectProfiles } from "../data/projects";
+import { gutterPhotos, pathPhotos } from "../data/workPhotos";
 import { createBreadcrumbSchema } from "../lib/schema";
 
 const pageTitle = "Residential Landscaping Project Profiles on Vancouver Island | Maestros Services";
@@ -96,6 +97,65 @@ const structuredData = [
               ))}
             </div>
           </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="mb-6 space-y-3 sm:mb-8">
+        <p class="section-kicker">Recent job photos</p>
+        <h2 class="section-title">Real work from November 2026.</h2>
+        <p class="section-copy max-w-2xl">
+          Photos from two recent jobs, taken on site. The path photos show one job start to
+          finish. The gutter and roof photos show what we found — we do not have a matched
+          clean-after photo for that house yet, so we show the dirty work honestly instead of
+          pairing it with a different house.
+        </p>
+      </div>
+      <h3 class="mb-4 text-xl font-display">Stepping-stone path — before, during, and after</h3>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {pathPhotos.map((photo, index) => (
+          <figure
+            class="overflow-hidden rounded-[1.5rem] border border-border bg-white/90 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 60}ms`}
+          >
+            <div class="relative aspect-[4/3] overflow-hidden">
+              <img
+                src={photo.src}
+                alt={photo.alt}
+                class="h-full w-full object-cover"
+                width={photo.width}
+                height={photo.height}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <figcaption class="px-5 py-4 text-sm leading-7 text-ink-soft">{photo.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <h3 class="mb-4 mt-10 text-xl font-display">Gutter and roof — what we found</h3>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {gutterPhotos.map((photo, index) => (
+          <figure
+            class="overflow-hidden rounded-[1.5rem] border border-border bg-white/90 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 60}ms`}
+          >
+            <div class="relative aspect-[4/3] overflow-hidden">
+              <img
+                src={photo.src}
+                alt={photo.alt}
+                class="h-full w-full object-cover"
+                width={photo.width}
+                height={photo.height}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <figcaption class="px-5 py-4 text-sm leading-7 text-ink-soft">{photo.caption}</figcaption>
+          </figure>
         ))}
       </div>
     </div>

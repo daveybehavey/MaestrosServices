@@ -53,37 +53,36 @@ const featuredServices = featuredServiceSlugs.flatMap((slug) =>
 const galleryItems = [
   {
     kind: "image",
-    label: "Garden bed refresh",
-    image: "/responsive/garden-640.webp",
-    srcSet:
-      "/responsive/garden-640.webp 640w, /responsive/garden-768.webp 768w, /responsive/garden-960.webp 960w, /responsive/garden-1125.webp 1125w, /responsive/garden-1280.webp 1280w, /garden.webp 1600w",
+    label: "Finished stone path",
+    image: "/work/path-after-dog.jpg",
+    srcSet: "/work/path-after-dog.jpg 900w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
-    width: 640,
-    height: 480,
-    alt: "Well-kept front garden with clean edges and mulch",
-    detail: "Sharper bed lines and a cleaner front-yard finish.",
+    width: 900,
+    height: 675,
+    alt: "Finished stepping-stone path with a dog standing on the pavers",
+    detail: "A mud track turned into a finished stone path to the shed, laid by hand.",
   },
   {
     kind: "image",
-    label: "Seasonal cleanup",
-    image: "/responsive/cleanup-640.webp",
-    srcSet: "/responsive/cleanup-640.webp 640w, /responsive/cleanup-960.webp 960w, /cleanup.webp 1200w",
+    label: "Finished path, wide view",
+    image: "/work/path-after-wide.jpg",
+    srcSet: "/work/path-after-wide.jpg 900w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
-    width: 640,
-    height: 427,
-    alt: "Leaf cleanup with a rake and tidy lawn",
-    detail: "A practical reset before weather changes or guests arrive.",
+    width: 900,
+    height: 675,
+    alt: "Finished stepping-stone path seen wide from the house",
+    detail: "The same finished path, wide view from the house.",
   },
   {
     kind: "image",
-    label: "Clean lawn detail",
-    image: "/responsive/lawn-640.webp",
-    srcSet: "/responsive/lawn-640.webp 640w, /responsive/lawn-960.webp 960w, /lawn.webp 1280w",
+    label: "Laying pavers by hand",
+    image: "/work/path-during-kneeling.jpg",
+    srcSet: "/work/path-during-kneeling.jpg 900w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
-    width: 640,
-    height: 427,
-    alt: "Clean lawn edge with mulched planting area",
-    detail: "A tidy edge and a finish that reads well from the street.",
+    width: 900,
+    height: 675,
+    alt: "Josh kneeling to place a paver on the new stone path",
+    detail: "Every paver went in by hand, levelled as we went.",
   },
   {
     kind: "cta",
@@ -245,6 +244,9 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           </article>
         ))}
       </div>
+      <p class="mt-6 text-center text-sm font-semibold text-ink">
+        Insured — $1M commercial general liability.
+      </p>
     </div>
   </section>
 
