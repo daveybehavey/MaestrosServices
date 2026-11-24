@@ -1,0 +1,173 @@
+---
+import Layout from "../components/Layout.astro";
+import { business } from "../data/business";
+import { createBreadcrumbSchema } from "../lib/schema";
+
+const pageTitle = "Stepping-Stone Paths | From Mud Track to Stone Path | Maestros Services";
+const pageDescription =
+  "A real stepping-stone path job from November 2026: a bare dirt track dug out, levelled, compacted, and laid stone by stone. See the before, during, and after photos, then get a quote.";
+const canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`;
+
+const breadcrumbItems = [
+  { name: "Projects", href: "/projects" },
+  { name: "Stepping-Stone Paths", href: "/stepping-stone-paths" },
+];
+
+const structuredData = [createBreadcrumbSchema(breadcrumbItems)];
+
+const storyPhotos = [
+  {
+    src: "/work/path-before-01.jpg",
+    alt: "Bare dirt track with pallets of pavers by the shed, before we started",
+    caption: "Before: a bare dirt track, with pallets of pavers waiting by the shed.",
+    stage: "Before",
+  },
+  {
+    src: "/work/path-during-dug.jpg",
+    alt: "Dug-out bare path with a yellow wheelbarrow and the house behind, no pavers yet",
+    caption: "Dug out: the track opened up, wheelbarrow ready, no pavers yet.",
+    stage: "During",
+  },
+  {
+    src: "/work/path-during-compactor.jpg",
+    alt: "Blue compactor on the dug path with a wheelbarrow full of soil",
+    caption: "Prep: the dug path compacted, so the stones sit on a firm base.",
+    stage: "During",
+  },
+  {
+    src: "/work/path-during-kneeling.jpg",
+    alt: "Josh kneeling to place a paver on the new stone path",
+    caption: "Laid by hand: kneeling to place each paver, levelled as we went.",
+    stage: "During",
+  },
+  {
+    src: "/work/path-during-lifting.jpg",
+    alt: "Josh lifting a paver into place, with the finished path behind",
+    caption: "Laid by hand: lifting each paver into place, one at a time.",
+    stage: "During",
+  },
+  {
+    src: "/work/path-after-dog.jpg",
+    alt: "Finished stepping-stone path with a dog standing on the pavers",
+    caption: "After: the finished path from the house, dog approved.",
+    stage: "After",
+  },
+  {
+    src: "/work/path-after-gate.jpg",
+    alt: "Finished stepping-stone path through the gate to the house",
+    caption: "After: the finished path through the gate to the house.",
+    stage: "After",
+  },
+];
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  structuredData={structuredData}
+  quoteHref="/quote"
+  analytics={{
+    pageGroup: "stepping_stone_paths",
+    pageType: "case_study",
+    pageTemplate: "stepping-stone-paths",
+  }}
+>
+  <section class="section">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="max-w-3xl space-y-4">
+        <p class="section-kicker">Real work, November 2026</p>
+        <h1 class="section-title">From mud track to stone path.</h1>
+        <p class="text-sm text-ink-soft sm:text-base">
+          One job, start to finish. A bare dirt track to the shed became a finished
+          stepping-stone path — dug out, levelled, compacted, and laid stone by stone,
+          by hand. These are our own photos from the job, in the order the work happened.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {storyPhotos.map((photo, index) => (
+          <figure
+            class="overflow-hidden rounded-[1.5rem] border border-border bg-white/90 shadow-fine animate-rise"
+            style={`animation-delay: ${index * 60}ms`}
+          >
+            <div class="relative aspect-[4/3] overflow-hidden">
+              <img
+                src={photo.src}
+                alt={photo.alt}
+                class="h-full w-full object-cover"
+                loading={index < 3 ? "eager" : "lazy"}
+                decoding="async"
+              />
+            </div>
+            <figcaption class="px-5 py-4 text-sm leading-7 text-ink-soft">
+              <span class="font-semibold text-ink">{photo.stage} — </span>
+              {photo.caption}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="mx-auto max-w-6xl px-5 sm:px-6">
+      <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+        <div class="space-y-4">
+          <h2 class="text-2xl font-display">How we built it</h2>
+          <p class="text-sm leading-relaxed text-ink-soft sm:text-base">
+            Most of the work is under the stones. We dug the track out, levelled it, and
+            compacted the base before a single paver went in. Then we laid each stone by
+            hand, kneeling, lifting, and levelling one at a time. Skip the prep and the
+            path moves — so we do not skip the prep.
+          </p>
+          <p class="text-sm leading-relaxed text-ink-soft sm:text-base">
+            If your yard has a muddy track instead of a proper path, send us a photo of
+            your yard and we will quote it. We reply as soon as we see your message.
+          </p>
+          <p class="text-sm leading-relaxed text-ink-soft sm:text-base">
+            <a class="font-semibold text-ink underline" href="/projects">
+              See all 28 photos from this job and the gutter job on our projects page.
+            </a>
+          </p>
+        </div>
+        <aside class="space-y-5 lg:sticky lg:top-6 lg:self-start">
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Get a quote</p>
+            <h2 class="mb-3 text-2xl">Want a path like this?</h2>
+            <p class="text-sm leading-relaxed text-ink-soft">
+              Send a couple of photos of your yard, your area, and timing. We will reply
+              with the practical next step.
+            </p>
+            <div class="mt-4">
+              <a
+                class="inline-block rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper"
+                href="/quote"
+                data-ga-event="cta_click"
+                data-ga-label="stepping_stone_paths_quote"
+              >
+                Get a free quote
+              </a>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
+            <p class="section-kicker">Read next</p>
+            <h2 class="mb-3 text-2xl">The full story</h2>
+            <div class="space-y-2 text-sm">
+              <a
+                class="block hover:text-ink"
+                href="/blog/from-mud-track-to-stone-path"
+              >
+                From mud track to stone path — the case study
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</Layout>
