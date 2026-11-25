@@ -1,6 +1,5 @@
 ---
 import Layout from "../components/Layout.astro";
-import PropertyResetExamples from "../components/PropertyResetExamples.astro";
 import { business } from "../data/business";
 import { projectProfiles } from "../data/projects";
 import { gutterPhotos, pathPhotos } from "../data/workPhotos";
@@ -33,6 +32,7 @@ const structuredData = [
   structuredData={structuredData}
   ogImage={`${business.siteUrl}/work/path-after-dog.jpg`}
   quoteHref="/quote"
+  showDesktopCTA={false}
   analytics={{ pageGroup: "projects", pageType: "list", pageTemplate: "projects" }}
 >
   <section class="section">
@@ -126,8 +126,6 @@ const structuredData = [
       </div>
     </div>
   </section>
-
-  <PropertyResetExamples eyebrow="Scope examples" heading="Find the approach that fits your property." intro="Use these examples to describe the work you have in mind." />
 
   <section class="section pt-0">
     <div class="mx-auto max-w-6xl px-5 sm:px-6">
