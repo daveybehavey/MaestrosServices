@@ -1,3 +1,5 @@
+import { gutterPhotos, type WorkPhoto } from "./workPhotos";
+
 export interface Service {
   id: string;
   slug: string;
@@ -12,6 +14,8 @@ export interface Service {
     after: string;
     result: string;
   }>;
+  // Selected job photos use the same captions and dimensions as the project gallery.
+  photos?: WorkPhoto[];
   relatedServices: string[];
   seasonalRelevance: ("spring" | "summer" | "fall" | "winter")[];
 }
@@ -257,6 +261,7 @@ export const services: Service[] = [
     ],
     relatedServices: ["seasonal-cleanups", "yard-waste-removal", "moss-algae-treatment"],
     seasonalRelevance: ["fall", "winter", "spring"],
+    photos: gutterPhotos,
   },
   {
     id: "light-pruning",
@@ -325,6 +330,7 @@ export const services: Service[] = [
     ],
     relatedServices: ["power-washing", "seasonal-cleanups", "gutter-cleaning"],
     seasonalRelevance: ["spring", "summer", "fall", "winter"],
+    photos: gutterPhotos.filter((photo) => photo.src !== "/work/gutter-clogged-closeup.jpg"),
   },
   {
     id: "fence-work-minor-repairs",

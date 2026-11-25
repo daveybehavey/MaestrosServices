@@ -47,9 +47,9 @@ export const homepageTrustMoments = [
       "Texting photos, your area, and timing is usually enough for us to confirm the practical next step quickly.",
   },
   {
-    title: "Privacy-friendly proof",
+    title: "Speak with Josh",
     detail:
-      "We only publish approved photos and use privacy-safe scope examples when homeowners prefer not to share property images publicly.",
+      "Your enquiry goes to Josh, the owner and the person doing the work. Tell us what you need and we will confirm the next step.",
   },
 ] as const;
 
