@@ -477,6 +477,40 @@ const contactTrustPoints = [
             )
           }
 
+          {
+            service.photos && service.photos.length > 0 && (
+              <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8 content-auto">
+                <p class="section-kicker">Recent job photos</p>
+                <h2 class="mb-2 text-2xl font-display font-semibold text-ink sm:text-3xl">
+                  A closer look at the work
+                </h2>
+                <p class="mb-6 text-sm leading-7 text-ink-soft">
+                  Photos from a November 2026 job, showing the buildup and collected debris.
+                </p>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  {service.photos.map((photo) => (
+                    <figure class="overflow-hidden rounded-xl border border-border bg-paper/60">
+                      <div class="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={photo.src}
+                          alt={photo.alt}
+                          class="h-full w-full object-contain"
+                          width={photo.width}
+                          height={photo.height}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                      <figcaption class="px-4 py-3 text-sm leading-7 text-ink-soft">
+                        {photo.caption}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
           <!-- FAQs -->
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8 content-auto">
             <p class="section-kicker">Common questions</p>

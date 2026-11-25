@@ -53,37 +53,36 @@ const featuredServices = featuredServiceSlugs.flatMap((slug) =>
 const galleryItems = [
   {
     kind: "image",
-    label: "Garden bed refresh",
-    image: "/responsive/garden-640.webp",
-    srcSet:
-      "/responsive/garden-640.webp 640w, /responsive/garden-768.webp 768w, /responsive/garden-960.webp 960w, /responsive/garden-1125.webp 1125w, /responsive/garden-1280.webp 1280w, /garden.webp 1600w",
+    label: "Finished stone path",
+    image: "/work/path-after-dog.jpg",
+    srcSet: "/work/path-after-dog.jpg 900w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
-    width: 640,
-    height: 480,
-    alt: "Well-kept front garden with clean edges and mulch",
-    detail: "Sharper bed lines and a cleaner front-yard finish.",
+    width: 900,
+    height: 675,
+    alt: "Finished stepping-stone path with a dog standing on the pavers",
+    detail: "A finished stepping-stone path connecting the house and shed.",
   },
   {
     kind: "image",
-    label: "Seasonal cleanup",
-    image: "/responsive/cleanup-640.webp",
-    srcSet: "/responsive/cleanup-640.webp 640w, /responsive/cleanup-960.webp 960w, /cleanup.webp 1200w",
+    label: "Where it started",
+    image: "/work/path-before-01.jpg",
+    srcSet: "/work/path-before-01.jpg 900w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
-    width: 640,
-    height: 427,
-    alt: "Leaf cleanup with a rake and tidy lawn",
-    detail: "A practical reset before weather changes or guests arrive.",
+    width: 900,
+    height: 675,
+    alt: "Bare garden track leading to the shed before the path was laid",
+    detail: "The same garden before the path was dug out and the stones were laid.",
   },
   {
     kind: "image",
-    label: "Clean lawn detail",
-    image: "/responsive/lawn-640.webp",
-    srcSet: "/responsive/lawn-640.webp 640w, /responsive/lawn-960.webp 960w, /lawn.webp 1280w",
+    label: "Laying pavers by hand",
+    image: "/work/path-during-kneeling.jpg",
+    srcSet: "/work/path-during-kneeling.jpg 900w",
     sizes: "(max-width: 639px) 82vw, (max-width: 1023px) 24rem, 22rem",
-    width: 640,
-    height: 427,
-    alt: "Clean lawn edge with mulched planting area",
-    detail: "A tidy edge and a finish that reads well from the street.",
+    width: 900,
+    height: 675,
+    alt: "Josh kneeling to place a paver on the new stone path",
+    detail: "Josh placing and levelling the stones, one at a time.",
   },
   {
     kind: "cta",
@@ -284,13 +283,13 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
       <div class="mb-6 flex flex-wrap items-end justify-between gap-6 sm:mb-8">
         <div class="space-y-3">
           <p class="section-kicker">Recent work</p>
-          <h2 class="section-title">Swipe through a few recent jobs to see the kind of finish we aim for.</h2>
+          <h2 class="section-title">A garden path, from start to finish.</h2>
         </div>
           <p class="section-copy max-w-md text-ink/80">
-            Clean, simple, and permission-friendly. The point is to show the work, not add noise.
+            The finished path, where it started, and the work along the way. Photos from one of our recent jobs.
           </p>
       </div>
-      <div class="gallery-rail flex snap-x snap-mandatory gap-4 overflow-x-auto pb-0 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+      <div class="gallery-rail flex snap-x snap-mandatory gap-4 overflow-x-auto pb-0 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0" role="region" aria-label="Path project photos" tabindex="0">
         {galleryItems.map((item, index) => (
           <article
             class="gallery-card group min-w-[82vw] snap-start overflow-hidden rounded-[1.75rem] border border-transparent bg-transparent shadow-none sm:min-w-[24rem] lg:min-w-[22rem] animate-rise"
@@ -336,6 +335,9 @@ const hiddenAreaCount = Math.max(locations.length - featuredAreaLinks.length, 0)
           </article>
         ))}
       </div>
+      <a class="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-ink underline underline-offset-4" href="/stepping-stone-paths" data-ga-event="cta_click" data-ga-label="homepage_path_story">
+        See the full path project <span aria-hidden="true" class="ml-2">→</span>
+      </a>
     </div>
   </section>
 

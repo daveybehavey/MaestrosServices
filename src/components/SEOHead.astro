@@ -1,5 +1,6 @@
 ---
 import { business } from "../data/business";
+import { workPhotos } from "../data/workPhotos";
 
 interface Props {
   title: string;
@@ -44,6 +45,8 @@ const {
 } = Astro.props;
 
 const fullOgImage = ogImage.startsWith("http") ? ogImage : `${business.siteUrl}${ogImage}`;
+const workPhoto = workPhotos.find((photo) => `${business.siteUrl}${photo.src}` === fullOgImage);
+const ogImageAlt = workPhoto?.alt ?? `${business.name} landscaping services`;
 
 // The host serves the trailing-slash form: slashless URLs 308-redirect to the
 // slashed URL, and the sitemap already lists slashed URLs. Some pages build
@@ -193,9 +196,9 @@ const shouldAutoLoadGoogleAds = analyticsContext.pageTemplate !== "home";
 <meta property="og:type" content={ogType} />
 <meta property="og:url" content={normalizedCanonicalUrl} />
 <meta property="og:image" content={fullOgImage} />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content={`${business.name} landscaping services`} />
+<meta property="og:image:width" content={String(workPhoto?.width ?? 1200)} />
+<meta property="og:image:height" content={String(workPhoto?.height ?? 630)} />
+<meta property="og:image:alt" content={ogImageAlt} />
 <meta property="og:locale" content="en_CA" />
 <meta property="og:site_name" content={business.name} />
 
@@ -219,7 +222,7 @@ const shouldAutoLoadGoogleAds = analyticsContext.pageTemplate !== "home";
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={fullOgImage} />
-<meta name="twitter:image:alt" content={`${business.name} landscaping services`} />
+<meta name="twitter:image:alt" content={ogImageAlt} />
 
 <!-- Theme & Geo -->
 <meta name="theme-color" content="#161616" />
