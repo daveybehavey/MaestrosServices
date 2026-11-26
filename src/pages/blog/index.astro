@@ -8,7 +8,7 @@ const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
-const pageTitle = `Lawn Care Tips, Landscaping Advice & Seasonal Guides | ${business.name}`;
+const pageTitle = `Landscaping Guides | ${business.name}`;
 const pageDescription =
   "Seasonal lawn care tips, landscaping advice, and garden maintenance guides for Vancouver Island homeowners. Learn how to keep your yard looking great year-round.";
 const canonicalUrl = `${business.siteUrl}/blog`;
@@ -58,7 +58,7 @@ function formatDate(date: Date): string {
         </a>
         <a class="rounded-xl border border-border bg-paper/50 p-4 transition hover:border-ink/30" href="/quote">
           <p class="text-sm font-semibold text-ink">Request a quote</p>
-          <p class="mt-1 text-sm text-ink-soft">Send details and get a fast residential response.</p>
+          <p class="mt-1 text-sm text-ink-soft">Send the job details directly to Josh for review.</p>
         </a>
       </div>
 

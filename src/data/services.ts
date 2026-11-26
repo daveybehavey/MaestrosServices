@@ -33,7 +33,7 @@ export const services: Service[] = [
       "Clean edging along walkways and driveways",
       "Trimming around obstacles and garden beds",
       "Clipping collection or mulching options",
-      "Weekly and bi-weekly scheduling available",
+      "Scheduling discussed based on the property and season",
     ],
     faqs: [
       {
@@ -121,7 +121,7 @@ export const services: Service[] = [
     features: [
       "Leaf and debris removal",
       "Perennial cutback and bed preparation",
-      "Lawn dethatching and aeration available",
+      "Dethatching and aeration discussed when relevant",
       "Gutter clearing",
       "Complete property walkthrough",
     ],
@@ -174,14 +174,14 @@ export const services: Service[] = [
     slug: "yard-waste-removal",
     name: "Yard Waste Haul-Away",
     shortName: "Yard Waste Removal",
-    description: "Residential yard waste haul-away for homeowners who want piles, branches, and green debris gone fast.",
+    description: "Residential yard waste haul-away for piles, branches, grass clippings, leaves and green debris.",
     longDescription: "Don't let piles of yard waste clutter your property. We haul away everything from grass clippings and leaves to branches and garden debris, then leave the area ready for the next step. It is a practical add-on after cleanups, pruning, hedge work, or any project that creates more debris than the homeowner wants to manage.",
     features: [
       "Green waste and debris removal",
       "Branch and brush hauling",
       "Post-project cleanup",
       "Responsible disposal at certified facilities",
-      "Same-day removal available when routes allow",
+      "Timing confirmed after the scope and access are reviewed",
     ],
     faqs: [
       {

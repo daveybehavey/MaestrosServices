@@ -22,7 +22,7 @@ import {
 // mapping). Catches regressions that would ship wrong JSON-LD without a
 // visual failure.
 
-test("createLocalBusinessSchema: default id, type, and geo/address come from business facts (regression: drifting @id or unpublished address fields)", () => {
+test("createLocalBusinessSchema: default id, type, and privacy-safe address come from business facts (regression: drifting @id or publishing precise location)", () => {
   const schema = createLocalBusinessSchema();
   assert.equal(schema["@type"], "LandscapingBusiness");
   assert.equal(schema["@id"], `${business.siteUrl}/#business`);
@@ -30,11 +30,7 @@ test("createLocalBusinessSchema: default id, type, and geo/address come from bus
   assert.equal(schema.telephone, business.phoneTel);
   assert.equal(schema.email, business.email);
   assert.equal(schema.priceRange, business.priceRange);
-  assert.deepEqual(schema.geo, {
-    "@type": "GeoCoordinates",
-    latitude: business.geo.latitude,
-    longitude: business.geo.longitude,
-  });
+  assert.equal("geo" in schema, false);
   assert.equal(schema.address.addressLocality, business.address.locality);
   assert.equal(schema.address.addressRegion, business.address.region);
   assert.equal(schema.address.addressCountry, business.address.country);

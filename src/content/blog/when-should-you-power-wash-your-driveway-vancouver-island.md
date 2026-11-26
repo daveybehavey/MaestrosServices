@@ -1,6 +1,6 @@
 ---
 title: "When Should You Power Wash Your Driveway on Vancouver Island?"
-description: "A practical guide for Vancouver Island homeowners on the best time to power wash a driveway, what signs to watch for, and when a cleanup makes the biggest difference."
+description: "Learn when to power wash a Vancouver Island driveway, which surface conditions matter and what to check before choosing a cleaning approach."
 pubDate: 2026-05-24
 tags: ["power washing", "driveway", "vancouver island"]
 relatedServices: ["power-washing", "moss-algae-treatment", "driveway-grading"]

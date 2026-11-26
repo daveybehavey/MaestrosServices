@@ -33,11 +33,9 @@ const areaServices = services.map((service) => ({
     : `/services/${service.slug}`,
 }));
 
-const pageTitle = `Residential Landscaping in ${location.name}, BC | ${business.name}`;
+const pageTitle = `Landscaping in ${location.name}, BC | ${business.name}`;
 const isSidney = location.id === "sidney";
-const pageDescription = isSidney
-  ? "Residential landscaping in Sidney, BC: lawn care, hedge trimming, garden beds and seasonal cleanups. Send Josh photos and access details to discuss a quote."
-  : `${location.description} Homeowners in ${location.name} get clear communication, fast quotes, and tidy residential service from start to finish.`;
+const pageDescription = `Landscaping in ${location.name}, BC: lawn care, hedge trimming, garden beds, cleanups and property maintenance. Send photos and access details to discuss a quote.`;
 const canonicalUrl = `${business.siteUrl}/areas/${location.slug}`;
 
 const breadcrumbItems = [
@@ -76,7 +74,7 @@ const structuredData = [
         <p class="section-copy max-w-3xl">
           {isSidney
             ? "Need help with lawn care, hedge trimming, garden beds or a seasonal yard cleanup in Sidney? Send Josh photos of the work, your area and any access details. He can review the scope and discuss a quote and timing with you."
-            : `${location.description} We keep the focus on practical residential work, responsive scheduling, and a clean finish that feels professional from the first call to the last sweep-up.`}
+            : `${location.description} Send Josh photos of the work, your area and any access details so he can review the scope and discuss a quote with you.`}
         </p>
         {isSidney && (
           <a
@@ -90,8 +88,8 @@ const structuredData = [
         )}
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Local scheduling</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Scope reviewed first</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Owner-operated</span>
         </div>
       </div>
 
@@ -237,7 +235,7 @@ const structuredData = [
               Contact us
             </h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. Josh replies as soon as he sees your message during work hours.
+              Call or text Josh directly, or use the quote form with your town, photos and access details.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -278,7 +276,7 @@ const structuredData = [
         <p class="section-kicker">Request a quote</p>
         <h2 class="section-title">Get landscaping service in {location.name}</h2>
         <p class="text-sm text-ink-soft">
-          Need a faster response? Call or text{" "}
+          Prefer to call or text? Reach Josh at{" "}
           <a
             class="font-semibold text-ink hover:text-ink/70"
             href={`tel:${business.phoneTel}`}

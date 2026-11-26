@@ -28,11 +28,6 @@ export const createLocalBusinessSchema = (location?: Location) => ({
   image: `${business.siteUrl}${business.socialImage}`,
   priceRange: business.priceRange,
   openingHours: business.openingHours,
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: business.geo.latitude,
-    longitude: business.geo.longitude,
-  },
   address: {
     "@type": "PostalAddress",
     addressLocality: business.address.locality,
@@ -71,11 +66,6 @@ export const createLocationPageSchema = (location: Location) => ({
       "@type": "AdministrativeArea",
       name: "British Columbia",
     },
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: business.geo.latitude,
-    longitude: business.geo.longitude,
   },
   address: {
     "@type": "PostalAddress",

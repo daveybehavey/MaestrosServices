@@ -42,9 +42,9 @@ export const homepageTrustMoments = [
       "If a smaller fix, different service, or another trade makes more sense, we say that early instead of padding the job.",
   },
   {
-    title: "Quick quote path",
+    title: "Direct quote path",
     detail:
-      "Texting photos, your area, and timing is usually enough for us to confirm the practical next step quickly.",
+      "Texting photos, your area and timing gives Josh the details needed to review the practical next step.",
   },
   {
     title: "Speak with Josh",

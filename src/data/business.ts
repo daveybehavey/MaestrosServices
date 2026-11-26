@@ -13,10 +13,6 @@ export const business = {
     region: "BC",
     country: "CA",
   },
-  geo: {
-    latitude: "48.6289",
-    longitude: "-123.8690",
-  },
   siteUrl: "https://maestrosservices.com",
   socialImage: "/og-image.png?v=4",
   sameAs: [
