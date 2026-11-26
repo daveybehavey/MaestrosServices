@@ -114,9 +114,9 @@ const contentChecks = [
     includes: [
       "Gravel Driveway Preparation Near Chemainus",
       "Can you take on gravel driveway projects in Chemainus?",
-      "Typical gravel driveway outcomes",
     ],
     excludes: [
+      "Typical gravel driveway outcomes",
       "How often should I book gravel driveways",
       "weekly, bi-weekly, or seasonal schedule",
       "combine this with lawn mowing and hedge trimming",
