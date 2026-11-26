@@ -63,6 +63,9 @@ const locationServiceSeoOverrides: Record<string, { title: string; description: 
 };
 
 const seoKey = `${service.slug}:${location.slug}`;
+const isPriorityGutterPage =
+  service.slug === "gutter-cleaning" &&
+  ["chemainus", "shawnigan-lake"].includes(location.slug);
 const isChemainusGravel =
   service.slug === "gravel-driveway-installation" && location.slug === "chemainus";
 
@@ -71,6 +74,9 @@ const pageTitle =
   locationSeoOverrides[service.slug]?.title ??
   `${service.shortName} in ${location.name}, BC | ${business.name}`;
 const pageDescription =
+  isPriorityGutterPage
+    ? `Gutter cleaning in ${location.name}, BC. Send Josh photos of your gutters, roofline and access to request a residential quote.`
+    :
   locationServiceSeoOverrides[seoKey]?.description ??
   locationSeoOverrides[service.slug]?.description ??
   `${service.name} in ${location.name}, BC. ${service.description} Homeowners here get fast quotes, clear communication, and tidy cleanup from start to finish.`;
@@ -341,6 +347,11 @@ const localTrustPoints = isChemainusGravel
                 {service.longDescription} If you are near Chemainus, send the project details and we
                 will confirm whether it is a good fit.
               </>
+            ) : isPriorityGutterPage ? (
+              <>
+                {service.longDescription} Send Josh photos of your gutters and roofline, your area,
+                and any access details so he can review the work and discuss a quote.
+              </>
             ) : (
               <>
                 {service.longDescription} Homeowners in {location.name} trust us for consistent,
@@ -358,7 +369,7 @@ const localTrustPoints = isChemainusGravel
         }
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">{isPriorityGutterPage ? "Discuss your quote" : "Fast quotes"}</span>
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy cleanup</span>
         </div>
       </div>
@@ -391,7 +402,9 @@ const localTrustPoints = isChemainusGravel
               {
                 isChemainusGravel
                   ? "Weather, lot access, and driveway condition all affect whether a Chemainus-area gravel job is a good fit. Photos usually make that clearer before anyone commits to a visit."
-                  : `We schedule around local weather, lot sizes, and neighborhood access patterns in ${location.name} so the work feels smooth, the communication stays clear, and the final result looks professional without extra hassle.`
+                  : isPriorityGutterPage
+                    ? "Tree cover, roof height and access can affect the work involved. Include a photo of the problem area and let Josh know about gates, slopes or other access restrictions when requesting a quote."
+                    : `We schedule around local weather, lot sizes, and neighborhood access patterns in ${location.name} so the work feels smooth, the communication stays clear, and the final result looks professional without extra hassle.`
               }
             </p>
 
