@@ -430,24 +430,6 @@ export const services: Service[] = [
           "Not always. Organic buildup, grime, and surface dirt usually improve well, but some older staining, rust marks, or deeply set discoloration may only improve partially. We would rather set that expectation clearly than overpromise.",
       },
     ],
-    beforeAfterScenarios: [
-      {
-        before:
-          "Front entry and driveway had algae staining, dark streaks, and slippery patches after wet weather.",
-        after:
-          "Washed traffic areas and entry surfaces with pressure set for each material, then rinsed and cleaned the edges.",
-        result:
-          "Brighter curb appeal, safer footing, and a cleaner first impression from the street.",
-      },
-      {
-        before:
-          "Patio, sidewalk, and fence lines looked dull with seasonal moss buildup and embedded dirt.",
-        after:
-          "Completed a full surface wash and detail pass around corners, joints, and transitions.",
-        result:
-          "Outdoor living areas looked reset and ready for regular maintenance.",
-      },
-    ],
     relatedServices: ["moss-algae-treatment", "seasonal-cleanups", "driveway-grading"],
     seasonalRelevance: ["spring", "summer", "fall"],
   },
