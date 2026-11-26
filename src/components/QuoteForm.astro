@@ -23,7 +23,10 @@ const turnstileEnabled = Boolean(turnstileSiteKey);
 // fires no conversion. See functions/api/quote.ts (S55-6A).
 ---
 
-<div class="grid gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+<div class:list={[
+  "grid gap-10",
+  showInfoBox ? "lg:grid-cols-[0.92fr_1.08fr]" : "mx-auto w-full max-w-3xl",
+]}>
   {
     showInfoBox && (
       <div class="surface-card relative overflow-hidden p-6 sm:p-8">
