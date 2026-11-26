@@ -45,7 +45,7 @@ Driveways are often the strongest first choice when:
 
 Driveway washing can make the whole approach feel cleaner very quickly.
 
-Service page: [/services/pressure-washing/victoria](/services/pressure-washing/victoria)
+See our [residential pressure washing service in Victoria](/services/pressure-washing/victoria/).
 
 ## Walkways And Entries Matter For Safety Too
 
@@ -117,6 +117,6 @@ For a quick quote, send:
 
 Helpful next pages:
 
-- [/services/pressure-washing/victoria](/services/pressure-washing/victoria)
-- [/services/pressure-washing/saanich](/services/pressure-washing/saanich)
-- [/services/pressure-washing](/services/pressure-washing)
+- [Pressure washing in Victoria](/services/pressure-washing/victoria/)
+- [Pressure washing in Saanich](/services/pressure-washing/saanich/)
+- [Residential pressure washing services](/services/pressure-washing/)
