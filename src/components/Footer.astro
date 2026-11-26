@@ -14,6 +14,7 @@ const profileLabels: Record<string, string> = {
 };
 const profiles = business.sameAs.map((url) => ({
   url,
+  host: new URL(url).hostname,
   label: profileLabels[new URL(url).hostname],
 })).filter((profile) => profile.label);
 ---
@@ -128,15 +129,28 @@ const profiles = business.sameAs.map((url) => ({
     <nav aria-label="Social and business profiles" class="space-y-2">
       <p class="font-semibold text-ink">Find us online</p>
       {
-        profiles.map(({ url, label }) => (
+        profiles.map(({ url, label, host }) => (
           <a
-            class="block hover:text-ink"
+            class="group flex min-h-9 items-center gap-2 rounded-sm hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
             href={url}
             target="_blank"
             rel="noopener noreferrer"
             data-ga-event="cta_click"
             data-ga-label={`footer_profile_${new URL(url).hostname}`}
           >
+            <span aria-hidden="true" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/80 text-ink-soft transition-colors group-hover:border-ink/40 group-hover:text-ink">
+              {host === "www.facebook.com" ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" focusable="false">
+                  <path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.4A25 25 0 0 0 15 1c-3 0-5 1.8-5 5v3H7v4h3v8z" />
+                </svg>
+              ) : host === "x.com" ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" focusable="false">
+                  <path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.5 22H2.3l7.4-8.5L2 2h6.5l4.5 6.8L18.9 2ZM17.8 20h1.7L7.5 4H5.7l12.1 16Z" />
+                </svg>
+              ) : (
+                <span class="text-sm font-bold leading-none">{host === "www.google.com" ? "G" : "B"}</span>
+              )}
+            </span>
             {label}
           </a>
         ))
