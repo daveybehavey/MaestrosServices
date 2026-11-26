@@ -6,7 +6,16 @@ interface Props {
 }
 
 const { includeMobilePadding = true } = Astro.props;
-const facebookUrl = business.sameAs.find((url) => url.includes("facebook.com"));
+const profileLabels: Record<string, string> = {
+  "www.facebook.com": "Facebook",
+  "x.com": "X (Twitter)",
+  "www.google.com": "Google Business Profile",
+  "www.bark.com": "Bark",
+};
+const profiles = business.sameAs.map((url) => ({
+  url,
+  label: profileLabels[new URL(url).hostname],
+})).filter((profile) => profile.label);
 ---
 
 <footer
@@ -16,11 +25,11 @@ const facebookUrl = business.sameAs.find((url) => url.includes("facebook.com"));
   ]}
 >
   <div
-    class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-8 text-sm text-ink-soft sm:px-6 sm:py-10"
+    class="mx-auto grid max-w-6xl gap-8 px-5 py-8 text-sm text-ink-soft sm:grid-cols-2 sm:px-6 sm:py-10 lg:grid-cols-[1.4fr_0.7fr_1.2fr_0.9fr]"
   >
-    <div class="flex items-center gap-3">
+    <div class="flex items-start gap-3">
       <div
-        class="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white/90"
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/90"
       >
         <img
           src="/logo.png?v=1"
@@ -115,21 +124,24 @@ const facebookUrl = business.sameAs.find((url) => url.includes("facebook.com"));
       >
         Get a free quote
       </a>
+    </div>
+    <nav aria-label="Social and business profiles" class="space-y-2">
+      <p class="font-semibold text-ink">Find us online</p>
       {
-        facebookUrl && (
+        profiles.map(({ url, label }) => (
           <a
             class="block hover:text-ink"
-            href={facebookUrl}
+            href={url}
             target="_blank"
             rel="noopener noreferrer"
             data-ga-event="cta_click"
-            data-ga-label="footer_contact_facebook"
+            data-ga-label={`footer_profile_${new URL(url).hostname}`}
           >
-            Facebook page
+            {label}
           </a>
-        )
+        ))
       }
-    </div>
+    </nav>
   </div>
   <div class="border-t border-border/70">
     <div class="mx-auto max-w-6xl px-5 py-4 text-xs sm:px-6">

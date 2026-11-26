@@ -21,6 +21,7 @@ export const business = {
   socialImage: "/og-image.png?v=4",
   sameAs: [
     "https://www.facebook.com/profile.php?id=61588020354024",
+    "https://x.com/MaestrosService",
     googleMapsPlaceUrl,
     "https://www.bark.com/en/ca/company/maestros-services/go4ODl/",
   ],
