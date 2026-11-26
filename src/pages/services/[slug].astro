@@ -328,6 +328,9 @@ const pageTitle =
   seoOverrides[service.slug]?.title ??
   `Residential ${service.shortName} on Vancouver Island | ${business.name}`;
 const pageDescription =
+  service.slug === "gutter-cleaning"
+    ? "Residential gutter cleaning across lower-mid Vancouver Island. Send Josh photos of your gutters and access details to request a quote."
+    :
   seoOverrides[service.slug]?.description ??
   `${service.description} Residential service across lower-mid Vancouver Island with clear communication, fast quotes, and a clean finish.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}`;
