@@ -51,9 +51,9 @@ const locationSeoOverrides: Record<string, { title: string; description: string 
 
 const locationServiceSeoOverrides: Record<string, { title: string; description: string }> = {
   "gravel-driveway-installation:chemainus": {
-    title: `Gravel Driveway Preparation Near Chemainus, BC | Refresh and Base Prep`,
+    title: `Gravel Driveway Preparation Near Chemainus | Maestros Services`,
     description:
-      "Gravel driveway preparation near Chemainus, BC for soft spots, puddles, edge breakdown, and patchy gravel surfaces. Send photos and we will confirm whether the job is a good fit.",
+      "Planning gravel driveway preparation near Chemainus? Send Josh photos of soft spots, puddles or thin gravel to discuss the work and confirm project fit.",
   },
   "driveway-grading:chemainus": {
     title: `Driveway Grading in Chemainus, BC | Fix Puddles, Ruts, and Washboarding`,
@@ -352,8 +352,10 @@ const localTrustPoints = isChemainusGravel
           {
             isChemainusGravel ? (
               <>
-                {service.longDescription} If you are near Chemainus, send the project details and we
-                will confirm whether it is a good fit.
+                Thin gravel, soft spots or recurring puddles can call for different kinds of
+                driveway work. Send Josh photos of the full driveway and the problem areas,
+                your area and access details. He can review the scope and confirm whether
+                your project near Chemainus is a good fit before discussing a quote.
               </>
             ) : isPriorityGutterPage ? (
               <>
@@ -377,7 +379,7 @@ const localTrustPoints = isChemainusGravel
         }
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">{isPriorityGutterPage ? "Discuss your quote" : "Fast quotes"}</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">{isPriorityGutterPage || isChemainusGravel ? "Discuss your quote" : "Fast quotes"}</span>
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy cleanup</span>
         </div>
       </div>
@@ -402,6 +404,14 @@ const localTrustPoints = isChemainusGravel
           </div>
 
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            {isChemainusGravel && (
+              <div class="mb-6 space-y-3 border-b border-border pb-6 text-sm leading-relaxed text-ink-soft">
+                <h2 class="text-2xl font-display font-semibold text-ink">Preparation, grading or a gravel top-up?</h2>
+                <p>Preparation looks at the base and surface shape before adding gravel. A top-up adds material where the surface has worn thin, but may not address an underlying soft spot or drainage problem.</p>
+                <p>If the main issue is ruts, washboarding or uneven existing gravel, <a class="underline" href="/services/driveway-grading/chemainus/">driveway grading near Chemainus</a> may be the more relevant work to discuss.</p>
+                <p>Read our <a class="underline" href="/blog/gravel-driveway-preparation-chemainus/">gravel driveway preparation guide</a> for what to photograph and how to describe the problem. Scope and suitability are confirmed after review.</p>
+              </div>
+            )}
             <p class="section-kicker">Local focus</p>
             <h2 class="mb-4 text-2xl font-display font-semibold text-ink sm:text-3xl">
               {isChemainusGravel ? "Details for driveway work near Chemainus" : `Service details for ${location.name}`}
