@@ -31,6 +31,8 @@ const { service, location } = Astro.props as {
   service: Service;
   location: Location;
 };
+const isPressureWashing = service.slug === "pressure-washing";
+const isVictoriaPressureWashing = isPressureWashing && location.slug === "victoria";
 const isDrivewayService =
   service.slug === "driveway-grading" || service.slug === "gravel-driveway-installation";
 
@@ -50,6 +52,10 @@ const locationSeoOverrides: Record<string, { title: string; description: string 
 };
 
 const locationServiceSeoOverrides: Record<string, { title: string; description: string }> = {
+  "pressure-washing:victoria": {
+    title: "Residential Pressure Washing in Victoria, BC | Maestros Services",
+    description: "Pressure washing for Victoria driveways, patios, decks, fences and siding. Send Josh surface photos and access details to discuss a residential quote.",
+  },
   "gravel-driveway-installation:chemainus": {
     title: `Gravel Driveway Preparation Near Chemainus | Maestros Services`,
     description:
@@ -113,6 +119,11 @@ if (service.slug === "gutter-cleaning") {
     question: `Can I combine gutter cleaning with other services in ${location.name}?`,
     answer:
       "Tell Josh which other work you have in mind when requesting a quote. He can review the scope and access before confirming what can be included.",
+  });
+} else if (isPressureWashing) {
+  pageFaqs.push({
+    question: `How often should I book pressure washing in ${location.name}?`,
+    answer: "Cleaning frequency depends on the surface, shade, use and buildup. Send Josh photos of the areas you want cleaned so he can review their condition and discuss whether cleaning is appropriate. There is no fixed weekly or bi-weekly schedule for every property.",
   });
 } else if (!isDrivewayService) {
   pageFaqs.push(
@@ -357,6 +368,14 @@ const localTrustPoints = isChemainusGravel
                 your area and access details. He can review the scope and confirm whether
                 your project near Chemainus is a good fit before discussing a quote.
               </>
+            ) : isVictoriaPressureWashing ? (
+              <>
+                Looking for residential pressure washing or power washing in Victoria?
+                Maestros Services cleans driveways, sidewalks, patios, decks, fences and siding.
+                Send Josh photos of the surface and any staining or buildup, along with your
+                area and access details. He can review the material and condition before
+                discussing the cleaning approach and quote.
+              </>
             ) : isPriorityGutterPage ? (
               <>
                 {service.longDescription} Send Josh photos of your gutters and roofline, your area,
@@ -379,7 +398,7 @@ const localTrustPoints = isChemainusGravel
         }
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">{isPriorityGutterPage || isChemainusGravel ? "Discuss your quote" : "Fast quotes"}</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">{isPriorityGutterPage || isChemainusGravel || isVictoriaPressureWashing ? "Discuss your quote" : "Fast quotes"}</span>
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy cleanup</span>
         </div>
       </div>
