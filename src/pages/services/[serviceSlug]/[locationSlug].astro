@@ -108,7 +108,13 @@ const pageFaqs = isChemainusGravel
       },
     ];
 
-if (!isDrivewayService) {
+if (service.slug === "gutter-cleaning") {
+  pageFaqs.push({
+    question: `Can I combine gutter cleaning with other services in ${location.name}?`,
+    answer:
+      "Tell Josh which other work you have in mind when requesting a quote. He can review the scope and access before confirming what can be included.",
+  });
+} else if (!isDrivewayService) {
   pageFaqs.push(
     {
       question: `How often should I book ${service.shortName.toLowerCase()} in ${location.name}?`,
@@ -281,7 +287,9 @@ const localInfoItems = isChemainusGravel
       },
       {
         title: `Combining services`,
-        detail: relatedServiceSummary
+        detail: service.slug === "gutter-cleaning"
+          ? "If you also need roof moss removal or other property care, mention it when requesting a quote so Josh can review the work and access."
+          : relatedServiceSummary
           ? `You can combine this with ${relatedServiceSummary} in one quote for ${serviceGoal}.`
           : `You can combine this with general yard upkeep in one quote for ${serviceGoal}.`,
       },
