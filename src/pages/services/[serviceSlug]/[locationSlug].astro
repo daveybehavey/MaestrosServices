@@ -33,6 +33,7 @@ const { service, location } = Astro.props as {
 };
 const isPressureWashing = service.slug === "pressure-washing";
 const isVictoriaPressureWashing = isPressureWashing && location.slug === "victoria";
+const isCobbleHillGrading = service.slug === "driveway-grading" && location.slug === "cobble-hill";
 const isDrivewayService =
   service.slug === "driveway-grading" || service.slug === "gravel-driveway-installation";
 
@@ -52,6 +53,10 @@ const locationSeoOverrides: Record<string, { title: string; description: string 
 };
 
 const locationServiceSeoOverrides: Record<string, { title: string; description: string }> = {
+  "driveway-grading:cobble-hill": {
+    title: "Residential Driveway Grading in Cobble Hill | Maestros Services",
+    description: "Ruts, washboarding or puddles on a gravel driveway in Cobble Hill? Send Josh photos and access details to discuss grading and confirm project fit.",
+  },
   "pressure-washing:victoria": {
     title: "Residential Pressure Washing in Victoria, BC | Maestros Services",
     description: "Pressure washing for Victoria driveways, patios, decks, fences and siding. Send Josh surface photos and access details to discuss a residential quote.",
@@ -368,6 +373,10 @@ const localTrustPoints = isChemainusGravel
                 your area and access details. He can review the scope and confirm whether
                 your project near Chemainus is a good fit before discussing a quote.
               </>
+            ) : isCobbleHillGrading ? (
+              <>
+                If your gravel driveway in Cobble Hill has ruts, washboarding or recurring puddles, send Josh photos of the full driveway and the problem areas. Include the approximate length, your area and access details so he can review the work and discuss a quote.
+              </>
             ) : isVictoriaPressureWashing ? (
               <>
                 Looking for residential pressure washing or power washing in Victoria?
@@ -423,6 +432,11 @@ const localTrustPoints = isChemainusGravel
           </div>
 
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine sm:p-8">
+            {isCobbleHillGrading && (
+              <p class="mb-6 border-b border-border pb-6 text-sm leading-relaxed text-ink-soft">
+                Not sure whether you need grading or more gravel? Read our <a class="underline" href="/blog/driveway-grading-vs-gravel-refresh-vancouver-island/">driveway grading and gravel refresh guide</a> to compare the options. If you are planning fresh gravel or a new driveway surface, see our <a class="underline" href="/services/gravel-driveway-installation/cobble-hill/">gravel driveway service in Cobble Hill</a>. Josh can review the condition and confirm which work is appropriate.
+              </p>
+            )}
             {isVictoriaPressureWashing && (
               <p class="mb-6 border-b border-border pb-6 text-sm leading-relaxed text-ink-soft">
                 Not sure which area to tackle first? Read our <a class="underline" href="/blog/power-washing-victoria-bc-what-to-clean-first/">Victoria pressure-washing guide: what to clean first</a> for help comparing driveways, walkways, patios and decks.
