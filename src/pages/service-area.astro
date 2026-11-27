@@ -5,9 +5,9 @@ import { serviceAreaFaqs } from "../data/faqs";
 import { locations, regions } from "../data/locations";
 import { createBreadcrumbSchema, createFAQSchema } from "../lib/schema";
 
-const pageTitle = `Residential Landscaping Service Area | Victoria, Langford, Duncan & Cowichan Valley | ${business.name}`;
+const pageTitle = `Landscaping Service Area | Victoria to Duncan | ${business.name}`;
 const pageDescription =
-  "Residential landscaping service area across lower-mid Vancouver Island. Serving Victoria, Saanich, Langford, Colwood, Sooke, Shawnigan Lake, Mill Bay, Chemainus, Duncan, and the Cowichan Valley with fast quotes, tidy cleanup, and clear communication.";
+  "Residential landscaping and property maintenance from Greater Victoria through the Cowichan Valley. Browse the towns served and request a quote.";
 const canonicalUrl = `${business.siteUrl}/service-area`;
 
 const breadcrumbItems = [{ name: "Service Area", href: "/service-area" }];
@@ -37,11 +37,6 @@ const serviceAreaSchema = {
       name: "British Columbia",
     },
   })),
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: business.geo.latitude,
-    longitude: business.geo.longitude,
-  },
   address: {
     "@type": "PostalAddress",
     addressLocality: business.address.locality,
@@ -86,7 +81,7 @@ const structuredData = [
         </p>
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Owner-operated</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Scope reviewed first</span>
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
         </div>
       </div>
@@ -129,7 +124,7 @@ const structuredData = [
               <div class="space-y-2">
                 <h3 class="text-sm font-semibold text-ink">Lawn maintenance</h3>
                 <p class="text-xs leading-relaxed text-ink-soft">
-                  Weekly or bi-weekly mowing, edging, and trimming to keep your lawn looking crisp.
+                  Mowing, edging, and trimming based on your property and requested schedule.
                 </p>
               </div>
               <div class="space-y-2">
@@ -220,7 +215,7 @@ const structuredData = [
             <p class="section-kicker">Get in touch</p>
             <h2 class="mb-2 text-xl font-display font-semibold text-ink sm:text-2xl">Contact us</h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. Josh replies as soon as he sees your message during work hours.
+              Call or text Josh directly, or use the quote form with your town, photos and access details.
             </p>
             <div class="space-y-3 text-sm">
               <a

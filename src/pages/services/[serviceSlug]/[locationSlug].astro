@@ -40,15 +40,15 @@ const isDrivewayService =
 const locationSeoOverrides: Record<string, { title: string; description: string }> = {
   "pressure-washing": {
     title: `Pressure Washing in ${location.name}, BC | ${business.name}`,
-    description: `Pressure washing in ${location.name}, BC for driveways, sidewalks, siding, decks, fences, and concrete. Moss and algae cleanup, residential quotes, and tidy finish.`,
+    description: `Pressure washing in ${location.name}, BC for driveways, sidewalks, siding, decks, fences and concrete. Send surface photos and access details to discuss a quote.`,
   },
   "driveway-grading": {
     title: `Driveway Grading in ${location.name}, BC | ${business.name}`,
-    description: `Driveway grading in ${location.name}, BC for ruts, puddles, washboarding, and uneven gravel surfaces. Homeowners here get fast quotes, clearer runoff, and practical residential service.`,
+    description: `Driveway grading in ${location.name}, BC for ruts, puddles, washboarding and uneven gravel. Send photos and access details to discuss project fit.`,
   },
   "gravel-driveway-installation": {
-    title: `Gravel Driveway Preparation and Refresh in ${location.name}, BC | ${business.name}`,
-    description: `Gravel driveway preparation, fresh aggregate, and driveway refresh work in ${location.name}, BC. Clean edges, better drainage, and practical residential quotes for worn or patchy gravel surfaces.`,
+    title: `Gravel Driveways in ${location.name}, BC | ${business.name}`,
+    description: `Gravel driveway preparation and refresh work in ${location.name}, BC. Send photos of soft spots, puddles or thin gravel to discuss project fit.`,
   },
 };
 
@@ -67,9 +67,9 @@ const locationServiceSeoOverrides: Record<string, { title: string; description: 
       "Planning gravel driveway preparation near Chemainus? Send Josh photos of soft spots, puddles or thin gravel to discuss the work and confirm project fit.",
   },
   "driveway-grading:chemainus": {
-    title: `Driveway Grading in Chemainus, BC | Fix Puddles, Ruts, and Washboarding`,
+    title: `Driveway Grading in Chemainus, BC | ${business.name}`,
     description:
-      "Driveway grading in Chemainus, BC for puddles, ruts, washboarding, and uneven gravel surfaces. Better runoff, smoother access, and practical residential service.",
+      "Driveway grading in Chemainus, BC for puddles, ruts, washboarding and uneven gravel. Send photos and access details to discuss project fit.",
   },
 };
 
@@ -90,7 +90,7 @@ const pageDescription =
     :
   locationServiceSeoOverrides[seoKey]?.description ??
   locationSeoOverrides[service.slug]?.description ??
-  `${service.name} in ${location.name}, BC. ${service.description} Homeowners here get fast quotes, clear communication, and tidy cleanup from start to finish.`;
+  `${service.shortName} in ${location.name}, BC. Send photos and access details so Josh can review the work and discuss a residential quote.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}/${location.slug}`;
 const noindex = isMsA9Noindex(canonicalUrl);
 
@@ -134,11 +134,11 @@ if (service.slug === "gutter-cleaning") {
   pageFaqs.push(
     {
       question: `How often should I book ${service.shortName.toLowerCase()} in ${location.name}?`,
-      answer: `It depends on the property and the season. The main seasons for this work are ${service.seasonalRelevance.join(", ")}, and we can recommend a weekly, bi-weekly, or seasonal schedule based on your yard.`,
+      answer: `It depends on the property, the season and the work requested. The main seasons for this service are ${service.seasonalRelevance.join(", ")}. Send photos and your preferred timing so Josh can review the scope and discuss scheduling.`,
     },
     {
       question: `Can I combine ${service.shortName.toLowerCase()} with other services in ${location.name}?`,
-      answer: `Absolutely. This service can be combined with recurring maintenance, garden bed care, and seasonal cleanup visits — just tell us what you have in mind when you ask for a quote.`,
+      answer: `Tell Josh which other work you have in mind when asking for a quote. He can review the combined scope and access before confirming what can be included.`,
     },
   );
 }
@@ -392,8 +392,8 @@ const localTrustPoints = isChemainusGravel
               </>
             ) : (
               <>
-                {service.longDescription} Homeowners in {location.name} trust us for consistent,
-                friendly service and clear communication from quote to cleanup.
+                {service.longDescription} Send Josh photos of the work, your area and any access
+                details so he can review the scope and discuss a quote.
               </>
             )
           }
@@ -407,8 +407,8 @@ const localTrustPoints = isChemainusGravel
         }
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">{isPriorityGutterPage || isChemainusGravel || isVictoriaPressureWashing ? "Discuss your quote" : "Fast quotes"}</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy cleanup</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Discuss your quote</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Scope reviewed first</span>
         </div>
       </div>
 
@@ -629,7 +629,7 @@ const localTrustPoints = isChemainusGravel
               Book {service.shortName.toLowerCase()}
             </h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. Josh replies as soon as he sees your message during work hours.
+              Call or text Josh directly, or use the quote form with your town, photos and access details.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -730,7 +730,7 @@ const localTrustPoints = isChemainusGravel
           }
         </h2>
         <p class="text-sm text-ink-soft">
-          Need a faster response? Call or text{" "}
+          Prefer to call or text? Reach Josh at{" "}
           <a
             class="font-semibold text-ink hover:text-ink/70"
             href={`tel:${business.phoneTel}`}

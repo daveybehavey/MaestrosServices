@@ -308,31 +308,31 @@ const serviceSpecific =
 
 const seoOverrides: Record<string, { title: string; description: string }> = {
   "pressure-washing": {
-    title: `Pressure Washing Victoria BC Area | Driveways, Decks, Siding | ${business.name}`,
+    title: `Pressure Washing on Vancouver Island | ${business.name}`,
     description:
-      "Residential pressure washing across lower-mid Vancouver Island for driveways, sidewalks, siding, decks, fences, and concrete. Moss and algae cleanup, careful surface-safe washing, and tidy finish.",
+      "Residential pressure washing across lower-mid Vancouver Island for driveways, sidewalks, siding, decks, fences and concrete. Send photos to discuss a quote.",
   },
   "driveway-grading": {
-    title: `Driveway Grading and Gravel Driveway Repair | ${business.name}`,
+    title: `Driveway Grading & Gravel Repair | ${business.name}`,
     description:
-      "Driveway grading, gravel reshaping, and puddle correction across lower-mid Vancouver Island. Better drainage, fewer ruts, and practical residential service with fast quotes.",
+      "Driveway grading and gravel repair across lower-mid Vancouver Island. Send photos of ruts, puddles or washboarding and access details to discuss project fit.",
   },
   "gravel-driveway-installation": {
-    title: `Gravel Driveway Preparation, Refresh, and Installation | ${business.name}`,
+    title: `Gravel Driveway Preparation | ${business.name}`,
     description:
-      "Gravel driveway preparation, fresh aggregate installation, and driveway refresh work across lower-mid Vancouver Island. Clean edges, better runoff, and practical residential quotes.",
+      "Gravel driveway preparation and refresh work across lower-mid Vancouver Island. Send photos of soft spots, puddles or thin gravel to discuss project fit.",
   },
 };
 
 const pageTitle =
   seoOverrides[service.slug]?.title ??
-  `Residential ${service.shortName} on Vancouver Island | ${business.name}`;
+  `${service.shortName} | Vancouver Island | ${business.name}`;
 const pageDescription =
   service.slug === "gutter-cleaning"
     ? "Residential gutter cleaning across lower-mid Vancouver Island. Send Josh photos of your gutters and access details to request a quote."
     :
   seoOverrides[service.slug]?.description ??
-  `${service.description} Residential service across lower-mid Vancouver Island with clear communication, fast quotes, and a clean finish.`;
+  `${service.shortName} across lower-mid Vancouver Island. See what is included and send Josh photos, your town and access details to discuss a residential quote.`;
 const canonicalUrl = `${business.siteUrl}/services/${service.slug}`;
 
 const breadcrumbItems = [
@@ -394,13 +394,13 @@ const contactTrustPoints = [
         <p class="section-kicker">Our services</p>
         <h1 class="section-title">{service.name}</h1>
         <p class="section-copy max-w-3xl">
-          {service.longDescription} Homeowners choose this service when they want reliable
-          scheduling, straightforward pricing, and a clean wrap-up from a residential crew.
+          {service.longDescription} Review what is included, the areas served, and what details to
+          send before asking Josh to confirm the scope and discuss a quote.
         </p>
         <div class="flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-ink-soft">
           <span class="rounded-full border border-border bg-paper px-3 py-1.5">Residential only</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Fast quotes</span>
-          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Tidy cleanup</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Scope reviewed first</span>
+          <span class="rounded-full border border-border bg-paper px-3 py-1.5">Direct quote discussion</span>
         </div>
       </div>
 
@@ -700,7 +700,7 @@ const contactTrustPoints = [
               Request {service.shortName.toLowerCase()}
             </h2>
             <p class="mb-4 text-sm text-ink-soft">
-              Call or text for the fastest response. Josh replies as soon as he sees your message during work hours.
+              Call or text Josh directly, or use the quote form with your town, photos and access details.
             </p>
             <div class="space-y-3 text-sm">
               <a
@@ -734,7 +734,7 @@ const contactTrustPoints = [
           </div>
 
           <div class="rounded-2xl border border-border bg-white/90 p-6 shadow-fine">
-            <p class="section-kicker">Fast quote prep</p>
+            <p class="section-kicker">Quote prep</p>
             <h2 class="mb-3 text-xl font-display font-semibold text-ink sm:text-2xl">
               What helps us quote faster
             </h2>

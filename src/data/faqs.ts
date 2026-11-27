@@ -18,22 +18,22 @@ export const homepageFaqs: FAQ[] = [
   },
   {
     question: "How soon can you start?",
-    answer: "We try to book quickly. Send a few details and we will confirm the next available time.",
+    answer: "Timing depends on the work and the current schedule. Send a few details and Josh will review the scope before confirming timing.",
   },
 ];
 
 export const serviceAreaFaqs: FAQ[] = [
   {
     question: "Do you service my area?",
-    answer: "We serve all communities across lower-mid Vancouver Island, from Victoria to Duncan. If you're within 50km of Shawnigan Lake, we can likely help. Call or text to confirm availability in your neighborhood.",
+    answer: "We serve listed communities across lower-mid Vancouver Island, from Greater Victoria through the Cowichan Valley. Check the service area page, then send your town and job details so Josh can confirm project fit.",
   },
   {
-    question: "Is there a travel fee for areas outside Victoria?",
-    answer: "No travel fees for any location within our standard service area. We keep pricing simple and transparent.",
+    question: "How do I confirm that my property is within the service area?",
+    answer: "Check the towns on the service area page, then send your town and job details. Josh can confirm whether the location and scope are a fit before discussing a quote.",
   },
   {
     question: "How quickly can you start in my area?",
-    answer: "We try to book quickly. Send a few details and we will confirm the next available time for your area. Call or text for the fastest response.",
+    answer: "Timing depends on the work, location and current schedule. Send a few details and Josh will review the scope before confirming timing.",
   },
   {
     question: "Do you offer services outside the listed areas?",
@@ -48,11 +48,11 @@ export const locationFaqs: FAQ[] = [
   },
   {
     question: "How do I get a quote for my property?",
-    answer: "Call or text 250-858-1781 for the fastest response. Josh replies as soon as he sees your message during work hours. You can also fill out our online quote form.",
+    answer: "Call or text 250-858-1781, or use the online quote form. Include your town, photos of the work and any access details so Josh can review the scope.",
   },
   {
     question: "Do you offer recurring maintenance plans?",
-    answer: "Yes, we offer weekly and bi-weekly maintenance plans that include mowing, edging, and basic trimming. Plans can be customized to fit your property's needs.",
+    answer: "Recurring work depends on the property, requested scope and current schedule. Send the details and preferred timing so Josh can confirm what is available.",
   },
   {
     question: "What areas do you serve besides this one?",

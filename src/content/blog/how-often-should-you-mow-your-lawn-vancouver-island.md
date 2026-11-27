@@ -1,6 +1,6 @@
 ---
 title: "How Often Should You Mow Your Lawn on Vancouver Island?"
-description: "Learn how often to mow your lawn on Vancouver Island based on season, grass growth, and property type. A practical guide for homeowners who want a cleaner yard and less stress."
+description: "Learn how mowing frequency changes with Vancouver Island seasons, grass growth and property conditions, plus the signs that it is time to mow."
 pubDate: 2026-05-11
 tags: ["lawn care", "mowing", "vancouver island"]
 relatedServices: ["lawn-mowing", "seasonal-cleanups", "weed-control"]

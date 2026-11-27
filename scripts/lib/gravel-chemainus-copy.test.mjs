@@ -45,7 +45,8 @@ test("driveway location pages do not inject weekly booking FAQs", () => {
     source.indexOf("if (!isDrivewayService)"),
     source.indexOf("if (service.slug === \"gravel-driveway-installation\")"),
   );
-  assert.match(bookingBlock, /weekly, bi-weekly, or seasonal schedule/);
+  assert.doesNotMatch(bookingBlock, /weekly, bi-weekly, or seasonal schedule/);
+  assert.match(bookingBlock, /preferred timing/);
 });
 
 test("quote form applies service query params on the static quote page", () => {
