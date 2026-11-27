@@ -23,6 +23,26 @@ test("Chemainus gravel location page heading stays conservative", () => {
   assert.match(source, /<h1 class="section-title">\{pageHeading\}<\/h1>/);
 });
 
+test("search-opportunity titles stay specific without overpromising scope", () => {
+  const source = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
+  assert.match(source, /Pressure & Power Washing in Victoria, BC/);
+  assert.match(source, /Access Road & Driveway Grading in Cobble Hill/);
+  assert.match(source, /confirm project fit and whether equipment needs affect the quote/);
+  assert.match(source, /Gravel Driveway Preparation Near Chemainus/);
+});
+
+test("high-impression pages have distinct roles and descriptive internal links", () => {
+  const faq = read("src/pages/driveway-faq.astro");
+  const gravelGuide = read("src/content/blog/gravel-driveway-preparation-chemainus.md");
+  const locationPage = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
+
+  assert.match(faq, /Driveway Grading FAQ: Puddles, Ruts & Gravel/);
+  assert.match(faq, /residential driveway grading page/);
+  assert.match(gravelGuide, /Gravel Driveway Preparation Near Chemainus: Repair or Refresh\?/);
+  assert.match(gravelGuide, /Driveway grading near Chemainus/);
+  assert.match(locationPage, /Pressure washing and power washing in Victoria/);
+});
+
 test("Chemainus gravel FAQ is conditional, not an absolute yes", () => {
   const source = read("src/pages/services/[serviceSlug]/[locationSlug].astro");
   assert.match(source, /Can you take on gravel driveway projects in Chemainus\?/);

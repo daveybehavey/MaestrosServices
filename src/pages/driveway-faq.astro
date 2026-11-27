@@ -3,9 +3,9 @@ import Layout from "../components/Layout.astro";
 import { business } from "../data/business";
 import { createBreadcrumbSchema, createFAQSchema } from "../lib/schema";
 
-const pageTitle = "Driveway FAQ | Grading, Gravel, Drainage | Maestros Services";
+const pageTitle = "Driveway Grading FAQ: Puddles, Ruts & Gravel | Maestros Services";
 const pageDescription =
-  "Common questions about driveway grading, gravel refreshes, puddle fixes, and scheduling on Vancouver Island. Get practical answers before you request a quote.";
+  "Compare driveway grading, gravel refreshes and fixes for puddles, ruts or washboarding on Vancouver Island before requesting a quote.";
 const canonicalUrl = `${business.siteUrl}${Astro.url.pathname}`;
 
 const faqs = [
@@ -68,7 +68,8 @@ const structuredData = [
         <h1 class="section-title">Driveway grading and gravel FAQ</h1>
         <p class="text-sm text-ink-soft sm:text-base">
           Quick answers for homeowners comparing driveway grading, gravel refresh work, and drainage
-          fixes on Vancouver Island.
+          fixes on Vancouver Island. Looking for service details? Start with our
+          {" "}<a class="underline" href="/services/driveway-grading/">residential driveway grading page</a>.
         </p>
       </div>
     </div>

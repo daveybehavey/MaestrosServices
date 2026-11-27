@@ -54,17 +54,17 @@ const locationSeoOverrides: Record<string, { title: string; description: string 
 
 const locationServiceSeoOverrides: Record<string, { title: string; description: string }> = {
   "driveway-grading:cobble-hill": {
-    title: "Residential Driveway Grading in Cobble Hill | Maestros Services",
-    description: "Ruts, washboarding or puddles on a gravel driveway in Cobble Hill? Send Josh photos and access details to discuss grading and confirm project fit.",
+    title: "Access Road & Driveway Grading in Cobble Hill | Maestros Services",
+    description: "Access-road and driveway grading near Cobble Hill for ruts, washboarding and puddles. Send photos, length and access details so Josh can confirm project fit.",
   },
   "pressure-washing:victoria": {
-    title: "Residential Pressure Washing in Victoria, BC | Maestros Services",
-    description: "Pressure washing for Victoria driveways, patios, decks, fences and siding. Send Josh surface photos and access details to discuss a residential quote.",
+    title: "Pressure & Power Washing in Victoria, BC | Maestros Services",
+    description: "Residential pressure washing and power washing in Victoria for driveways, patios, walkways, decks, fences and siding. Send photos to discuss project fit.",
   },
   "gravel-driveway-installation:chemainus": {
     title: `Gravel Driveway Preparation Near Chemainus | Maestros Services`,
     description:
-      "Planning gravel driveway preparation near Chemainus? Send Josh photos of soft spots, puddles or thin gravel to discuss the work and confirm project fit.",
+      "Comparing preparation, grading or a partial gravel refresh near Chemainus? Send photos of soft spots, puddles or thin material so Josh can confirm project fit.",
   },
   "driveway-grading:chemainus": {
     title: `Driveway Grading in Chemainus, BC | ${business.name}`,
@@ -375,7 +375,10 @@ const localTrustPoints = isChemainusGravel
               </>
             ) : isCobbleHillGrading ? (
               <>
-                If your gravel driveway in Cobble Hill has ruts, washboarding or recurring puddles, send Josh photos of the full driveway and the problem areas. Include the approximate length, your area and access details so he can review the work and discuss a quote.
+                If your gravel driveway or smaller access road near Cobble Hill has ruts,
+                washboarding or recurring puddles, send Josh photos of the full run and the
+                problem areas. Include the approximate length and access details so he can
+                confirm project fit and whether equipment needs affect the quote.
               </>
             ) : isVictoriaPressureWashing ? (
               <>
@@ -438,9 +441,11 @@ const localTrustPoints = isChemainusGravel
               </p>
             )}
             {isVictoriaPressureWashing && (
-              <p class="mb-6 border-b border-border pb-6 text-sm leading-relaxed text-ink-soft">
-                Not sure which area to tackle first? Read our <a class="underline" href="/blog/power-washing-victoria-bc-what-to-clean-first/">Victoria pressure-washing guide: what to clean first</a> for help comparing driveways, walkways, patios and decks.
-              </p>
+              <div class="mb-6 space-y-3 border-b border-border pb-6 text-sm leading-relaxed text-ink-soft">
+                <h2 class="text-2xl font-display font-semibold text-ink">Pressure washing and power washing in Victoria</h2>
+                <p>Homeowners often use both terms for the same exterior-cleaning service. The right method still depends on the material, condition and type of buildup, so Josh reviews surface photos before confirming the approach.</p>
+                <p>Not sure which area to tackle first? Read our <a class="underline" href="/blog/power-washing-victoria-bc-what-to-clean-first/">Victoria pressure-washing guide: what to clean first</a> for help comparing driveways, walkways, patios and decks.</p>
+              </div>
             )}
             {isChemainusGravel && (
               <div class="mb-6 space-y-3 border-b border-border pb-6 text-sm leading-relaxed text-ink-soft">
