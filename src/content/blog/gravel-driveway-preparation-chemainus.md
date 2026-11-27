@@ -1,6 +1,6 @@
 ---
-title: "Gravel Driveway Preparation and Repairs in Chemainus, BC"
-description: "If a gravel driveway in Chemainus, BC has soft spots, puddles, ruts, or edge breakdown, a practical repair or refresh may help before the problem gets worse."
+title: "Gravel Driveway Preparation Near Chemainus: Repair or Refresh?"
+description: "Compare preparation, grading and gravel refresh options for ruts, puddles, soft spots and thin material near Chemainus before requesting a quote."
 pubDate: 2026-05-25
 tags: ["gravel driveway", "driveway preparation", "driveway repair", "Chemainus"]
 relatedServices: ["gravel-driveway-installation"]
@@ -91,5 +91,6 @@ If you are not sure whether a smaller repair will be enough, that is normal. Pho
 Next helpful pages:
 
 - [Send photos for a gravel driveway quote](/quote?service=gravel#quote)
-- [/services/gravel-driveway-installation/chemainus](/services/gravel-driveway-installation/chemainus)
-- [/driveway-faq](/driveway-faq)
+- [Gravel driveway preparation near Chemainus](/services/gravel-driveway-installation/chemainus/)
+- [Driveway grading near Chemainus](/services/driveway-grading/chemainus/)
+- [Driveway grading and gravel FAQ](/driveway-faq/)
